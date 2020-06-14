@@ -85,12 +85,12 @@ void GameApp::DrawScene()
 {
 	assert(m_pd3dImmediateContext);
 	assert(m_pSwapChain);
-	constexpr static float black[4] = { 0.0f, 0.0f, 0.0f, 1.0f };	// RGBA = (0,0,0,255)
+	static const float black[4] = { 0.0f, 0.0f, 0.0f, 1.0f };	// RGBA = (0,0,0,255)
 	m_pd3dImmediateContext->ClearRenderTargetView(m_pRenderTargetView.Get(), black);
 	m_pd3dImmediateContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	// 绘制立方体
-	m_pd3dImmediateContext->DrawIndexed(36, 0, 0);
+	m_pd3dImmediateContext->DrawIndexed(72, 0, 0);
 	HR(m_pSwapChain->Present(0, 0));
 }
 
@@ -126,14 +126,27 @@ bool GameApp::InitResource()
 	//  0       3
 	VertexPosColor vertices[] =
 	{
-		{ XMFLOAT3(-2.0f, -2.0f, -2.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(-2.0f, 2.0f, -2.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(2.0f, 2.0f, -2.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(2.0f, -2.0f, -2.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-		{ XMFLOAT3(-2.0f, -2.0f, 2.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(-2.0f, 2.0f, 2.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(2.0f, 2.0f, 2.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(2.0f, -2.0f, 2.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) }
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+		// 视角转换为顶点所在方向"指北"
+		// 上顶点
+		{ XMFLOAT3(0.0f, 3.0f, 0.0f), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f) },
+		// 下顶点
+		{ XMFLOAT3(0.0f, -3.0f, 0.0f), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f) },
+		// 左顶点
+		{ XMFLOAT3(-3.0f, 0.0f, 0.0f), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f) },
+		// 右顶点
+		{ XMFLOAT3(3.0f, 0.0f, 0.0f), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f) },
+		// 前顶点
+		{ XMFLOAT3(0.0f, 0.0f, -3.0f), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f) },
+		// 后顶点
+		{ XMFLOAT3(0.0f, 0.0f, 3.0f), XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f) }
 	};
 	// 设置顶点缓冲区描述
 	/*
@@ -177,27 +190,63 @@ bool GameApp::InitResource()
 
 	// ******************
 	// 索引数组
+	// 没有顺序要求,但要求每组点按顺时针排列
 	//
 	DWORD indices[] = 
 	{
-		// 正面
-		0, 1, 2,
-		2, 3, 0,
-		// 左面
-		4, 5, 1,
-		1, 0, 4,
-		// 顶面
-		1, 5, 6,
-		6, 2, 1,
-		// 背面
-		7, 6, 5,
-		5, 4, 7,
-		// 右面
-		3, 2, 6,
-		6, 7, 3,
-		// 底面
-		4, 0, 3,
-		3, 7, 4
+		// 上前顶面
+		1, 8, 2,
+		// 上左顶面
+		5, 8, 1,
+		// 上后顶面
+		6, 8, 5,
+		// 上右顶面
+		2, 8, 6,
+		
+		// 下前顶面
+		3, 9, 0,
+		// 下左顶面
+		7, 9, 3,
+		// 下后顶面
+		4, 9, 7,
+		// 下右顶面
+		0, 9, 4,
+		
+		// 左前顶面
+		0, 10, 1,
+		// 左左顶面
+		4, 10, 0,
+		// 左后顶面
+		5, 10, 4,
+		// 左右顶面
+		1, 10, 5,
+
+		// 右前顶面
+		2, 11, 3,
+		// 右左顶面
+		6, 11, 2,
+		// 右后顶面
+		7, 11, 6,
+		// 右右顶面
+		3, 11, 7,
+
+		// 前前顶面
+		0, 12, 3,
+		// 前左顶面
+		1, 12, 0,
+		// 前后顶面
+		2, 12, 1,
+		// 前右顶面
+		3, 12, 2,
+
+		// 后前顶面
+		5, 13, 6,
+		// 后左顶面
+		4, 13, 5,
+		// 后后顶面
+		7, 13, 4,
+		// 后右顶面
+		6, 13, 7
 	};
 	// 设置索引缓冲区描述
 	D3D11_BUFFER_DESC ibd;

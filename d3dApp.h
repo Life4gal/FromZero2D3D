@@ -3,6 +3,8 @@
 
 #include <wrl/client.h>
 #include <string>
+#include <d2d1.h>
+#include <dwrite.h>
 #include <d3d11_1.h>
 #include <DirectXMath.h>
 #include "Mouse.h"
@@ -10,6 +12,8 @@
 #include "GameTimer.h"
 
 // 添加所有要引用的库
+#pragma comment(lib, "d2d1.lib")
+#pragma comment(lib, "dwrite.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -37,11 +41,10 @@ public:
 	// 窗口的消息回调函数
 protected:
 	bool InitMainWindow();      // 窗口初始化
+	bool InitDirect2D();		// Direct2D初始化
 	bool InitDirect3D();        // Direct3D初始化
 
 	void CalculateFrameStats() const; // 计算每秒帧数并在窗口显示
-
-protected:
 
 	HINSTANCE m_hAppInst;        // 应用实例句柄
 	HWND      m_hMainWnd;        // 主窗口句柄
@@ -58,6 +61,10 @@ protected:
 	// 使用模板别名(C++11)简化类型名
 	template <class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
+	// Direct2D
+	ComPtr<ID2D1Factory> m_pd2dFactory;							// D2D工厂
+	ComPtr<ID2D1RenderTarget> m_pd2dRenderTarget;				// D2D渲染目标
+	ComPtr<IDWriteFactory> m_pdwriteFactory;					// DWrite工厂
 	// Direct3D 11
 	ComPtr<ID3D11Device> m_pd3dDevice;                    // D3D11设备
 	ComPtr<ID3D11DeviceContext> m_pd3dImmediateContext;   // D3D11设备上下文
@@ -66,6 +73,7 @@ protected:
 	ComPtr<ID3D11Device1> m_pd3dDevice1;                  // D3D11.1设备
 	ComPtr<ID3D11DeviceContext1> m_pd3dImmediateContext1; // D3D11.1设备上下文
 	ComPtr<IDXGISwapChain1> m_pSwapChain1;                // D3D11.1交换链
+
 	// 常用资源
 	ComPtr<ID3D11Texture2D> m_pDepthStencilBuffer;        // 深度模板缓冲区
 	ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;   // 渲染目标视图

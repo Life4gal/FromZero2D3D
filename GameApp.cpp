@@ -5,7 +5,15 @@
 using namespace DirectX;
 
 GameApp::GameApp(HINSTANCE hInstance)
-	: D3DApp(hInstance)
+	:
+	D3DApp(hInstance),
+	m_IndexCount(),
+	m_VSConstantBuffer(),
+	m_PSConstantBuffer(),
+	m_DirLight(),
+	m_PointLight(),
+	m_SpotLight(),
+	m_IsWireframeMode()
 {
 }
 
@@ -33,7 +41,111 @@ bool GameApp::Init()
 
 void GameApp::OnResize()
 {
+	assert(m_pd2dFactory);
+	assert(m_pdwriteFactory);
+	// 释放D2D的相关资源
+	/*
+		在这里D2D的相关资源需要在D3D相关资源释放前先行释放掉，
+		然后在D3D重设后备缓冲区后重新创建D2D渲染目标。
+		至于D2D后续的相关资源也需要重新创建好来
+	 */
+	m_pColorBrush.Reset();
+	m_pd2dRenderTarget.Reset();
+	
 	D3DApp::OnResize();
+
+	// 为D2D创建DXGI表面渲染目标
+	ComPtr<IDXGISurface> surface;
+	HR(m_pSwapChain->GetBuffer(0, __uuidof(IDXGISurface), reinterpret_cast<void**>(surface.GetAddressOf())));
+	/*
+		typedef struct D2D1_RENDER_TARGET_PROPERTIES
+		{
+		    D2D1_RENDER_TARGET_TYPE type;   // 渲染目标类型枚举值
+		    D2D1_PIXEL_FORMAT pixelFormat;  
+		    FLOAT dpiX;                     // X方向每英寸像素点数，设为0.0f使用默认DPI
+		    FLOAT dpiY;                     // Y方向每英寸像素点数，设为0.0f使用默认DPI
+		    D2D1_RENDER_TARGET_USAGE usage; // 渲染目标用途枚举值
+		    D2D1_FEATURE_LEVEL minLevel;    // D2D最小特性等级
+
+		} D2D1_RENDER_TARGET_PROPERTIES;
+
+		typedef struct D2D1_PIXEL_FORMAT
+		{
+		    DXGI_FORMAT format;             // DXGI格式
+		    D2D1_ALPHA_MODE alphaMode;      // 混合模式
+
+		} D2D1_PIXEL_FORMAT;
+	 */
+	D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+		D2D1_RENDER_TARGET_TYPE_DEFAULT,
+		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
+	);
+	/*
+		HRESULT ID2D1Factory::CreateDxgiSurfaceRenderTarget(
+		    IDXGISurface *dxgiSurface,          // [In]DXGI表面
+		    const D2D1_RENDER_TARGET_PROPERTIES *renderTargetProperties,    // [In]D2D渲染目标属性
+		    ID2D1RenderTarget **renderTarget    // [Out]得到的D2D渲染目标
+		);
+	 */
+	const HRESULT hr = m_pd2dFactory->CreateDxgiSurfaceRenderTarget(surface.Get(), &props, m_pd2dRenderTarget.GetAddressOf());
+	surface.Reset();
+
+	if (hr == E_NOINTERFACE)
+	{
+		OutputDebugStringW(
+			L"\n警告：Direct2D与Direct3D互操作性功能受限，你将无法看到文本信息。现提供下述可选方法：\n"
+			L"1. 对于Win7系统，需要更新至Win7 SP1，并安装KB2670838补丁以支持Direct2D显示。\n"
+			L"2. 自行完成Direct3D 10.1与Direct2D的交互。详情参阅："
+			L"https://docs.microsoft.com/zh-cn/windows/desktop/Direct2D/direct2d-and-direct3d-interoperation-overview""\n"
+			L"3. 使用别的字体库，比如FreeType。\n\n"
+		);
+	}
+	else if (hr == S_OK)
+	{
+		// 创建固定颜色刷和文本格式
+		/*
+			HRESULT ID2D1RenderTarget::CreateSolidColorBrush(
+			    const D2D1_COLOR_F &color,  // [In]颜色
+			    ID2D1SolidColorBrush **solidColorBrush // [Out]输出的颜色刷
+			);
+
+			这里会默认指定Alpha值为1.0
+			D2D1_COLOR_F是一个包含r,g,b,a浮点数的结构体，
+			但其实还有一种办法可以指定颜色，
+			就是利用它的继承类D2D1::ColorF中的构造函数，
+			以及D2D1::ColorF::Enum枚举类型来指定要使用的颜色
+		 */
+		HR(m_pd2dRenderTarget->CreateSolidColorBrush(
+			D2D1::ColorF(D2D1::ColorF::White),
+			m_pColorBrush.GetAddressOf())
+		);
+		/*
+			HRESULT IDWriteFactory::CreateTextFormat(
+			    const WCHAR * fontFamilyName,           // [In]字体系列名称
+			    IDWriteFontCollection * fontCollection, // [In]通常用nullptr来表示使用系统字体集合 
+			    DWRITE_FONT_WEIGHT  fontWeight,         // [In]字体粗细程度枚举值
+			    DWRITE_FONT_STYLE  fontStyle,           // [In]字体样式枚举值
+			    DWRITE_FONT_STRETCH  fontStretch,       // [In]字体拉伸程度枚举值
+			    FLOAT  fontSize,                        // [In]字体大小
+			    const WCHAR * localeName,               // [In]区域名称
+			    IDWriteTextFormat ** textFormat);       // [Out]创建的文本格式
+
+			字体样式如下：
+			枚举值						样式
+			DWRITE_FONT_STYLE_NORMAL	默认
+			DWRITE_FONT_STYLE_OBLIQUE	斜体
+			DWRITE_FONT_STYLE_ITALIC	意大利体
+		*/
+		HR(m_pdwriteFactory->CreateTextFormat(L"微软雅黑", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
+			DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 20, L"zh-cn",
+			m_pTextFormat.GetAddressOf())
+		);
+	}
+	else
+	{
+		// 报告异常问题
+		assert(m_pd2dRenderTarget);
+	}
 }
 
 void GameApp::UpdateScene(float dt)
@@ -151,6 +263,34 @@ void GameApp::DrawScene()
 	// 绘制几何模型
 	m_pd3dImmediateContext->DrawIndexed(m_IndexCount, 0, 0);
 
+	// 绘制Direct2D部分
+	//
+	if (m_pd2dRenderTarget != nullptr)
+	{
+		m_pd2dRenderTarget->BeginDraw();
+		std::wstring textStr = 
+			L"切换灯光类型: 1-平行光 2-点光 3-聚光灯\n"
+			L"切换模型: Q-立方体 W-球体 E-圆柱体 R-圆锥体\n"
+			L"S-切换模式 当前模式: ";
+		if (m_IsWireframeMode)
+			textStr += L"线框模式";
+		else
+			textStr += L"面模式";
+		/*
+			void ID2D1RenderTarget::DrawTextW(
+			    WCHAR *string,                      // [In]要输出的文本
+			    UINT stringLength,                  // [In]文本长度，用wcslen函数或者wstring::length方法获取即可
+			    IDWriteTextFormat *textFormat,      // [In]文本格式
+			    const D2D1_RECT_F &layoutRect,      // [In]布局区域
+			    ID2D1Brush *defaultForegroundBrush, // [In]使用的前景刷
+			    D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE,
+			    DWRITE_MEASURING_MODE measuringMode = DWRITE_MEASURING_MODE_NATURAL);
+		 */
+		m_pd2dRenderTarget->DrawTextW(textStr.c_str(), static_cast<UINT32>(textStr.size()), m_pTextFormat.Get(),
+			D2D1_RECT_F{ 0.0f, 0.0f, 600.0f, 200.0f }, m_pColorBrush.Get());
+		HR(m_pd2dRenderTarget->EndDraw());
+	}
+	
 	HR(m_pSwapChain->Present(0, 0));
 }
 

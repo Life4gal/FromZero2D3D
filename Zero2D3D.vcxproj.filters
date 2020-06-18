@@ -48,12 +48,15 @@
     <ClInclude Include="Geometry.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="WICTextureLoader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="d3dApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="d3dUtil.cpp">
@@ -77,21 +80,36 @@
     <ClCompile Include="Vertex.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="WICTextureLoader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="d3dApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="HLSL\Light.hlsli">
+    <FxCompile Include="HLSL\Basic_PS_3D.hlsl">
       <Filter>着色器</Filter>
-    </None>
+    </FxCompile>
+    <FxCompile Include="HLSL\Basic_VS_2D.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\Basic_VS_3D.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\Basic_PS_2D.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="HLSL\LightHelper.hlsli">
       <Filter>着色器</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="HLSL\Light_PS.hlsl">
+    <None Include="HLSL\Basic.hlsli">
       <Filter>着色器</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\Light_VS.hlsl">
-      <Filter>着色器</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

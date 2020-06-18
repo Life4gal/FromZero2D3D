@@ -2,7 +2,7 @@
 
 #### 以及他的[**<u>项目</u>**](https://github.com/MKXJun/DX11-Without-DirectX-SDK)和[**<u>博客</u>**](https://www.cnblogs.com/X-Jun/p/9028764.html)
 
-![X_Jun天神](./PNG/X_Jun天神.jpg)
+![X_Jun天神](./PIC/X_Jun天神.jpg)
 
 
 

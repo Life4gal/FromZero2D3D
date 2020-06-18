@@ -20,7 +20,7 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 D3DApp::D3DApp(HINSTANCE hInstance)
-	: m_hAppInst(hInstance),
+	: 
 	m_hMainWnd(nullptr),
 	m_AppPaused(false),
 	m_Minimized(false),
@@ -65,18 +65,18 @@ HWND D3DApp::MainWnd()const
 
 float D3DApp::AspectRatio()const
 {
-	return static_cast<float>(m_ClientWidth) / m_ClientHeight;
+	return static_cast<float>(m_ClientWidth) / static_cast<float>(m_ClientHeight);
 }
 
 int D3DApp::Run()
 {
-	MSG msg = { 0 };
+	MSG msg{};
 
 	m_Timer.Reset();
 
 	while (msg.message != WM_QUIT)
 	{
-		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -98,11 +98,14 @@ int D3DApp::Run()
 		}
 	}
 
-	return (int)msg.wParam;
+	return static_cast<int>(msg.wParam);
 }
 
 bool D3DApp::Init()
 {
+	m_pMouse = std::make_unique<DirectX::Mouse>();
+	m_pKeyboard = std::make_unique<DirectX::Keyboard>();
+	
 	if (!InitMainWindow())
 		return false;
 
@@ -141,7 +144,6 @@ void D3DApp::OnResize()
 
 	backBuffer.Reset();
 
-
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
 
 	depthStencilDesc.Width = m_ClientWidth;
@@ -162,8 +164,6 @@ void D3DApp::OnResize()
 		depthStencilDesc.SampleDesc.Quality = 0;
 	}
 	
-
-
 	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
 	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthStencilDesc.CPUAccessFlags = 0;
@@ -300,23 +300,43 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		// Catch this message so to prevent the window from becoming too small.
 	case WM_GETMINMAXINFO:
-		((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
-		((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
+		reinterpret_cast<MINMAXINFO*>(lParam)->ptMinTrackSize.x = 200;
+		reinterpret_cast<MINMAXINFO*>(lParam)->ptMinTrackSize.y = 200;
 		return 0;
+
+		// 监测这些键盘/鼠标事件
+	case WM_INPUT:
 
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
 	case WM_RBUTTONDOWN:
-		return 0;
+	case WM_XBUTTONDOWN:
+
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:
 	case WM_RBUTTONUP:
-		return 0;
-	case WM_MOUSEMOVE:
-		return 0;
-	}
+	case WM_XBUTTONUP:
 
-	return DefWindowProc(hwnd, msg, wParam, lParam);
+	case WM_MOUSEWHEEL:
+	case WM_MOUSEHOVER:
+	case WM_MOUSEMOVE:
+		m_pMouse->ProcessMessage(msg, wParam, lParam);
+		return 0;
+
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+		return 0;
+
+	case WM_ACTIVATEAPP:
+		m_pMouse->ProcessMessage(msg, wParam, lParam);
+		m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+		return 0;
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
 }
 
 
@@ -328,29 +348,29 @@ bool D3DApp::InitMainWindow()
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = m_hAppInst;
-	wc.hIcon = LoadIcon(0, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(0, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
-	wc.lpszMenuName = 0;
+	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(NULL_BRUSH));
+	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = L"D3DWndClassName";
 
 	if (!RegisterClass(&wc))
 	{
-		MessageBox(0, L"RegisterClass Failed.", 0, 0);
+		MessageBox(nullptr, L"RegisterClass Failed.", nullptr, 0);
 		return false;
 	}
 
 	// Compute window rectangle dimensions based on requested client area dimensions.
-	RECT R = { 0, 0, m_ClientWidth, m_ClientHeight };
-	AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);
-	int width = R.right - R.left;
-	int height = R.bottom - R.top;
+	RECT rect = { 0, 0, m_ClientWidth, m_ClientHeight };
+	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+	const int width = rect.right - rect.left;
+	const int height = rect.bottom - rect.top;
 
 	m_hMainWnd = CreateWindow(L"D3DWndClassName", m_MainWndCaption.c_str(),
-		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, m_hAppInst, 0);
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, m_hAppInst, nullptr);
 	if (!m_hMainWnd)
 	{
-		MessageBox(0, L"CreateWindow Failed.", 0, 0);
+		MessageBox(nullptr, L"CreateWindow Failed.", nullptr, 0);
 		return false;
 	}
 
@@ -376,7 +396,7 @@ bool D3DApp::InitDirect3D()
 		D3D_DRIVER_TYPE_WARP,
 		D3D_DRIVER_TYPE_REFERENCE,
 	};
-	UINT numDriverTypes = ARRAYSIZE(driverTypes);
+	const UINT numDriverTypes = ARRAYSIZE(driverTypes);
 
 	// 特性等级数组
 	D3D_FEATURE_LEVEL featureLevels[] =
@@ -384,13 +404,12 @@ bool D3DApp::InitDirect3D()
 		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0,
 	};
-	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+	const UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
 	D3D_FEATURE_LEVEL featureLevel;
-	D3D_DRIVER_TYPE d3dDriverType;
 	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 	{
-		d3dDriverType = driverTypes[driverTypeIndex];
+		const D3D_DRIVER_TYPE d3dDriverType = driverTypes[driverTypeIndex];
 		hr = D3D11CreateDevice(nullptr, d3dDriverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
 			D3D11_SDK_VERSION, m_pd3dDevice.GetAddressOf(), &featureLevel, m_pd3dImmediateContext.GetAddressOf());
 
@@ -407,14 +426,14 @@ bool D3DApp::InitDirect3D()
 
 	if (FAILED(hr))
 	{
-		MessageBox(0, L"D3D11CreateDevice Failed.", 0, 0);
+		MessageBox(nullptr, L"D3D11CreateDevice Failed.", nullptr, 0);
 		return false;
 	}
 
 	// 检测是否支持特性等级11.0或11.1
 	if (featureLevel != D3D_FEATURE_LEVEL_11_0 && featureLevel != D3D_FEATURE_LEVEL_11_1)
 	{
-		MessageBox(0, L"Direct3D Feature Level 11 unsupported.", 0, 0);
+		MessageBox(nullptr, L"Direct3D Feature Level 11 unsupported.", nullptr, 0);
 		return false;
 	}
 
@@ -521,7 +540,7 @@ bool D3DApp::InitDirect3D()
 	return true;
 }
 
-void D3DApp::CalculateFrameStats()
+void D3DApp::CalculateFrameStats() const
 {
 	// 该代码计算每秒帧速，并计算每一帧渲染需要的时间，显示在窗口标题
 	static int frameCnt = 0;
@@ -531,8 +550,8 @@ void D3DApp::CalculateFrameStats()
 
 	if ((m_Timer.TotalTime() - timeElapsed) >= 1.0f)
 	{
-		float fps = (float)frameCnt; // fps = frameCnt / 1
-		float mspf = 1000.0f / fps;
+		const float fps = static_cast<float>(frameCnt); // fps = frameCnt / 1
+		const float mspf = 1000.0f / fps;
 
 		std::wostringstream outs;
 		outs.precision(6);

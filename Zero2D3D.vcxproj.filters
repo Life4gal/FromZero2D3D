@@ -33,6 +33,21 @@
     <ClInclude Include="GameTimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="LightHelper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -53,17 +68,29 @@
     <ClCompile Include="GameTimer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="HLSL\Cube.hlsli">
+    <None Include="HLSL\Light.hlsli">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="HLSL\LightHelper.hlsli">
       <Filter>着色器</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="HLSL\Cube_PS.hlsl">
+    <FxCompile Include="HLSL\Light_PS.hlsl">
       <Filter>着色器</Filter>
     </FxCompile>
-    <FxCompile Include="HLSL\Cube_VS.hlsl">
+    <FxCompile Include="HLSL\Light_VS.hlsl">
       <Filter>着色器</Filter>
     </FxCompile>
   </ItemGroup>

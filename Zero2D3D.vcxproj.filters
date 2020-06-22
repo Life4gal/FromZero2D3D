@@ -9,49 +9,69 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="资源文件">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="着色器">
       <UniqueIdentifier>{50b7f63c-60d2-4937-9a4f-b09785e88d13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="模块文件">
+      <UniqueIdentifier>{43f0d550-03de-435d-9b4e-2c0858d94818}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="模块文件\头文件">
+      <UniqueIdentifier>{99a8102b-4725-49bf-933c-a8e37781c2b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="模块文件\源文件">
+      <UniqueIdentifier>{42435fe2-1d5c-4fdf-954b-5c8fa61b15bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通用文件">
+      <UniqueIdentifier>{36bbc28d-f672-4bc8-8448-a69d087f24c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通用文件\头文件">
+      <UniqueIdentifier>{fa6b14ff-7a25-4dc0-8abf-d7767fe82cbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="通用文件\源文件">
+      <UniqueIdentifier>{198929d6-ee3c-4de0-9cfd-208ad2abb544}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dApp.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="d3dUtil.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DXTrace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="GameApp.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="GameTimer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Keyboard.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Mouse.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="LightHelper.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="d3dUtil.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DXTrace.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GameTimer.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
     <ClInclude Include="Vertex.h">
-      <Filter>头文件</Filter>
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>通用文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>通用文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>通用文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WICTextureLoader.h">
+      <Filter>通用文件\头文件</Filter>
     </ClInclude>
     <ClInclude Include="Geometry.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="WICTextureLoader.h">
+    <ClInclude Include="Transform.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DDSTextureLoader.h">
+    <ClInclude Include="Camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -59,34 +79,40 @@
     <ClCompile Include="Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="d3dUtil.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DXTrace.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="GameApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="d3dApp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="d3dUtil.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DXTrace.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
     <ClCompile Include="GameTimer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Keyboard.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Mouse.cpp">
-      <Filter>源文件</Filter>
+      <Filter>模块文件\源文件</Filter>
     </ClCompile>
     <ClCompile Include="Vertex.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="WICTextureLoader.cpp">
-      <Filter>源文件</Filter>
+      <Filter>模块文件\源文件</Filter>
     </ClCompile>
     <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>通用文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>通用文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Mouse.cpp">
+      <Filter>通用文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WICTextureLoader.cpp">
+      <Filter>通用文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="d3dApp.cpp">
+    <ClCompile Include="Camera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

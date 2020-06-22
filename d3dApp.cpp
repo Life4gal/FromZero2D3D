@@ -53,17 +53,17 @@ D3DApp::~D3DApp()
 		m_pd3dImmediateContext->ClearState();
 }
 
-HINSTANCE D3DApp::AppInst()const
+HINSTANCE D3DApp::AppInst() const
 {
 	return m_hAppInst;
 }
 
-HWND D3DApp::MainWnd()const
+HWND D3DApp::MainWnd() const
 {
 	return m_hMainWnd;
 }
 
-float D3DApp::AspectRatio()const
+float D3DApp::AspectRatio() const
 {
 	return static_cast<float>(m_ClientWidth) / static_cast<float>(m_ClientHeight);
 }
@@ -363,14 +363,27 @@ bool D3DApp::InitMainWindow()
 		return false;
 	}
 
+	// 将窗口调整到中心
+	const int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	const int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	
 	// Compute window rectangle dimensions based on requested client area dimensions.
 	RECT rect = { 0, 0, m_ClientWidth, m_ClientHeight };
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 	const int width = rect.right - rect.left;
 	const int height = rect.bottom - rect.top;
 
-	m_hMainWnd = CreateWindow(L"D3DWndClassName", m_MainWndCaption.c_str(),
-		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, m_hAppInst, nullptr);
+	m_hMainWnd = CreateWindow(
+		L"D3DWndClassName", 
+		m_MainWndCaption.c_str(),
+		WS_OVERLAPPEDWINDOW, 
+		(screenWidth - width) / 2, (screenHeight - height) / 2, width, height, 
+		nullptr, 
+		nullptr, 
+		m_hAppInst, 
+		nullptr
+	);
+	
 	if (!m_hMainWnd)
 	{
 		MessageBox(nullptr, L"CreateWindow Failed.", nullptr, 0);

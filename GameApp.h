@@ -4,27 +4,42 @@
 #include "d3dApp.h"
 #include "LightHelper.h"
 #include "Geometry.h"
+#include "Camera.h"
 
-class GameApp : public D3DApp
+class GameApp final : public D3DApp
 {
 public:
 	GameApp(HINSTANCE hInstance);
 	~GameApp();
+
+	GameApp(const GameApp&) = delete;
+	GameApp(const GameApp&&) = delete;
+	GameApp& operator=(GameApp&) = delete;
+	GameApp& operator=(GameApp&&) = delete;
 
 	bool Init() override;
 	void OnResize() override;
 	void UpdateScene(float dt) override;
 	void DrawScene() override;
 
-	struct VSConstantBuffer
+	struct CBChangesEveryDrawing
 	{
 		DirectX::XMMATRIX world;
-		DirectX::XMMATRIX view;
-		DirectX::XMMATRIX proj;
 		DirectX::XMMATRIX worldInvTranspose;
 	};
 
-	struct PSConstantBuffer
+	struct CBChangesEveryFrame
+	{
+		DirectX::XMMATRIX view;
+		DirectX::XMFLOAT4 eyePos;
+	};
+
+	struct CBChangesOnResize
+	{
+		DirectX::XMMATRIX proj;
+	};
+
+	struct CBChangesRarely
 	{
 		DirectionalLight dirLight[10];
 		PointLight pointLight[10];
@@ -34,17 +49,46 @@ public:
 		int numPointLight;
 		int numSpotLight;
 		float pad;		// 打包保证16字节对齐
-		DirectX::XMFLOAT4 eyePos;
 	};
 
-	enum class ShowMode { WoodCrate, FireAnim };
+	// 一个尽可能小的游戏对象类
+	class GameObject
+	{
+	public:
+		GameObject();
+
+		// 获取物体变换
+		Transform& GetTransform();
+		// 获取物体变换
+		const Transform& GetTransform() const;
+
+		// 设置缓冲区
+		template<class VertexType, class IndexType>
+		void SetBuffer(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData);
+		// 设置纹理
+		void SetTexture(ID3D11ShaderResourceView* texture);
+
+		// 绘制
+		void Draw(ID3D11DeviceContext* deviceContext);
+
+		// 设置调试对象名
+		// 若缓冲区被重新设置，调试对象名也需要被重新设置
+		void SetDebugObjectName(const std::string& name) const;
+	private:
+		Transform m_Transform;								// 物体变换信息
+		ComPtr<ID3D11ShaderResourceView> m_pTexture;		// 纹理
+		ComPtr<ID3D11Buffer> m_pVertexBuffer;				// 顶点缓冲区
+		ComPtr<ID3D11Buffer> m_pIndexBuffer;				// 索引缓冲区
+		UINT m_VertexStride;								// 顶点字节大小
+		UINT m_IndexCount;								    // 索引数目	
+	};
+
+	// 摄像机模式
+	enum class CameraMode { FirstPerson, ThirdPerson, Free };
 
 private:
 	bool InitEffect();
 	bool InitResource();
-	
-	template<class VertexType>
-	bool ResetMesh(const Geometry::MeshData<VertexType>& meshData);
 
 	ComPtr<ID2D1SolidColorBrush> m_pColorBrush;	    // 单色笔刷
 	ComPtr<IDWriteFont> m_pFont;					// 字体
@@ -52,25 +96,25 @@ private:
 	
 	ComPtr<ID3D11InputLayout> m_pVertexLayout2D;	// 用于2D的顶点输入布局
 	ComPtr<ID3D11InputLayout> m_pVertexLayout3D;	// 用于3D的顶点输入布局
-	ComPtr<ID3D11Buffer> m_pVertexBuffer;		// 顶点缓冲区
-	ComPtr<ID3D11Buffer> m_pIndexBuffer;			// 索引缓冲区
-	ComPtr<ID3D11Buffer> m_pConstantBuffers[2];		    // 常量缓冲区
-	UINT m_IndexCount;								// 绘制物体的索引数组大小
-	int m_CurrFrame;								// 当前火焰动画播放到第几帧
-	ShowMode m_CurrMode;							// 当前显示的模式
+	ComPtr<ID3D11Buffer> m_pConstantBuffers[4];		    // 常量缓冲区
 
-	//ComPtr<ID3D11ShaderResourceView> m_pWoodCrate;			    // 木盒纹理
-	std::vector<ComPtr<ID3D11ShaderResourceView>> m_pWoodCrates;
-	std::vector<ComPtr<ID3D11ShaderResourceView>> m_pFireAnims; // 火焰纹理集
-	ComPtr<ID3D11SamplerState> m_pSamplerState;				    // 采样器状态
-	
+	GameObject m_WoodCrate;									    // 木盒
+	GameObject m_Floor;										    // 地板
+	std::vector<GameObject> m_Walls;
+
 	ComPtr<ID3D11VertexShader> m_pVertexShader3D;				// 用于3D的顶点着色器
 	ComPtr<ID3D11PixelShader> m_pPixelShader3D;				    // 用于3D的像素着色器
 	ComPtr<ID3D11VertexShader> m_pVertexShader2D;				// 用于2D的顶点着色器
 	ComPtr<ID3D11PixelShader> m_pPixelShader2D;				    // 用于2D的像素着色器
-	
-	VSConstantBuffer m_VSConstantBuffer;			// 用于修改用于VS的GPU常量缓冲区的变量
-	PSConstantBuffer m_PSConstantBuffer;			// 用于修改用于PS的GPU常量缓冲区的变量
+
+	CBChangesEveryFrame m_CBFrame;							    // 该缓冲区存放仅在每一帧进行更新的变量
+	CBChangesOnResize m_CBOnResize;							    // 该缓冲区存放仅在窗口大小变化时更新的变量
+	CBChangesRarely m_CBRarely;								    // 该缓冲区存放不会再进行修改的变量
+
+	ComPtr<ID3D11SamplerState> m_pSamplerState;				    // 采样器状态
+
+	std::shared_ptr<Camera> m_pCamera;						    // 摄像机
+	CameraMode m_CameraMode;									// 摄像机模式
 };
 
 #endif

@@ -77,7 +77,7 @@ protected:
 	ComPtr<ID3D11Texture2D> m_pDepthStencilBuffer;        // 深度模板缓冲区
 	ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;   // 渲染目标视图
 	ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;   // 深度模板视图
-	D3D11_VIEWPORT m_ScreenViewport;                      // 视口
+	D3D11_VIEWPORT m_ScreenViewport{};                      // 视口
 
 	// 键鼠输入
 	std::unique_ptr<DirectX::Mouse> m_pMouse;						// 鼠标

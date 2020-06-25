@@ -62,6 +62,11 @@ public:
 		// 获取物体变换
 		const Transform& GetTransform() const;
 
+		// 平移
+		void Strafe(float d);
+		// 直行(平面移动)
+		void Walk(float d);
+
 		// 设置缓冲区
 		template<class VertexType, class IndexType>
 		void SetBuffer(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData);
@@ -83,8 +88,22 @@ public:
 		UINT m_IndexCount;								    // 索引数目	
 	};
 
+	// IMGUI
+	class ImguiPanel
+	{
+	public:
+		// 渲染 IMGUI 面板
+		void Draw() const;
+		// 绘制 IMGUI 面板,必须在 其他2D/3D部分渲染完毕 之后且在 SwapChain->Present 前调用,不然不会显示面板
+		static void Present();
+
+		DirectX::XMFLOAT3 up{};
+		DirectX::XMFLOAT3 right{};
+		DirectX::XMFLOAT3 look{};
+	};
+
 	// 摄像机模式
-	enum class CameraMode { FirstPerson, ThirdPerson, Free };
+	enum class CameraMode { FirstPerson, ThirdPerson };
 
 private:
 	bool InitEffect();
@@ -100,7 +119,8 @@ private:
 
 	GameObject m_WoodCrate;									    // 木盒
 	GameObject m_Floor;										    // 地板
-	std::vector<GameObject> m_Walls;
+	std::vector<GameObject> m_Walls;							// 墙
+	ImguiPanel m_imgui_panel;									// 面板
 
 	ComPtr<ID3D11VertexShader> m_pVertexShader3D;				// 用于3D的顶点着色器
 	ComPtr<ID3D11PixelShader> m_pPixelShader3D;				    // 用于3D的像素着色器

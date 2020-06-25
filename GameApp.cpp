@@ -156,6 +156,9 @@ void GameApp::OnResize()
 	}
 }
 
+// IMGUI是否需要获取鼠标控制权
+bool g_is_imgui_capture_mouse = false;
+
 void GameApp::UpdateScene(float dt)
 {
 	 // 更新鼠标事件，获取相对偏移量
@@ -164,56 +167,73 @@ void GameApp::UpdateScene(float dt)
 	const Keyboard::State keyState = m_pKeyboard->GetState();
 	m_KeyboardTracker.Update(keyState);
 
-	// 获取子类
-	auto first_person_camera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
-	auto third_person_camera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
-
-	Transform& woodCrateTransform = m_WoodCrate.GetTransform();
-
-	if (m_CameraMode == CameraMode::FirstPerson || m_CameraMode == CameraMode::Free)
+	if (m_CameraMode == CameraMode::FirstPerson || (m_CameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl)))
 	{
-		// 第一人称/自由摄像机的操作
-
-		// 方向移动
 		if (keyState.IsKeyDown(Keyboard::W))
 		{
-			if (m_CameraMode == CameraMode::FirstPerson)
-				first_person_camera->Walk(dt * 6.0f);
-			else
-				first_person_camera->MoveForward(dt * 6.0f);
+			m_WoodCrate.Walk(dt * 6.0f);
 		}
 		if (keyState.IsKeyDown(Keyboard::S))
 		{
-			if (m_CameraMode == CameraMode::FirstPerson)
-				first_person_camera->Walk(dt * -6.0f);
-			else
-				first_person_camera->MoveForward(dt * -6.0f);
+			m_WoodCrate.Walk(dt * -6.0f);
 		}
 		if (keyState.IsKeyDown(Keyboard::A))
-			first_person_camera->Strafe(dt * -6.0f);
+		{
+			m_WoodCrate.Strafe(dt * -6.0f);
+		}
 		if (keyState.IsKeyDown(Keyboard::D))
-			first_person_camera->Strafe(dt * 6.0f);
+		{
+			m_WoodCrate.Strafe(dt * 6.0f);
+		}
+	}
+
+	if (m_CameraMode == CameraMode::FirstPerson)
+	{
+		auto first_person_camera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
+		Transform& transform = m_WoodCrate.GetTransform();
 
 		// 将摄像机位置限制在[-8.9, 8.9]x[-8.9, 8.9]x[0.0, 8.9]的区域内
 		// 不允许穿地
-		const XMVECTOR adjustedPos = XMVectorClamp(first_person_camera->GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f));
-		first_person_camera->SetPosition(adjustedPos);
+		XMFLOAT3 adjustedPos{};
+		XMStoreFloat3(&adjustedPos, XMVectorClamp(transform.GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f)));
 
-		// 仅在第一人称模式移动摄像机的同时移动箱子
-		if (m_CameraMode == CameraMode::FirstPerson)
-			woodCrateTransform.SetPosition(adjustedPos);
+		transform.SetPosition(adjustedPos);
+		transform.LookTo(first_person_camera->GetLookAxis());
+		first_person_camera->SetPosition(adjustedPos.x, adjustedPos.y + 3, adjustedPos.z);
+
 		// 在鼠标没进入窗口前仍为ABSOLUTE模式
 		if (mouseState.positionMode == Mouse::MODE_RELATIVE)
 		{
 			first_person_camera->Pitch(static_cast<float>(mouseState.y) * dt * 2.5f);
 			first_person_camera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
 		}
-	}
-	else if (m_CameraMode == CameraMode::ThirdPerson)
-	{
-		// 第三人称摄像机的操作
-		third_person_camera->SetTarget(woodCrateTransform.GetPosition());
 
+		if(keyState.IsKeyDown(Keyboard::LeftControl))
+		{
+			m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
+			g_is_imgui_capture_mouse = true;
+		}
+		else
+		{
+			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
+			g_is_imgui_capture_mouse = false;
+		}
+	}
+	else if(m_CameraMode == CameraMode::ThirdPerson)
+	{
+		g_is_imgui_capture_mouse = false;
+		auto third_person_camera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
+
+		Transform& transform = m_WoodCrate.GetTransform();
+
+		XMFLOAT3 adjustedPos{};
+		XMStoreFloat3(&adjustedPos, XMVectorClamp(transform.GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f)));
+
+		transform.SetPosition(adjustedPos);
+		transform.LookTo(third_person_camera->GetLookAxis());
+		
+		// 设置目标
+		third_person_camera->SetTarget(m_WoodCrate.GetTransform().GetPosition());
 		// 绕物体旋转
 		third_person_camera->RotateX(static_cast<float>(mouseState.y) * dt * 2.5f);
 		third_person_camera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
@@ -230,6 +250,10 @@ void GameApp::UpdateScene(float dt)
 	// 摄像机模式切换
 	if (m_KeyboardTracker.IsKeyPressed(Keyboard::D1) && m_CameraMode != CameraMode::FirstPerson)
 	{
+		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
+		const XMFLOAT3 look = m_pCamera->GetLookAxis();
+		const XMFLOAT3 up = m_pCamera->GetUpAxis();
+		auto first_person_camera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
 		if (!first_person_camera)
 		{
 			first_person_camera.reset(new FirstPersonCamera);
@@ -237,47 +261,44 @@ void GameApp::UpdateScene(float dt)
 			m_pCamera = first_person_camera;
 		}
 
-		first_person_camera->LookTo(woodCrateTransform.GetPosition(),
-			XMFLOAT3(0.0f, 0.0f, 1.0f),
-			XMFLOAT3(0.0f, 1.0f, 0.0f));
+		first_person_camera->LookTo(
+			m_WoodCrate.GetTransform().GetPosition(),
+			look,
+			up
+		);
 
 		m_CameraMode = CameraMode::FirstPerson;
 	}
 	else if (m_KeyboardTracker.IsKeyPressed(Keyboard::D2) && m_CameraMode != CameraMode::ThirdPerson)
 	{
+		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
+		const XMFLOAT3 look = m_pCamera->GetLookAxis();
+		const XMFLOAT3 up = m_pCamera->GetUpAxis();
+		auto third_person_camera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
 		if (!third_person_camera)
 		{
 			third_person_camera.reset(new ThirdPersonCamera);
 			third_person_camera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
 			m_pCamera = third_person_camera;
 		}
-		third_person_camera->SetTarget(woodCrateTransform.GetPosition());
+		
+		third_person_camera->SetTarget(m_WoodCrate.GetTransform().GetPosition(), true, look, up);
 		third_person_camera->SetDistance(8.0f);
 		third_person_camera->SetDistanceMinMax(3.0f, 20.0f);
 
 		m_CameraMode = CameraMode::ThirdPerson;
 	}
-	else if (m_KeyboardTracker.IsKeyPressed(Keyboard::D3) && m_CameraMode != CameraMode::Free)
-	{
-		if (!first_person_camera)
-		{
-			first_person_camera.reset(new FirstPersonCamera);
-			first_person_camera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
-			m_pCamera = first_person_camera;
-		}
-		// 从箱子上方开始
-		XMFLOAT3 pos = woodCrateTransform.GetPosition();
-		pos.y += 3;
-		const XMFLOAT3 to = XMFLOAT3(0.0f, 0.0f, 1.0f);
-		const XMFLOAT3 up = XMFLOAT3(0.0f, 1.0f, 0.0f);
-		first_person_camera->LookTo(pos, to, up);
-
-		m_CameraMode = CameraMode::Free;
-	}
 
 	// 退出程序，这里应向窗口发送销毁信息
 	if (keyState.IsKeyDown(Keyboard::Escape))
+	{
 		SendMessage(MainWnd(), WM_DESTROY, 0, 0);
+	}
+	
+	Transform& transform = m_WoodCrate.GetTransform();
+	XMStoreFloat3(&m_imgui_panel.look, transform.GetForwardAxisXM());
+	XMStoreFloat3(&m_imgui_panel.up, transform.GetUpAxisXM());
+	XMStoreFloat3(&m_imgui_panel.right, transform.GetRightAxisXM());
 
 	D3D11_MAPPED_SUBRESOURCE mappedData;
 	/*
@@ -314,6 +335,13 @@ void GameApp::UpdateScene(float dt)
 		);
 	*/
 	m_pd3dImmediateContext->Unmap(m_pConstantBuffers[1].Get(), 0);
+
+	// 让盒子绕Y轴旋转
+	// @TODO 由于是盒子决定摄像机,且直接移动盒子(原来是相反),需要找到一个合适的旋转方式
+	//Transform& transform = m_WoodCrate.GetTransform();
+	//static float phi = 0.0f;
+	//phi += 0.001f;
+	//transform.Rotate(XMVectorSet(0.0f, XM_PI * phi, 0.0f, 0.0f));
 }
 
 void GameApp::DrawScene()
@@ -321,6 +349,8 @@ void GameApp::DrawScene()
 	assert(m_pd3dImmediateContext);
 	assert(m_pSwapChain);
 
+	m_imgui_panel.Draw();
+	
 	m_pd3dImmediateContext->ClearRenderTargetView(m_pRenderTargetView.Get(), Colors::Black);
 	m_pd3dImmediateContext->ClearDepthStencilView(m_pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	
@@ -337,16 +367,19 @@ void GameApp::DrawScene()
 	if (m_pd2dRenderTarget != nullptr)
 	{
 		m_pd2dRenderTarget->BeginDraw();
-		std::wstring text = L"切换摄像机模式: 1-第一人称 2-第三人称 3-自由视角\n"
-			L"W/S/A/D 前进/后退/左平移/右平移 (第三人称无效)  Esc退出\n"
-			L"鼠标移动控制视野 滚轮控制第三人称观察距离\n"
-			L"当前模式: ";
+		std::wstring text =
+			L"切换摄像机模式: 1-第一人称 2-第三人称\n"
+			L"第一人称或者第三人称且按住左CTRL的情况下移动\n"
+			L"ESC 退出, 当前模式: ";
+			//L"Camera Mode: 1-FP 2-TP\n"
+			//L"Use W/S/A/D in FP or hold L-CTRL in TP to move\n"
+			//L"ESC escape, Current Mode: ";
 		if (m_CameraMode == CameraMode::FirstPerson)
-			text += L"第一人称(控制箱子移动)";
+			text += L"第一人称";
+			//text += L"FP";
 		else if (m_CameraMode == CameraMode::ThirdPerson)
-			text += L"第三人称";
-		else
-			text += L"自由视角";
+			text += L"第三人称(按住左CTRL移动)";
+			//text += L"TP(hold L-CTRL to move)";
 		/*
 			void ID2D1RenderTarget::DrawTextW(
 			    WCHAR *string,                      // [In]要输出的文本
@@ -361,6 +394,9 @@ void GameApp::DrawScene()
 			D2D1_RECT_F{ 0.0f, 0.0f, 600.0f, 200.0f }, m_pColorBrush.Get());
 		HR(m_pd2dRenderTarget->EndDraw());
 	}
+	
+	// 绘制Dear ImGui
+	m_imgui_panel.Present();
 	
 	HR(m_pSwapChain->Present(0, 0));
 }
@@ -436,8 +472,7 @@ bool GameApp::InitResource()
 
 	// 初始化地板
 	HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"Texture\\floor.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-	m_Floor.SetBuffer(m_pd3dDevice.Get(),
-		Geometry::CreatePlane(XMFLOAT2(20.0f, 20.0f), XMFLOAT2(5.0f, 5.0f)));
+	m_Floor.SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(20.0f, 20.0f), XMFLOAT2(5.0f, 5.0f)));
 	m_Floor.SetTexture(texture.Get());
 	m_Floor.GetTransform().SetPosition(0.0f, -1.0f, 0.0f);
 
@@ -447,8 +482,7 @@ bool GameApp::InitResource()
 	// 这里控制墙体四个面的生成
 	for (int i = 0; i < 4; ++i)
 	{
-		m_Walls[i].SetBuffer(m_pd3dDevice.Get(),
-			Geometry::CreatePlane(XMFLOAT2(20.0f, 8.0f), XMFLOAT2(5.0f, 1.5f)));
+		m_Walls[i].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(20.0f, 8.0f), XMFLOAT2(5.0f, 1.5f)));
 		Transform& transform = m_Walls[i].GetTransform();
 		transform.SetRotation(-XM_PIDIV2, XM_PIDIV2 * static_cast<float>(i), 0.0f);
 		transform.SetPosition(i % 2 ? -10.0f * static_cast<float>(i - 2) : 0.0f, 3.0f, i % 2 == 0 ? -10.0f * static_cast<float>(i - 1) : 0.0f);
@@ -739,6 +773,17 @@ const Transform& GameApp::GameObject::GetTransform() const
 	return m_Transform;
 }
 
+void GameApp::GameObject::Strafe(float d)
+{
+	m_Transform.Translate(m_Transform.GetRightAxisXM(), d);
+}
+
+void GameApp::GameObject::Walk(float d)
+{
+	// 右轴叉积上轴并单位向量化得到前轴(Z轴)
+	m_Transform.Translate(XMVector3Normalize(XMVector3Cross(m_Transform.GetRightAxisXM(), g_XMIdentityR1)), d);
+}
+
 template<class VertexType, class IndexType>
 void GameApp::GameObject::SetBuffer(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData)
 {
@@ -798,6 +843,7 @@ void GameApp::GameObject::Draw(ID3D11DeviceContext* deviceContext)
 
 	// 内部进行转置
 	const XMMATRIX W = m_Transform.GetLocalToWorldMatrixXM();
+	
 	CBChangesEveryDrawing cbDrawing
 	{
 		XMMatrixTranspose(W),
@@ -824,4 +870,41 @@ void GameApp::GameObject::SetDebugObjectName(const std::string& name) const
 #else
 	UNREFERENCED_PARAMETER(name);
 #endif
+}
+
+void GameApp::ImguiPanel::Draw() const
+{
+	//
+	// 开始当前Dear ImGui帧渲染
+	//
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	static bool show_demo_window = false;
+
+	ImGui::Begin(u8"控制窗口");
+	ImGui::Text(u8"当前图像三轴方向: ");
+	ImGui::Text(u8"\tLook: (%.3f, %.3f, %.3f)", look.x, look.y, look.z);
+	ImGui::Text(u8"\tUp: (%.3f, %.3f, %.3f)", up.x, up.y, up.z);
+	ImGui::Text(u8"\tRight: (%.3f, %.3f, %.3f)", up.x, up.y, up.z);
+
+	ImGui::Checkbox(u8"显示演示窗口", &show_demo_window);
+
+	ImGui::End();
+
+	if (show_demo_window)
+	{
+		ImGui::ShowDemoWindow(&show_demo_window);
+	}
+
+	//
+	// 完成剩余的3D渲染
+	//
+	ImGui::Render();
+}
+
+void GameApp::ImguiPanel::Present()
+{
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }

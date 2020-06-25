@@ -23,9 +23,23 @@ float Camera::GetRotationY() const
 	return m_Transform.GetRotation().y;
 }
 
+XMFLOAT3 Camera::GetRightAxis() const
+{
+	XMFLOAT3 right{};
+	XMStoreFloat3(&right, m_Transform.GetRightAxisXM());
+	return right;
+}
+
 XMVECTOR Camera::GetRightAxisXM() const
 {
 	return m_Transform.GetRightAxisXM();
+}
+
+XMFLOAT3 Camera::GetUpAxis() const
+{
+	XMFLOAT3 up{};
+	XMStoreFloat3(&up, m_Transform.GetUpAxisXM());
+	return up;
 }
 
 XMVECTOR Camera::GetUpAxisXM() const
@@ -33,9 +47,31 @@ XMVECTOR Camera::GetUpAxisXM() const
 	return m_Transform.GetUpAxisXM();
 }
 
+XMFLOAT3 Camera::GetLookAxis() const
+{
+	XMFLOAT3 look{};
+	XMStoreFloat3(&look, m_Transform.GetForwardAxisXM());
+	return look;
+}
+
 XMVECTOR Camera::GetLookAxisXM() const
 {
 	return m_Transform.GetForwardAxisXM();
+}
+
+void Camera::SetPosition(const XMFLOAT3& pos)
+{
+	m_Transform.SetPosition(pos);
+}
+
+void Camera::SetPosition(const XMVECTOR& pos)
+{
+	m_Transform.SetPosition(pos);
+}
+
+void Camera::SetPosition(float x, float y, float z)
+{
+	m_Transform.SetPosition(x, y, z);
 }
 
 XMMATRIX Camera::GetViewXM() const
@@ -88,22 +124,7 @@ void Camera::SetViewPort(float topLeftX, float topLeftY, float width, float heig
 
 FirstPersonCamera::~FirstPersonCamera() = default;
 
-void FirstPersonCamera::SetPosition(const XMFLOAT3& pos)
-{
-	m_Transform.SetPosition(pos);
-}
-
-void FirstPersonCamera::SetPosition(const XMVECTOR& pos)
-{
-	m_Transform.SetPosition(pos);
-}
-
-void FirstPersonCamera::SetPosition(float x, float y, float z)
-{
-	m_Transform.SetPosition(x, y, z);
-}
-
-void FirstPersonCamera::LookAt(const XMFLOAT3& pos, const XMFLOAT3 & target,const XMFLOAT3 & up)
+void FirstPersonCamera::LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3& up)
 {
 	m_Transform.SetPosition(pos);
 	m_Transform.LookAt(target, up);
@@ -115,7 +136,7 @@ void FirstPersonCamera::LookAt(const XMVECTOR& pos, const XMFLOAT3& target, cons
 	m_Transform.LookAt(target, up);
 }
 
-void FirstPersonCamera::LookTo(const XMFLOAT3 & pos, const XMFLOAT3 & to, const XMFLOAT3 & up)
+void FirstPersonCamera::LookTo(const XMFLOAT3& pos, const XMFLOAT3& to, const XMFLOAT3& up)
 {
 	m_Transform.SetPosition(pos);
 	m_Transform.LookTo(to, up);
@@ -242,14 +263,22 @@ void ThirdPersonCamera::SetRotationY(float rad)
 	m_Transform.Translate(m_Transform.GetForwardAxisXM(), -m_Distance);
 }
 
-void ThirdPersonCamera::SetTarget(const XMFLOAT3& target)
+void ThirdPersonCamera::SetTarget(const XMFLOAT3& target, bool lookTo, const XMFLOAT3& to, const XMFLOAT3& up)
 {
 	m_Target = target;
+	if(lookTo)
+	{
+		m_Transform.LookTo(to, up);
+	}
 }
 
-void ThirdPersonCamera::SetTarget(const XMVECTOR& target)
+void ThirdPersonCamera::SetTarget(const XMVECTOR& target, bool lookTo, const XMFLOAT3& to, const XMFLOAT3& up)
 {
 	XMStoreFloat3(&m_Target, target);
+	if (lookTo)
+	{
+		m_Transform.LookTo(to, up);
+	}
 }
 
 void ThirdPersonCamera::SetDistance(float dist)

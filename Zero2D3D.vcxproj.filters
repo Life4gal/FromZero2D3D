@@ -30,6 +30,15 @@
     <Filter Include="通用文件\源文件">
       <UniqueIdentifier>{198929d6-ee3c-4de0-9cfd-208ad2abb544}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{f8063327-1931-4a39-a82a-ecd8c9c1bb7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui\头文件">
+      <UniqueIdentifier>{82e03f40-136d-4d37-b4fe-311e8bf6bacd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui\源文件">
+      <UniqueIdentifier>{85182b0b-6419-445d-86b0-dbdc871dc735}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dApp.h">
@@ -74,6 +83,27 @@
     <ClInclude Include="Camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ImGui\imgui.h">
+      <Filter>ImGui\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_dx11.h">
+      <Filter>ImGui\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_win32.h">
+      <Filter>ImGui\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imconfig.h">
+      <Filter>ImGui\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_textedit.h">
+      <Filter>ImGui\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_internal.h">
+      <Filter>ImGui\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_rectpack.h">
+      <Filter>ImGui\头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -114,6 +144,24 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
+      <Filter>ImGui\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_win32.cpp">
+      <Filter>ImGui\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui.cpp">
+      <Filter>ImGui\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_draw.cpp">
+      <Filter>ImGui\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_widgets.cpp">
+      <Filter>ImGui\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_demo.cpp">
+      <Filter>ImGui\源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

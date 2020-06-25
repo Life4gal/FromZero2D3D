@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-Transform::Transform(const DirectX::XMFLOAT3& scale, const DirectX::XMFLOAT3& rotation, const DirectX::XMFLOAT3& position)
+Transform::Transform(const XMFLOAT3& scale, const XMFLOAT3& rotation, const XMFLOAT3& position)
 	: m_Scale(scale), m_Rotation(rotation), m_Position(position)
 {
 }
@@ -123,7 +123,7 @@ void Transform::RotateAxis(const XMVECTOR& axis, float radian)
 	// 绕轴旋转，先根据当前欧拉角得到旋转矩阵，然后更新，最后还原欧拉角
 	XMMATRIX R = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_Rotation));
 	
-	R *= XMMatrixRotationAxis(axis, XMConvertToRadians(radian));
+	R *= XMMatrixRotationAxis(axis, radian);
 	
 	XMFLOAT4X4 rotMatrix{};
 	XMStoreFloat4x4(&rotMatrix, R);
@@ -141,7 +141,7 @@ void Transform::RotateAround(const XMVECTOR& point, const XMVECTOR& axis, float 
 	// 以point作为原点进行旋转
 	XMMATRIX RT = XMMatrixRotationRollPitchYawFromVector(rotation) * XMMatrixTranslationFromVector(position - point);
 	
-	RT *= XMMatrixRotationAxis(axis, XMConvertToRadians(radian));
+	RT *= XMMatrixRotationAxis(axis, radian);
 	RT *= XMMatrixTranslationFromVector(point);
 	
 	XMFLOAT4X4 rotMatrix{};

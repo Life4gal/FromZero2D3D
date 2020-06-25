@@ -51,6 +51,11 @@ D3DApp::~D3DApp()
 	// 恢复所有默认设定
 	if (m_pd3dImmediateContext)
 		m_pd3dImmediateContext->ClearState();
+	
+	// 关闭ImGui
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
 
 HINSTANCE D3DApp::AppInst() const
@@ -113,6 +118,9 @@ bool D3DApp::Init()
 		return false;
 	
 	if (!InitDirect3D())
+		return false;
+	
+	if (!InitImGui())
 		return false;
 
 	return true;
@@ -196,6 +204,9 @@ void D3DApp::OnResize()
 	D3D11SetDebugObjectName(m_pRenderTargetView.Get(), "BackBufferRTV[0]");
 
 }
+
+extern bool g_is_imgui_capture_mouse;
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -323,8 +334,14 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEWHEEL:
 	case WM_MOUSEHOVER:
 	case WM_MOUSEMOVE:
-		m_pMouse->ProcessMessage(msg, wParam, lParam);
-		return 0;
+		{
+			if (g_is_imgui_capture_mouse)
+			{
+				return ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
+			}
+			m_pMouse->ProcessMessage(msg, wParam, lParam);
+			return 0;
+		}
 
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
@@ -337,6 +354,7 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		m_pMouse->ProcessMessage(msg, wParam, lParam);
 		m_pKeyboard->ProcessMessage(msg, wParam, lParam);
 		return 0;
+		
 	default:
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
@@ -561,6 +579,32 @@ bool D3DApp::InitDirect3D()
 	// 每当窗口被重新调整大小的时候，都需要调用这个OnResize函数。现在调用
 	// 以避免代码重复
 	OnResize();
+
+	return true;
+}
+
+bool D3DApp::InitImGui() const
+{
+	// 设置Dear ImGui上下文
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+	ImFontConfig font_config;
+    font_config.OversampleH = 2;
+    font_config.OversampleV = 1;
+    font_config.PixelSnapH = true;
+    font_config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixels up
+    font_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
+	// 微软雅黑-常规
+    io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/msyh.ttc", 18.0f, &font_config, io.Fonts->GetGlyphRangesChineseFull());
+    
+	// 设置Dear ImGui界面风格
+	ImGui::StyleColorsDark();
+
+	// 设置平台/渲染器的绑定
+	ImGui_ImplWin32_Init(MainWnd());
+	ImGui_ImplDX11_Init(m_pd3dDevice.Get(), m_pd3dImmediateContext.Get());
 
 	return true;
 }

@@ -396,7 +396,7 @@ void GameApp::DrawScene()
 	}
 	
 	// 绘制Dear ImGui
-	m_imgui_panel.Present();
+	ImguiPanel::Present();
 	
 	HR(m_pSwapChain->Present(0, 0));
 }
@@ -884,10 +884,10 @@ void GameApp::ImguiPanel::Draw() const
 	static bool show_demo_window = false;
 
 	ImGui::Begin(u8"控制窗口");
-	ImGui::Text(u8"当前图像三轴方向: ");
+	ImGui::Text(u8"当前图形三轴方向: ");
 	ImGui::Text(u8"\tLook: (%.3f, %.3f, %.3f)", look.x, look.y, look.z);
 	ImGui::Text(u8"\tUp: (%.3f, %.3f, %.3f)", up.x, up.y, up.z);
-	ImGui::Text(u8"\tRight: (%.3f, %.3f, %.3f)", up.x, up.y, up.z);
+	ImGui::Text(u8"\tRight: (%.3f, %.3f, %.3f)", right.x, right.y, right.z);
 
 	ImGui::Checkbox(u8"显示演示窗口", &show_demo_window);
 

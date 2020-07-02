@@ -157,6 +157,33 @@ void Transform::Translate(const XMVECTOR& direction, float magnitude)
 
 void Transform::LookAt(const XMFLOAT3& target, const XMFLOAT3& up)
 {
+	/*
+		若已知Q为摄像机的位置，T为摄像机对准的观察目标点，j为世界空间“向上”方向的单位向量。
+		以平面xOz作为场景中的“地平面”，并以世界空间的y轴作为摄像机“向上”的方向。因此，j = (0,1,0)仅是平行于世界空间中y轴的一个单位向量，虚拟摄像机的观察方向为：
+
+		||vector||表示取向量的模长,做分母用于取单位向量
+		虚拟摄像机局部空间的z轴:
+		w = T−Q / ||T−Q||
+		虚拟摄像机局部空间的x轴：
+		u = j×w / ||j×w||		// 这里用的是叉积(外积)
+		虚拟摄像机局部空间的y轴：
+		v = w×u
+		因为w和u是互相正交的单位向量，所以v也必为单位向量。因此我们也无须对向量v进行规范化处理了。
+
+		针对上述计算观察矩阵的处理流程提供了以下函数：
+		// 观察矩阵
+		XMMATRIX XMMatrixLookAtLH(  // 输出视图变换矩阵V
+			FXMVECTOR EyePosition,      // 输入摄影机坐标
+			FXMVECTOR FocusPosition,    // 输入摄影机焦点坐标
+			FXMVECTOR UpDirection);     // 输入摄影机上朝向坐标
+
+		// 透视投影矩阵
+		XMMATRIX XMMatrixPerspectiveFovLH( // 返回投影矩阵
+			FLOAT FovAngleY,                   // 中心垂直弧度
+			FLOAT AspectRatio,                 // 宽高比
+			FLOAT NearZ,                       // 近平面距离
+			FLOAT FarZ);                       // 远平面距离
+	 */
 	const XMMATRIX View = XMMatrixLookAtLH(
 		XMLoadFloat3(&m_Position), 
 		XMLoadFloat3(&target), 

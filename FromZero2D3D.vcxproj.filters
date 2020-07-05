@@ -140,6 +140,9 @@
     <ClInclude Include="ImguiPanel.h">
       <Filter>ImGui\头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -210,6 +213,9 @@
     </ClCompile>
     <ClCompile Include="ImguiPanel.cpp">
       <Filter>ImGui\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

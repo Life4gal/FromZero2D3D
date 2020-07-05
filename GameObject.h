@@ -9,6 +9,7 @@
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
 
+#include "d3dUtil.h"
 #include "Effects.h"
 #include "Geometry.h"
 #include "Transform.h"
@@ -27,13 +28,6 @@ public:
 	Transform& GetTransform();
 	// 获取物体变换
 	const Transform& GetTransform() const;
-
-	// 平移
-	void Strafe(float d);
-	// 直行(平面移动)
-	void Walk(float d);
-	// 跳跃
-	void Jump(float d);
 	
 	// 设置缓冲区
 	template<class VertexType, class IndexType>

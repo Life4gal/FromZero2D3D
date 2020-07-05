@@ -1,5 +1,5 @@
 #include "GameObject.h"
-#include "d3dUtil.h"
+
 using namespace DirectX;
 
 GameObject::GameObject()
@@ -18,22 +18,6 @@ Transform& GameObject::GetTransform()
 const Transform& GameObject::GetTransform() const
 {
 	return m_Transform;
-}
-
-void GameObject::Strafe(float d)
-{
-	m_Transform.Translate(m_Transform.GetRightAxisXM(), d);
-}
-
-void GameObject::Walk(float d)
-{
-	// 右轴叉积上轴并单位向量化得到前轴(Z轴)
-	m_Transform.Translate(XMVector3Normalize(XMVector3Cross(m_Transform.GetRightAxisXM(), g_XMIdentityR1)), d);
-}
-
-void GameObject::Jump(float d)
-{
-	m_Transform.Translate(g_XMIdentityR1, d);
 }
 
 void GameObject::SetTexture(ID3D11ShaderResourceView* texture)

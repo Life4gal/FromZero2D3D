@@ -163,38 +163,37 @@ void GameApp::UpdateScene(float dt)
 	{
 		if (keyState.IsKeyDown(Keyboard::W))
 		{
-			m_WoodCrate.Walk(dt * 6.0f);
+			m_player.Walk(dt * 6.0f);
 		}
 		if (keyState.IsKeyDown(Keyboard::S))
 		{
-			m_WoodCrate.Walk(dt * -6.0f);
+			m_player.Walk(dt * -6.0f);
 		}
 		if (keyState.IsKeyDown(Keyboard::A))
 		{
-			m_WoodCrate.Strafe(dt * -6.0f);
+			m_player.Strafe(dt * -6.0f);
 		}
 		if (keyState.IsKeyDown(Keyboard::D))
 		{
-			m_WoodCrate.Strafe(dt * 6.0f);
-		}
-		if (keyState.IsKeyDown(Keyboard::Space))
-		{
-			m_WoodCrate.Jump(dt * 5.0f);
+			m_player.Strafe(dt * 6.0f);
 		}
 	}
 
 	if (m_CameraMode == CameraMode::FirstPerson)
 	{
 		auto first_person_camera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
-		Transform& transform = m_WoodCrate.GetTransform();
+		m_player.AdjustPosition();
+		//Transform& transform = m_player.GetTransform();
+		
 		// 将摄像机位置限制在[-8.9, 8.9]x[-8.9, 8.9]x[0.0, 8.9]的区域内
 		// 不允许穿地
-		XMFLOAT3 adjustedPos{};
-		XMStoreFloat3(&adjustedPos, XMVectorClamp(transform.GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f)));
-
-		transform.SetPosition(adjustedPos);
-		transform.LookTo(first_person_camera->GetLookAxis());
-		first_person_camera->SetPosition(adjustedPos.x, adjustedPos.y + 3, adjustedPos.z);
+		//XMFLOAT3 adjustedPos{};
+		//XMStoreFloat3(&adjustedPos, XMVectorClamp(transform.GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f)));
+		//transform.SetPosition(adjustedPos);
+		//transform.LookTo(first_person_camera->GetLookAxis());
+		// 第一人称摄像机距物体中心偏一点
+		const XMFLOAT3 position = m_player.GetTransform().GetPosition();
+		first_person_camera->SetPosition(position.x, position.y + 1.5f, position.z + 1.5f);
 
 		// 在鼠标没进入窗口前仍为ABSOLUTE模式
 		if (mouseState.positionMode == Mouse::MODE_RELATIVE)
@@ -218,17 +217,16 @@ void GameApp::UpdateScene(float dt)
 	{
 		g_is_imgui_capture_mouse = false;
 		auto third_person_camera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
+		m_player.AdjustPosition();
+		//Transform& transform = m_player.GetTransform();
 
-		Transform& transform = m_WoodCrate.GetTransform();
-
-		XMFLOAT3 adjustedPos{};
-		XMStoreFloat3(&adjustedPos, XMVectorClamp(transform.GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f)));
-
-		transform.SetPosition(adjustedPos);
-		transform.LookTo(third_person_camera->GetLookAxis());
+		//XMFLOAT3 adjustedPos{};
+		//XMStoreFloat3(&adjustedPos, XMVectorClamp(transform.GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f)));
+		//transform.SetPosition(adjustedPos);
+		//transform.LookTo(third_person_camera->GetLookAxis());
 		
 		// 设置目标
-		third_person_camera->SetTarget(m_WoodCrate.GetTransform().GetPosition());
+		third_person_camera->SetTarget(m_player.GetTransform().GetPosition());
 		// 绕物体旋转
 		third_person_camera->RotateX(static_cast<float>(mouseState.y) * dt * 2.5f);
 		third_person_camera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
@@ -257,7 +255,7 @@ void GameApp::UpdateScene(float dt)
 		}
 
 		first_person_camera->LookTo(
-			m_WoodCrate.GetTransform().GetPosition(),
+			m_player.GetTransform().GetPosition(),
 			look,
 			up
 		);
@@ -277,7 +275,7 @@ void GameApp::UpdateScene(float dt)
 			m_pCamera = third_person_camera;
 		}
 		
-		third_person_camera->SetTarget(m_WoodCrate.GetTransform().GetPosition(), true, look, up);
+		third_person_camera->SetTarget(m_player.GetTransform().GetPosition(), true, look, up);
 		third_person_camera->SetDistance(8.0f);
 		third_person_camera->SetDistanceMinMax(3.0f, 20.0f);
 
@@ -290,12 +288,7 @@ void GameApp::UpdateScene(float dt)
 		SendMessage(MainWnd(), WM_DESTROY, 0, 0);
 	}
 	
-	Transform& transform = m_WoodCrate.GetTransform();
-	// 下坠
-	if(transform.GetPosition().y > 0.0f)
-	{
-		transform.Translate(g_XMIdentityR1, -dt * 1.5f);
-	}
+	Transform& transform = m_player.GetTransform();
 	XMStoreFloat3(&m_ImguiPanel.look, transform.GetForwardAxisXM());
 	XMStoreFloat3(&m_ImguiPanel.up, transform.GetUpAxisXM());
 	XMStoreFloat3(&m_ImguiPanel.right, transform.GetRightAxisXM());
@@ -345,21 +338,22 @@ void GameApp::DrawScene()
 	m_Walls[3].Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 	m_Walls[4].Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 	m_Floor.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-	m_WoodCrate.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_player.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
 	// ******************
 	// 3. 绘制不透明反射物体的阴影
 	//
 
-	m_WoodCrate.SetMaterial(m_ShadowMat);
+	m_player.SetMaterial(m_ShadowMat);
 	m_BasicEffect.SetShadowState(true);	// 反射开启，阴影开启			
 	m_BasicEffect.SetRenderNoDoubleBlend(m_pd3dImmediateContext.Get(), 1);
 
-	m_WoodCrate.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_player.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
 	// 恢复到原来的状态
 	m_BasicEffect.SetShadowState(false);
-	m_WoodCrate.SetMaterial(m_WoodCrateMat);
+	m_player.SetMaterial(m_WoodCrateMat);
+	
 
 	// ******************
 	// 4. 绘制透明镜面
@@ -382,20 +376,20 @@ void GameApp::DrawScene()
 		wall.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 	}
 	m_Floor.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-	m_WoodCrate.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_player.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 	
 	// ******************
 	// 6. 绘制不透明正常物体的阴影
 	//
 
-	m_WoodCrate.SetMaterial(m_ShadowMat);
+	m_player.SetMaterial(m_ShadowMat);
 	m_BasicEffect.SetShadowState(true);	// 反射关闭，阴影开启
 	m_BasicEffect.SetRenderNoDoubleBlend(m_pd3dImmediateContext.Get(), 0);
 
-	m_WoodCrate.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_player.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
 
 	m_BasicEffect.SetShadowState(false);		// 阴影关闭
-	m_WoodCrate.SetMaterial(m_WoodCrateMat);
+	m_player.SetMaterial(m_WoodCrateMat);
 	
 	// 绘制Direct2D部分
 	//
@@ -458,12 +452,13 @@ bool GameApp::InitResource()
 			DDS_ALPHA_MODE* alphaMode = nullptr);  // [In]忽略
 	 */
 	 // 初始化木盒
-	HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"Texture\\WoodCrate.dds", nullptr, texture.GetAddressOf()));
-	m_WoodCrate.SetBuffer(m_pd3dDevice.Get(), Geometry::CreateBox());
-	// 抬起高度避免深度缓冲区资源争夺
-	m_WoodCrate.GetTransform().SetPosition(0.0f, 0.01f, 7.5f);
-	m_WoodCrate.SetTexture(texture.Get());
-	m_WoodCrate.SetMaterial(material);
+	//HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"Texture\\WoodCrate.dds", nullptr, texture.GetAddressOf()));
+	//m_WoodCrate.SetBuffer(m_pd3dDevice.Get(), Geometry::CreateBox());
+	//// 抬起高度避免深度缓冲区资源争夺
+	//m_WoodCrate.GetTransform().SetPosition(0.0f, 0.01f, 7.5f);
+	//m_WoodCrate.SetTexture(texture.Get());
+	//m_WoodCrate.SetMaterial(material);
+	m_player.init(m_pd3dDevice.Get());
 	
 	// 初始化地板
 	HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"Texture\\floor.dds", nullptr, texture.ReleaseAndGetAddressOf()));
@@ -473,7 +468,6 @@ bool GameApp::InitResource()
 	m_Floor.SetMaterial(material);
 
 	// 初始化墙体
-	m_Walls.resize(5);
 	HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"Texture\\brick.dds", nullptr, texture.ReleaseAndGetAddressOf()));
 	// 这里控制墙体五个面的生成，0和1的中间位置用于放置镜面
 	//     ____     ____
@@ -581,7 +575,7 @@ bool GameApp::InitResource()
 	m_Walls[2].SetDebugObjectName("Walls[2]");
 	m_Walls[3].SetDebugObjectName("Walls[3]");
 	m_Walls[4].SetDebugObjectName("Walls[4]");
-	m_WoodCrate.SetDebugObjectName("WoodCrate");
+	//m_WoodCrate.SetDebugObjectName("WoodCrate");
 	
 	return true;
 }

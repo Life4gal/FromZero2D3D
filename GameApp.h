@@ -4,6 +4,7 @@
 #include "d3dApp.h"
 #include "Camera.h"
 #include "GameObject.h"
+#include "Player.h"
 
 class GameApp final : public D3DApp
 {
@@ -31,9 +32,10 @@ private:
 	ComPtr<IDWriteFont> m_pFont;								// 字体
 	ComPtr<IDWriteTextFormat> m_pTextFormat;					// 文本格式
 	
-	GameObject m_WoodCrate;									    // 木盒
+	//GameObject m_WoodCrate;									    // 木盒
+	Player m_player;
 	GameObject m_Floor;										    // 地板
-	std::vector<GameObject> m_Walls;							// 墙壁
+	std::array<GameObject, 5> m_Walls;							// 墙壁
 	GameObject m_Mirror;										// 镜面
 
 	ImguiPanel m_ImguiPanel;

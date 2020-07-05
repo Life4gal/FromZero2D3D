@@ -22,6 +22,7 @@ float4 PS_3D(VertexPosHWNormalTex pIn) : SV_Target
     float4 S = float4(0.0f, 0.0f, 0.0f, 0.0f);
     int i;
 
+    // 若当前在绘制反射物体，需要对光照进行反射矩阵变换
     [unroll]
     for (i = 0; i < 5; ++i)
     {

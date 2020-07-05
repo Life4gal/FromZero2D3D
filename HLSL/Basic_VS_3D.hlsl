@@ -17,6 +17,13 @@ VertexPosHWNormalTex VS_3D(VertexPosNormalTex vIn)
         normalW = mul(normalW, (float3x3) g_Reflection);
     }
     
+    // 若当前在绘制阴影，先进行投影操作
+    [flatten]
+    if (g_IsShadow)
+    {
+        posW = (g_IsReflection ? mul(posW, g_RefShadow) : mul(posW, g_Shadow));
+    }
+    
     vOut.PosH = mul(posW, viewProj);            //计算顶点MVP变换后的齐次坐标
     vOut.PosW = posW.xyz;                       //保存世界坐标
     vOut.NormalW = normalW;

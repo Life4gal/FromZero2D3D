@@ -15,7 +15,7 @@ cbuffer CBChangesEveryDrawing : register(b0)
 cbuffer CBDrawingStates : register(b1)
 {
     int g_IsReflection;
-    float3 g_Pad1;
+    int g_IsShadow;
 }
 
 cbuffer CBChangesEveryFrame : register(b2)
@@ -32,13 +32,11 @@ cbuffer CBChangesOnResize : register(b3)
 cbuffer CBChangesRarely : register(b4)
 {
     matrix g_Reflection;
-    DirectionalLight g_DirLight[10];
-    PointLight g_PointLight[10];
-    SpotLight g_SpotLight[10];
-    int g_NumDirLight;
-    int g_NumPointLight;
-    int g_NumSpotLight;
-    float g_Pad2;
+    matrix g_Shadow;
+    matrix g_RefShadow;
+    DirectionalLight g_DirLight[5];
+    PointLight g_PointLight[5];
+    SpotLight g_SpotLight[5];
 }
 
 struct VertexPosNormalTex

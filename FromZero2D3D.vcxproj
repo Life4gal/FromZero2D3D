@@ -209,9 +209,13 @@
     <ClInclude Include="d3dUtil.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DXTrace.h" />
+    <ClInclude Include="EffectHelper.h" />
+    <ClInclude Include="Effects.h" />
     <ClInclude Include="GameApp.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="Geometry.h" />
+    <ClInclude Include="ImguiPanel.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
     <ClInclude Include="ImGui\imgui_impl_dx11.h" />
@@ -219,6 +223,7 @@
     <ClInclude Include="ImGui\imgui_internal.h" />
     <ClInclude Include="ImGui\imstb_rectpack.h" />
     <ClInclude Include="ImGui\imstb_textedit.h" />
+    <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="LightHelper.h" />
     <ClInclude Include="Mouse.h" />
@@ -228,13 +233,16 @@
     <ClInclude Include="WICTextureLoader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BasicEffect.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="d3dApp.cpp" />
     <ClCompile Include="d3dUtil.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DXTrace.cpp" />
     <ClCompile Include="GameApp.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="ImguiPanel.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
     <ClCompile Include="ImGui\imgui_draw.cpp" />

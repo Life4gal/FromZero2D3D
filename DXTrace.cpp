@@ -18,7 +18,7 @@ HRESULT WINAPI DXTraceW(_In_z_ const WCHAR* strFile, _In_ DWORD dwLine, _In_ HRE
 		OutputDebugStringW(strBuffer);
 	}
 
-	size_t nMsgLen = (strMsg) ? wcsnlen_s(strMsg, 1024) : 0;
+	const size_t nMsgLen = (strMsg) ? wcsnlen_s(strMsg, 1024) : 0;
 	if (nMsgLen > 0)
 	{
 		OutputDebugStringW(strMsg);
@@ -56,7 +56,7 @@ HRESULT WINAPI DXTraceW(_In_z_ const WCHAR* strFile, _In_ DWORD dwLine, _In_ HRE
 		swprintf_s(strBuffer, 3000, L"文件名：%ls\n行号：%ls\n错误码含义：%ls\n%ls您需要调试当前应用程序吗？",
 			strBufferFile, strBufferLine, strBufferError, strBufferMsg);
 
-		int nResult = MessageBoxW(GetForegroundWindow(), strBuffer, L"错误", MB_YESNO | MB_ICONERROR);
+		const int nResult = MessageBoxW(GetForegroundWindow(), strBuffer, L"错误", MB_YESNO | MB_ICONERROR);
 		if (nResult == IDYES)
 			DebugBreak();
 	}

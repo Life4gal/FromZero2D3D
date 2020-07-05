@@ -53,9 +53,7 @@ D3DApp::~D3DApp()
 		m_pd3dImmediateContext->ClearState();
 	
 	// 关闭ImGui
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+	ImguiPanel::shutdown();
 }
 
 HINSTANCE D3DApp::AppInst() const
@@ -120,7 +118,7 @@ bool D3DApp::Init()
 	if (!InitDirect3D())
 		return false;
 	
-	if (!InitImGui())
+	if (!ImguiPanel::init(MainWnd(), m_pd3dDevice.Get(), m_pd3dImmediateContext.Get()))
 		return false;
 
 	return true;
@@ -583,32 +581,6 @@ bool D3DApp::InitDirect3D()
 	return true;
 }
 
-bool D3DApp::InitImGui() const
-{
-	// 设置Dear ImGui上下文
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-	ImFontConfig font_config;
-    font_config.OversampleH = 2;
-    font_config.OversampleV = 1;
-    font_config.PixelSnapH = true;
-    font_config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixels up
-    font_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
-	// 微软雅黑-常规
-    io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/msyh.ttc", 18.0f, &font_config, io.Fonts->GetGlyphRangesChineseFull());
-    
-	// 设置Dear ImGui界面风格
-	ImGui::StyleColorsDark();
-
-	// 设置平台/渲染器的绑定
-	ImGui_ImplWin32_Init(MainWnd());
-	ImGui_ImplDX11_Init(m_pd3dDevice.Get(), m_pd3dImmediateContext.Get());
-
-	return true;
-}
-
 void D3DApp::CalculateFrameStats() const
 {
 	// 该代码计算每秒帧速，并计算每一帧渲染需要的时间，显示在窗口标题
@@ -634,5 +606,3 @@ void D3DApp::CalculateFrameStats() const
 		timeElapsed += 1.0f;
 	}
 }
-
-

@@ -44,7 +44,7 @@
 // [In]resource				D3D11设备创建出的对象
 // [In]name					对象名
 template<UINT TNameLength>
-inline void D3D11SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_ const char(&name)[TNameLength])
+void D3D11SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_ const char(&name)[TNameLength])
 {
 #if (defined(DEBUG) || defined(_DEBUG)) && (GRAPHICS_DEBUGGER_OBJECT_NAME)
 	resource->SetPrivateData(WKPDID_D3DDebugObjectName, TNameLength - 1, name);
@@ -109,7 +109,7 @@ inline void D3D11SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_ std::
 // [In]object				DXGI对象
 // [In]name					对象名
 template<UINT TNameLength>
-inline void DXGISetDebugObjectName(_In_ IDXGIObject* object, _In_ const char(&name)[TNameLength])
+void DXGISetDebugObjectName(_In_ IDXGIObject* object, _In_ const char(&name)[TNameLength])
 {
 #if (defined(DEBUG) || defined(_DEBUG)) && (GRAPHICS_DEBUGGER_OBJECT_NAME)
 	object->SetPrivateData(WKPDID_D3DDebugObjectName, TNameLength - 1, name);
@@ -185,8 +185,5 @@ HRESULT CreateShaderFromFile(
 	LPCSTR entryPoint,
 	LPCSTR shaderModel,
 	ID3DBlob** ppBlobOut);
-
-
-
 
 #endif

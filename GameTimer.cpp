@@ -10,8 +10,8 @@ GameTimer::GameTimer()
   m_StopTime(0), m_PrevTime(0), m_CurrTime(0), m_Stopped(false)
 {
 	__int64 countsPerSec;
-	QueryPerformanceFrequency((LARGE_INTEGER*)&countsPerSec);
-	m_SecondsPerCount = 1.0 / (double)countsPerSec;
+	QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&countsPerSec));
+	m_SecondsPerCount = 1.0 / static_cast<double>(countsPerSec);
 }
 
 // Returns the total time elapsed since Reset() was called, NOT counting any
@@ -29,7 +29,7 @@ float GameTimer::TotalTime() const
 
 	if( m_Stopped )
 	{
-		return (float)(((m_StopTime - m_PausedTime)-m_BaseTime)*m_SecondsPerCount);
+		return static_cast<float>(static_cast<double>((m_StopTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount);
 	}
 
 	// The distance m_CurrTime - m_BaseTime includes paused time,
@@ -41,22 +41,18 @@ float GameTimer::TotalTime() const
 	//                     |<--paused time-->|
 	// ----*---------------*-----------------*------------*------> time
 	//  m_BaseTime       m_StopTime        startTime     m_CurrTime
-	
-	else
-	{
-		return (float)(((m_CurrTime-m_PausedTime)-m_BaseTime)*m_SecondsPerCount);
-	}
+	return static_cast<float>(static_cast<double>((m_CurrTime - m_PausedTime) - m_BaseTime) * m_SecondsPerCount);
 }
 
 float GameTimer::DeltaTime()const
 {
-	return (float)m_DeltaTime;
+	return static_cast<float>(m_DeltaTime);
 }
 
 void GameTimer::Reset()
 {
 	__int64 currTime;
-	QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
+	QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&currTime));
 
 	m_BaseTime = currTime;
 	m_PrevTime = currTime;
@@ -68,7 +64,7 @@ void GameTimer::Reset()
 void GameTimer::Start()
 {
 	__int64 startTime;
-	QueryPerformanceCounter((LARGE_INTEGER*)&startTime);
+	QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&startTime));
 
 
 	// Accumulate the time elapsed between stop and start pairs.
@@ -92,7 +88,7 @@ void GameTimer::Stop()
 	if( !m_Stopped )
 	{
 		__int64 currTime;
-		QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
+		QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&currTime));
 
 		m_StopTime = currTime;
 		m_Stopped  = true;
@@ -108,11 +104,11 @@ void GameTimer::Tick()
 	}
 
 	__int64 currTime;
-	QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
+	QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&currTime));
 	m_CurrTime = currTime;
 
 	// Time difference between this frame and the previous.
-	m_DeltaTime = (m_CurrTime - m_PrevTime)*m_SecondsPerCount;
+	m_DeltaTime = static_cast<double>(m_CurrTime - m_PrevTime) * m_SecondsPerCount;
 
 	// Prepare for next frame.
 	m_PrevTime = m_CurrTime;

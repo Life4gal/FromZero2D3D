@@ -30,14 +30,32 @@
     <Filter Include="通用文件\源文件">
       <UniqueIdentifier>{198929d6-ee3c-4de0-9cfd-208ad2abb544}</UniqueIdentifier>
     </Filter>
+    <Filter Include="特效文件">
+      <UniqueIdentifier>{1172e50d-ca40-41e4-9241-9faf71f78f0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="特效文件\头文件">
+      <UniqueIdentifier>{46b98676-996d-4eb1-b10d-2893dfa55a34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="特效文件\源文件">
+      <UniqueIdentifier>{8cdb57db-0e46-4c02-b13e-7f8b602a3aae}</UniqueIdentifier>
+    </Filter>
     <Filter Include="ImGui">
+      <UniqueIdentifier>{14d9c7c4-0df7-43ae-9255-7538c0307488}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui\ImGuiInternal">
       <UniqueIdentifier>{f8063327-1931-4a39-a82a-ecd8c9c1bb7c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImGui\头文件">
+    <Filter Include="ImGui\ImGuiInternal\头文件">
       <UniqueIdentifier>{82e03f40-136d-4d37-b4fe-311e8bf6bacd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImGui\源文件">
+    <Filter Include="ImGui\ImGuiInternal\源文件">
       <UniqueIdentifier>{85182b0b-6419-445d-86b0-dbdc871dc735}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui\头文件">
+      <UniqueIdentifier>{f890a408-4755-4e9e-a902-d9fb30780eeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui\源文件">
+      <UniqueIdentifier>{75e7f959-edd6-4f6e-ac77-1372845f9be8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -45,9 +63,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GameApp.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="LightHelper.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="d3dUtil.h">
@@ -74,38 +89,56 @@
     <ClInclude Include="WICTextureLoader.h">
       <Filter>通用文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Geometry.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ImGui\imgui.h">
-      <Filter>ImGui\头文件</Filter>
+      <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\imgui_impl_dx11.h">
-      <Filter>ImGui\头文件</Filter>
+      <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\imgui_impl_win32.h">
-      <Filter>ImGui\头文件</Filter>
+      <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\imconfig.h">
-      <Filter>ImGui\头文件</Filter>
+      <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\imstb_textedit.h">
-      <Filter>ImGui\头文件</Filter>
+      <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\imgui_internal.h">
-      <Filter>ImGui\头文件</Filter>
+      <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\imstb_rectpack.h">
-      <Filter>ImGui\头文件</Filter>
+      <Filter>ImGui\ImGuiInternal\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Effects.h">
+      <Filter>特效文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectHelper.h">
+      <Filter>特效文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_truetype.h">
+      <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
     <ClInclude Include="RenderStates.h">
-      <Filter>头文件</Filter>
+      <Filter>特效文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="LightHelper.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImguiPanel.h">
+      <Filter>ImGui\头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -142,32 +175,41 @@
     <ClCompile Include="WICTextureLoader.cpp">
       <Filter>通用文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
-      <Filter>ImGui\源文件</Filter>
+      <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui_impl_win32.cpp">
-      <Filter>ImGui\源文件</Filter>
+      <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui.cpp">
-      <Filter>ImGui\源文件</Filter>
+      <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui_draw.cpp">
-      <Filter>ImGui\源文件</Filter>
+      <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui_widgets.cpp">
-      <Filter>ImGui\源文件</Filter>
+      <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui_demo.cpp">
-      <Filter>ImGui\源文件</Filter>
+      <Filter>ImGui\ImGuiInternal\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicEffect.cpp">
+      <Filter>特效文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="RenderStates.cpp">
-      <Filter>源文件</Filter>
+      <Filter>特效文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ImguiPanel.cpp">
+      <Filter>ImGui\源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

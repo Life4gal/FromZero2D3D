@@ -10,9 +10,7 @@
 #include "Mouse.h"
 #include "Keyboard.h"
 #include "GameTimer.h"
-#include "ImGui/imgui.h"
-#include "ImGui/imgui_impl_dx11.h"
-#include "ImGui/imgui_impl_win32.h"
+#include "ImguiPanel.h"
 
 // 添加所有要引用的库
 #pragma comment(lib, "d2d1.lib")
@@ -29,9 +27,9 @@ public:
 	D3DApp(HINSTANCE hInstance);              // 在构造函数的初始化列表应当设置好初始参数
 	virtual ~D3DApp();
 
-	HINSTANCE AppInst()const;                 // 获取应用实例的句柄
-	HWND      MainWnd()const;                 // 获取主窗口句柄
-	float     AspectRatio()const;             // 获取屏幕宽高比
+	HINSTANCE AppInst() const;                 // 获取应用实例的句柄
+	HWND      MainWnd() const;                 // 获取主窗口句柄
+	float     AspectRatio() const;             // 获取屏幕宽高比
 
 	int Run();                                // 运行程序，进行游戏主循环
 
@@ -46,7 +44,6 @@ protected:
 	bool InitMainWindow();      // 窗口初始化
 	bool InitDirect2D();		// Direct2D初始化
 	bool InitDirect3D();        // Direct3D初始化
-	bool InitImGui() const;            // Imgui初始化
 
 	void CalculateFrameStats() const; // 计算每秒帧数并在窗口显示
 

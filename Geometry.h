@@ -40,9 +40,9 @@ namespace Geometry
 	MeshData<VertexType, IndexType> CreateSphere(float radius = 1.0f, UINT levels = 20, UINT slices = 20,
 		const DirectX::XMFLOAT4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
 
-	// 创建立方体网格数据
+	// 创建立方体网格数据,参数是俯视角看,实际图形为绕Y轴旋转90度后状态
 	template<class VertexType = VertexPosNormalTex, class IndexType = DWORD>
-	MeshData<VertexType, IndexType> CreateBox(float width = 2.0f, float height = 2.0f, float depth = 2.0f,
+	MeshData<VertexType, IndexType> CreateBox(float width = 2.0f, float length = 2.0f, float height = 2.0f,
 		const DirectX::XMFLOAT4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
 
 	// 创建圆柱体网格数据，slices越大，精度越高。
@@ -240,7 +240,7 @@ namespace Geometry
 	}
 
 	template<class VertexType, class IndexType>
-	MeshData<VertexType, IndexType> CreateBox(float width, float height, float depth, const DirectX::XMFLOAT4 & color)
+	MeshData<VertexType, IndexType> CreateBox(float width, float length, float height, const DirectX::XMFLOAT4 & color)
 	{
 		using namespace DirectX;
 
@@ -248,40 +248,40 @@ namespace Geometry
 		meshData.vertexVec.resize(24);
 
 		Internal::VertexData vertexDataArr[24];
-		const float w2 = width / 2;
+		const float l2 = length / 2;
 		const float h2 = height / 2;
-		const float d2 = depth / 2;
+		const float w2 = width / 2;
 
 		// 右面(+X面)
-		vertexDataArr[0].pos = XMFLOAT3(w2, -h2, -d2);
-		vertexDataArr[1].pos = XMFLOAT3(w2, h2, -d2);
-		vertexDataArr[2].pos = XMFLOAT3(w2, h2, d2);
-		vertexDataArr[3].pos = XMFLOAT3(w2, -h2, d2);
+		vertexDataArr[0].pos = XMFLOAT3(l2, -h2, -w2);
+		vertexDataArr[1].pos = XMFLOAT3(l2, h2, -w2);
+		vertexDataArr[2].pos = XMFLOAT3(l2, h2, w2);
+		vertexDataArr[3].pos = XMFLOAT3(l2, -h2, w2);
 		// 左面(-X面)
-		vertexDataArr[4].pos = XMFLOAT3(-w2, -h2, d2);
-		vertexDataArr[5].pos = XMFLOAT3(-w2, h2, d2);
-		vertexDataArr[6].pos = XMFLOAT3(-w2, h2, -d2);
-		vertexDataArr[7].pos = XMFLOAT3(-w2, -h2, -d2);
+		vertexDataArr[4].pos = XMFLOAT3(-l2, -h2, w2);
+		vertexDataArr[5].pos = XMFLOAT3(-l2, h2, w2);
+		vertexDataArr[6].pos = XMFLOAT3(-l2, h2, -w2);
+		vertexDataArr[7].pos = XMFLOAT3(-l2, -h2, -w2);
 		// 顶面(+Y面)
-		vertexDataArr[8].pos = XMFLOAT3(-w2, h2, -d2);
-		vertexDataArr[9].pos = XMFLOAT3(-w2, h2, d2);
-		vertexDataArr[10].pos = XMFLOAT3(w2, h2, d2);
-		vertexDataArr[11].pos = XMFLOAT3(w2, h2, -d2);
+		vertexDataArr[8].pos = XMFLOAT3(-l2, h2, -w2);
+		vertexDataArr[9].pos = XMFLOAT3(-l2, h2, w2);
+		vertexDataArr[10].pos = XMFLOAT3(l2, h2, w2);
+		vertexDataArr[11].pos = XMFLOAT3(l2, h2, -w2);
 		// 底面(-Y面)
-		vertexDataArr[12].pos = XMFLOAT3(w2, -h2, -d2);
-		vertexDataArr[13].pos = XMFLOAT3(w2, -h2, d2);
-		vertexDataArr[14].pos = XMFLOAT3(-w2, -h2, d2);
-		vertexDataArr[15].pos = XMFLOAT3(-w2, -h2, -d2);
+		vertexDataArr[12].pos = XMFLOAT3(l2, -h2, -w2);
+		vertexDataArr[13].pos = XMFLOAT3(l2, -h2, w2);
+		vertexDataArr[14].pos = XMFLOAT3(-l2, -h2, w2);
+		vertexDataArr[15].pos = XMFLOAT3(-l2, -h2, -w2);
 		// 背面(+Z面)
-		vertexDataArr[16].pos = XMFLOAT3(w2, -h2, d2);
-		vertexDataArr[17].pos = XMFLOAT3(w2, h2, d2);
-		vertexDataArr[18].pos = XMFLOAT3(-w2, h2, d2);
-		vertexDataArr[19].pos = XMFLOAT3(-w2, -h2, d2);
+		vertexDataArr[16].pos = XMFLOAT3(l2, -h2, w2);
+		vertexDataArr[17].pos = XMFLOAT3(l2, h2, w2);
+		vertexDataArr[18].pos = XMFLOAT3(-l2, h2, w2);
+		vertexDataArr[19].pos = XMFLOAT3(-l2, -h2, w2);
 		// 正面(-Z面)
-		vertexDataArr[20].pos = XMFLOAT3(-w2, -h2, -d2);
-		vertexDataArr[21].pos = XMFLOAT3(-w2, h2, -d2);
-		vertexDataArr[22].pos = XMFLOAT3(w2, h2, -d2);
-		vertexDataArr[23].pos = XMFLOAT3(w2, -h2, -d2);
+		vertexDataArr[20].pos = XMFLOAT3(-l2, -h2, -w2);
+		vertexDataArr[21].pos = XMFLOAT3(-l2, h2, -w2);
+		vertexDataArr[22].pos = XMFLOAT3(l2, h2, -w2);
+		vertexDataArr[23].pos = XMFLOAT3(l2, -h2, -w2);
 
 		for (UINT i = 0; i < 4; ++i)
 		{

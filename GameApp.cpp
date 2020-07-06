@@ -32,7 +32,7 @@ bool GameApp::Init()
 	// 初始化鼠标，键盘不需要
 	m_pMouse->SetWindow(m_hMainWnd);
 	m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-	
+
 	return true;
 }
 
@@ -288,10 +288,9 @@ void GameApp::UpdateScene(float dt)
 		SendMessage(MainWnd(), WM_DESTROY, 0, 0);
 	}
 	
-	Transform& transform = m_player.GetTransform();
-	XMStoreFloat3(&m_ImguiPanel.look, transform.GetForwardAxisXM());
-	XMStoreFloat3(&m_ImguiPanel.up, transform.GetUpAxisXM());
-	XMStoreFloat3(&m_ImguiPanel.right, transform.GetRightAxisXM());
+	m_ImguiPanel.m_direction = m_player.GetDirection();
+	m_ImguiPanel.m_size = { m_player.m_car.m_bodyWidth, m_player.m_car.m_bodyLength, m_player.m_car.m_bodyHeight };
+	m_ImguiPanel.m_position = m_player.m_car.GetPartObject().GetTransform().GetPosition();
 }
 
 void GameApp::DrawScene()
@@ -299,7 +298,7 @@ void GameApp::DrawScene()
 	assert(m_pd3dImmediateContext);
 	assert(m_pSwapChain);
 
-	//m_ImguiPanel.Draw();
+	m_ImguiPanel.Draw();
 	
 	m_pd3dImmediateContext->ClearRenderTargetView(m_pRenderTargetView.Get(), Colors::Black);
 	/*
@@ -418,7 +417,7 @@ void GameApp::DrawScene()
 	}
 	
 	// 绘制Dear ImGui
-	//ImguiPanel::Present();
+	ImguiPanel::Present();
 	
 	HR(m_pSwapChain->Present(0, 0));
 }

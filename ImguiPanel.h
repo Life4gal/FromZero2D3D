@@ -21,9 +21,9 @@ public:
 	// 关闭 IMGUI
 	static void shutdown();
 
-	DirectX::XMFLOAT3 up{};
-	DirectX::XMFLOAT3 right{};
-	DirectX::XMFLOAT3 look{};
+	DirectX::XMFLOAT3 m_direction{};
+	DirectX::XMFLOAT3 m_size{};
+	DirectX::XMFLOAT3 m_position{};
 };
 
 #endif

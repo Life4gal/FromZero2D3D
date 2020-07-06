@@ -7,23 +7,22 @@
 
 class Player
 {
+	friend class GameApp;
 public:
-	Player();
+	// bodyHeight 车顶至车底的距离
+	// bodyLength 车头至车尾的距离
+	// bodyWidth 车左侧至右侧的距离
+	Player(DirectX::XMFLOAT3 direction = {0.0f, 0.0f, 1.0f}, float bodyWidth = 3.5f, float bodyLength = 6.0f, float bodyHeight = 1.7f);
 
-	/**
-	 * \brief 
-	 * \param device 
-	 * \param bodyHeight 车顶至车底的距离
-	 * \param bodyLength 车头至车尾的距离
-	 * \param bodyWidth 车左侧至右侧的距离
-	 */
-	void init(ID3D11Device* device, float bodyHeight = 1.7f, float bodyLength = 6.0f, float bodyWidth = 3.5f);
+	void init(ID3D11Device* device);
 	
 	static Player& Get();
+
+	void SetDirection(const DirectX::XMFLOAT3& direction);
+	const DirectX::XMFLOAT3& GetDirection() const;
 	
 	void Walk(float d);
 	void Strafe(float d);
-	void Jump(float d);
 
 	void AdjustPosition();
 
@@ -39,20 +38,32 @@ public:
 	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
 
 private:
-	// 我们不需要额外的数据成员,所以尽管 GameObject 没有一个虚析构也不会对我们产生什么影响
-	class VehiclePart : public GameObject
+	class VehiclePart
 	{
 	public:
+		VehiclePart() = default;
+		virtual ~VehiclePart() = default;
+
+		VehiclePart(const VehiclePart& other) = default;
+		VehiclePart(VehiclePart&& other) noexcept = default;
+		VehiclePart& operator=(const VehiclePart& other) = default;
+		VehiclePart& operator=(VehiclePart&& other) noexcept = default;
 		
-		// 直行(平面移动)
-		virtual void Walk(float d);
-		// 平移
-		virtual void Strafe(float d);
+		// 获取组件
+		GameObject& GetPartObject();
+		// 获取组件
+		const GameObject& GetPartObject() const;
+
+	protected:
+		GameObject m_part;
 	};
 
+	class Car;
 	// 轮子
-	class Wheel : public VehiclePart 
+	class Wheel : public VehiclePart
 	{
+		// 只允许车身控制轮子
+		friend class Car;
 	public:
 		enum class WheelPos
 		{
@@ -61,26 +72,61 @@ private:
 			LeftBack,
 			RightBack
 		};
-		// 轮子还需要滚起来
-		void Walk(float d) override;
+
+		Wheel(WheelPos wheelPos);
+
+	private:
 		// 轮子限制在车上,需要车子的中心点和车长/宽/高和轮子所属位置
-		void AdjustPosition(DirectX::XMFLOAT3 targetCenter, float bodyWidth, float bodyLength, WheelPos wheelPos);
-	};
-	
-	// 车身
-	class Body : public VehiclePart
-	{
+		void AdjustPosition(Car& body);
+
+		// 前后移动
+		void Walk(float d, const DirectX::XMFLOAT3& direction);
+		// 左右转向,会改变方向
+		void Strafe(float d, DirectX::XMFLOAT3& direction);
+
 	public:
+		// 轮子的相对车身位置,不可变
+		const WheelPos m_wheelPos;
+	};
+
+	// 车身
+	class Car : public VehiclePart
+	{
+		// 允许轮子自由存取车身数据,可以省去很多参数传递
+		friend class Wheel;
+		// 允许这三个函数访问轮子
+		friend void Player::SetMaterial(const Material& material);
+		friend void Player::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
+		friend void Player::init(ID3D11Device* device);
+		
+	public:
+		Car(DirectX::XMFLOAT3 direction, float bodyWidth, float bodyLength, float bodyHeight);
+
+		void SetDirection(const DirectX::XMFLOAT3& direction);
+		const DirectX::XMFLOAT3& GetDirection() const;
+		
+		// 前后移动
+		void Walk(float d);
+		// 左右转向,会改变方向
+		void Strafe(float d);
+		
 		// 限制车身移动范围
 		void AdjustPosition();
+		
+	private:
+		// 当前方向
+		DirectX::XMFLOAT3 m_direction;
+		// 四个轮子
+		std::array<Wheel, 4> m_wheels;
+
+	public:
+		// 车子长宽高,不可变
+		const float m_bodyWidth;
+		const float m_bodyLength;
+		const float m_bodyHeight;
 	};
 
-	std::array<Wheel, 4> m_wheels;
-	Body m_body;
-	float m_bodyWidth;
-	float m_bodyLength;
+	Car m_car;
 };
-
-
 
 #endif

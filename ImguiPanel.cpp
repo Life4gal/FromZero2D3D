@@ -38,10 +38,12 @@ void ImguiPanel::Draw() const
 	static bool show_demo_window = false;
 
 	ImGui::Begin(u8"控制窗口");
-	ImGui::Text(u8"当前图形三轴方向: ");
-	ImGui::Text(u8"\tLook: (%.3f, %.3f, %.3f)", look.x, look.y, look.z);
-	ImGui::Text(u8"\tUp: (%.3f, %.3f, %.3f)", up.x, up.y, up.z);
-	ImGui::Text(u8"\tRight: (%.3f, %.3f, %.3f)", right.x, right.y, right.z);
+	ImGui::Text(u8"当前方向为: ");
+	ImGui::Text(u8"\t(vX = %.3f, vY = %.3f, vZ = %.3f)", m_direction.x, m_direction.y, m_direction.z);
+	ImGui::Text(u8"车大小为: ");
+	ImGui::Text(u8"\t(W = %.3f, L = %.3f, H = %.3f)", m_size.x, m_size.y, m_size.z);
+	ImGui::Text(u8"当前位置为: ");
+	ImGui::Text(u8"\t(X = %.3f, Y = %.3f, Z = %.3f)", m_position.x, m_position.y, m_position.z);
 
 	ImGui::Checkbox(u8"显示演示窗口", &show_demo_window);
 

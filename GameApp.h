@@ -4,7 +4,7 @@
 #include "d3dApp.h"
 #include "Camera.h"
 #include "GameObject.h"
-#include "Player.h"
+#include "ImguiPanel.h"
 
 class GameApp final : public D3DApp
 {
@@ -31,12 +31,14 @@ private:
 	ComPtr<ID2D1SolidColorBrush> m_pColorBrush;				    // 单色笔刷
 	ComPtr<IDWriteFont> m_pFont;								// 字体
 	ComPtr<IDWriteTextFormat> m_pTextFormat;					// 文本格式
-	
-	//GameObject m_WoodCrate;									    // 木盒
-	Player m_player;
+
+	Player m_Player;
+	GameObject m_BoltAnim;									    // 闪电动画
 	GameObject m_Floor;										    // 地板
 	std::array<GameObject, 5> m_Walls;							// 墙壁
 	GameObject m_Mirror;										// 镜面
+
+	std::vector<ComPtr<ID3D11ShaderResourceView>> mBoltSRVs;    // 闪电动画纹理
 
 	ImguiPanel m_ImguiPanel;
 	

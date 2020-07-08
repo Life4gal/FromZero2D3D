@@ -26,6 +26,13 @@ bool ImguiPanel::init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* devi
 	return true;
 }
 
+void ImguiPanel::LoadData(const Player& player)
+{
+	m_direction = player.GetDirection();
+	m_size = { player.m_tank.m_bodyWidth, player.m_tank.m_bodyLength, player.m_tank.m_bodyHeight };
+	m_position = player.m_tank.GetPartObject().GetTransform().GetPosition();
+}
+
 void ImguiPanel::Draw() const
 {
 	//

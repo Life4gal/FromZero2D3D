@@ -1,6 +1,4 @@
 #include "GameApp.h"
-#include "d3dUtil.h"
-#include "DXTrace.h"
 
 using namespace DirectX;
 
@@ -179,18 +177,13 @@ void GameApp::UpdateScene(float dt)
 		}
 	}
 
+	// 调整位置
+	m_Player.AdjustPosition();
+
 	if (m_CameraMode == CameraMode::FirstPerson)
 	{
 		auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
-		m_Player.AdjustPosition();
-		//Transform& transform = m_Player.GetTransform();
 		
-		// 将摄像机位置限制在[-8.9, 8.9]x[-8.9, 8.9]x[0.0, 8.9]的区域内
-		// 不允许穿地
-		//XMFLOAT3 adjustedPos{};
-		//XMStoreFloat3(&adjustedPos, XMVectorClamp(transform.GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f)));
-		//transform.SetPosition(adjustedPos);
-		//transform.LookTo(first_person_camera->GetLookAxis());
 		// 第一人称摄像机距物体中心偏一点
 		const XMFLOAT3 position = m_Player.GetTransform().GetPosition();
 		firstPersonCamera->SetPosition(position.x, position.y + 1.5f, position.z + 1.5f);
@@ -216,14 +209,8 @@ void GameApp::UpdateScene(float dt)
 	else if(m_CameraMode == CameraMode::ThirdPerson)
 	{
 		g_is_imgui_capture_mouse = false;
+		
 		auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
-		m_Player.AdjustPosition();
-		//Transform& transform = m_Player.GetTransform();
-
-		//XMFLOAT3 adjustedPos{};
-		//XMStoreFloat3(&adjustedPos, XMVectorClamp(transform.GetPositionXM(), XMVectorSet(-8.9f, 0.0f, -8.9f, 0.0f), XMVectorReplicate(8.9f)));
-		//transform.SetPosition(adjustedPos);
-		//transform.LookTo(third_person_camera->GetLookAxis());
 		
 		// 设置目标
 		thirdPersonCamera->SetTarget(m_Player.GetTransform().GetPosition());

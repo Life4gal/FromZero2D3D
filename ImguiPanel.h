@@ -9,7 +9,6 @@
 
 // 包含这个文件是因为d3dapp里也包含了这个文件,而这里需要的仅仅是 HWND 这个结构的定义而已
 #include <wrl/client.h>
-#include <DirectXMath.h>
 
 class ImguiPanel
 {
@@ -26,7 +25,6 @@ public:
 	static void shutdown();
 
 	DirectX::XMFLOAT3 m_direction{};
-	DirectX::XMFLOAT3 m_size{};
 	DirectX::XMFLOAT3 m_position{};
 };
 

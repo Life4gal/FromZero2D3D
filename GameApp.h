@@ -2,6 +2,9 @@
 #define GAMEAPP_H
 
 #include "d3dApp.h"
+#include "d3dUtil.h"
+#include "DXTrace.h"
+
 #include "Camera.h"
 #include "GameObject.h"
 #include "ImguiPanel.h"

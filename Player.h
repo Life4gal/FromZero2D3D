@@ -1,25 +1,38 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "GameObject.h"
 #include "DXTrace.h"
 #include <array>
 
+#include "GameObject.h"
+
 class Player
 {
+	// 允许IMGUI面板自由访问数据
 	friend class ImguiPanel;
+	
 public:
-	// bodyHeight 车顶至车底的距离
-	// bodyLength 车头至车尾的距离
-	// bodyWidth 车左侧至右侧的距离
-	Player(DirectX::XMFLOAT3 direction = {0.0f, 0.0f, 1.0f}, float bodyWidth = 3.5f, float bodyLength = 6.0f, float bodyHeight = 1.7f, float barrelBaseWidth = 2.0f, float barrelBaseHeight = 1.2f, float barrelLength = 4.5f);
+	struct VehicleInfo;
+	
+	Player(
+		VehicleInfo tankInfo =
+		{
+			3.5f,
+			6.0f,
+			1.7f,
+			2.0f,
+			2.0f,
+			1.2f,
+			0.5f,
+			4.5f,
+			0.75f,
+			0.5f
+		}, 
+		DirectX::XMFLOAT3 direction = {0.0f, 0.0f, 1.0f});
 
 	void init(ID3D11Device* device);
 	
 	static Player& Get();
-
-	void SetDirection(const DirectX::XMFLOAT3& direction);
-	const DirectX::XMFLOAT3& GetDirection() const;
 	
 	void Walk(float d);
 	void Strafe(float d);
@@ -37,34 +50,40 @@ public:
 	// 绘制
 	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
 
-private:
-	class VehiclePart
+	// 坦克相关信息的结果可以公开
+	struct VehicleInfo
 	{
-	public:
-		VehiclePart() = default;
-		virtual ~VehiclePart() = default;
+		// ******************
+		// 可变信息
+		// @TODO
 
-		VehiclePart(const VehiclePart& other) = default;
-		VehiclePart(VehiclePart&& other) noexcept = default;
-		VehiclePart& operator=(const VehiclePart& other) = default;
-		VehiclePart& operator=(VehiclePart&& other) noexcept = default;
+		// ******************
+		// 不可变信息
 		
-		// 获取组件
-		GameObject& GetPartObject();
-		// 获取组件
-		const GameObject& GetPartObject() const;
-
-	protected:
-		GameObject m_part;
+		// 载具规格(立方体)
+		const float m_bodyWidth;				// 载具俯视角(车头朝上下)宽度
+		const float m_bodyLength;			// 载具俯视角(车头朝上下)长度
+		const float m_bodyHeight;			// 载具高度
+		// 炮台底座规格(立方体)
+		const float m_barrelBaseWidth;		// 底座俯视角宽度
+		const float m_barrelBaseLength;		// 底座俯视角长度
+		const float m_barrelBaseHeight;		// 底座俯视角高度
+		// 炮管规格(圆柱)
+		const float m_barrelCaliber;			// 炮管的口径
+		const float m_barrelLength;			// 炮管的长度
+		// 轮子规格(圆柱)
+		const float m_wheelRadius;			// 轮子的半径
+		const float m_wheelLength;			// 轮子的长度
 	};
 
-	class Tank;
+private:
+	// *************************
+	// 以下结构定义为struct没有什么大问题,因为他们都是Player的私有结构,而且可以省去很多不必要操作
+	
+	struct Tank;
 	// 轮子
-	class Wheel : public VehiclePart
+	struct Wheel
 	{
-		// 只允许车身控制轮子
-		friend class Tank;
-	public:
 		enum class WheelPos
 		{
 			LeftFront,
@@ -75,73 +94,47 @@ private:
 
 		Wheel(WheelPos wheelPos);
 
-	private:
 		// 轮子限制在车上
-		void AdjustPosition(Tank& body);
+		void AdjustPosition(const Tank& body, const VehicleInfo& tankInfo);
 
 		// 前后移动
 		void Walk(float d, const DirectX::XMFLOAT3& direction);
 		// 左右转向,会改变方向
 		void Strafe(float d, DirectX::XMFLOAT3& direction);
 
-	public:
+		// 自身对象
+		GameObject m_self;
+
 		// 轮子的相对车身位置,不可变
 		const WheelPos m_wheelPos;
 	};
+	
 	// 炮管底座
-	class BarrelBase : public VehiclePart
+	struct BarrelBase
 	{
-		// 只允许车身控制炮管
-		friend class Tank;
-		// 允许这三个函数访问炮管
-		friend void Player::SetMaterial(const Material& material);
-		friend void Player::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
-		friend void Player::init(ID3D11Device* device);
-		
-	public:
-		BarrelBase(float bodyWidth, float bodyHeight, float barrelLength);
-
 		// 炮管底座限制在车上
-		void AdjustPosition(Tank& body);
-		// 底座俯视角为正方形
-		const float m_bodyWidth;
-		// 底座高度
-		const float m_bodyHeight;
+		void AdjustPosition(const Tank& body, const VehicleInfo& tankInfo);
 
-	private:
-		class Barrel : public VehiclePart
+		struct Barrel
 		{
-			// 只允许底座控制炮管
-			friend class BarrelBase;
-			
-			Barrel(float length);
-
 			// 炮管限制在底座上
-			void AdjustPosition(BarrelBase& body);
+			void AdjustPosition(const BarrelBase& body, const VehicleInfo& tankInfo);
 
-		public:
-			const float m_length;
+			// 自身对象
+			GameObject m_self;
 		};
 
+		// 炮管
 		Barrel m_barrel;
+		// 自身对象
+		GameObject m_self;
 	};
 
 	// 车身
-	class Tank : public VehiclePart
+	struct Tank
 	{
-		// 允许轮子自由存取车身数据,可以省去很多参数传递
-		friend class Wheel;
-		// 允许这三个函数访问轮子和炮管底座
-		friend void Player::SetMaterial(const Material& material);
-		friend void Player::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
-		friend void Player::init(ID3D11Device* device);
-		
-	public:
-		Tank(DirectX::XMFLOAT3 direction, float bodyWidth, float bodyLength, float bodyHeight, float barrelBaseWidth, float barrelBaseHeight, float barrelLength);
+		Tank(DirectX::XMFLOAT3 direction, VehicleInfo tankInfo);
 
-		void SetDirection(const DirectX::XMFLOAT3& direction);
-		const DirectX::XMFLOAT3& GetDirection() const;
-		
 		// 前后移动
 		void Walk(float d);
 		// 左右转向,会改变方向
@@ -150,19 +143,17 @@ private:
 		// 限制车身移动范围
 		void AdjustPosition();
 		
-	private:
 		// 当前方向
 		DirectX::XMFLOAT3 m_direction;
 		// 四个轮子
 		std::array<Wheel, 4> m_wheels;
 		// 一个炮台
 		BarrelBase m_barrelBase;
-
-	public:
-		// 车子长宽高,不可变
-		const float m_bodyWidth;
-		const float m_bodyLength;
-		const float m_bodyHeight;
+		// 自身对象
+		GameObject m_self;
+		
+		// 坦克规格信息
+		VehicleInfo m_tankInfo;
 	};
 
 	Tank m_tank;

@@ -19,7 +19,7 @@ class GameObject
 {
 public:
 	// 使用模板别名(C++11)简化类型名
-	template <class T>
+	template <typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 	GameObject();
@@ -30,7 +30,7 @@ public:
 	const Transform& GetTransform() const;
 	
 	// 设置缓冲区
-	template<class VertexType, class IndexType>
+	template<typename VertexType, typename IndexType>
 	void SetBuffer(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData);
 	// 设置纹理
 	void SetTexture(ID3D11ShaderResourceView* texture);
@@ -53,7 +53,7 @@ private:
 	UINT m_IndexCount;								    // 索引数目	
 };
 
-template<class VertexType, class IndexType>
+template<typename VertexType, typename IndexType>
 void GameObject::SetBuffer(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData)
 {
 	// 释放旧资源
@@ -69,17 +69,17 @@ void GameObject::SetBuffer(ID3D11Device* device, const Geometry::MeshData<Vertex
 	D3D11_BUFFER_DESC vbd;
 	ZeroMemory(&vbd, sizeof(vbd));
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = static_cast<UINT>(meshData.vertexVec.size()) * m_VertexStride;
+	vbd.ByteWidth = static_cast<UINT>(meshData.m_vertexVec.size()) * m_VertexStride;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	// 新建顶点缓冲区
 	D3D11_SUBRESOURCE_DATA InitData;
 	ZeroMemory(&InitData, sizeof(InitData));
-	InitData.pSysMem = meshData.vertexVec.data();
+	InitData.pSysMem = meshData.m_vertexVec.data();
 	device->CreateBuffer(&vbd, &InitData, m_pVertexBuffer.GetAddressOf());
 
 	// 设置索引缓冲区描述
-	m_IndexCount = static_cast<UINT>(meshData.indexVec.size());
+	m_IndexCount = static_cast<UINT>(meshData.m_indexVec.size());
 	D3D11_BUFFER_DESC ibd;
 	ZeroMemory(&ibd, sizeof(ibd));
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -87,7 +87,7 @@ void GameObject::SetBuffer(ID3D11Device* device, const Geometry::MeshData<Vertex
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	// 新建索引缓冲区
-	InitData.pSysMem = meshData.indexVec.data();
+	InitData.pSysMem = meshData.m_indexVec.data();
 	device->CreateBuffer(&ibd, &InitData, m_pIndexBuffer.GetAddressOf());
 }
 

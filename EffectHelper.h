@@ -15,10 +15,10 @@
 #define EFFECTHELPER_H
 
 // 若类需要内存对齐，从该类派生
-template<class DerivedType>
+template<typename DerivedType>
 struct AlignedType
 {
-	void* operator new(size_t size)
+	void* operator new(const size_t size)
 	{
 		const size_t alignedSize = __alignof(DerivedType);
 
@@ -40,40 +40,40 @@ struct AlignedType
 
 struct CBufferBase
 {
-	template<class T>
+	template<typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	CBufferBase() : isDirty() {}
+	CBufferBase() : m_isDirty() {}
 	virtual ~CBufferBase() = default;
 
 	CBufferBase(const CBufferBase& other) = default;
-	CBufferBase(CBufferBase && other) noexcept = default;
-	CBufferBase& operator=(const CBufferBase & other) = default;
-	CBufferBase& operator=(CBufferBase && other) noexcept = default;
+	CBufferBase(CBufferBase&& other) noexcept = default;
+	CBufferBase& operator=(const CBufferBase& other) = default;
+	CBufferBase& operator=(CBufferBase&& other) noexcept = default;
 
-	BOOL isDirty;
-	ComPtr<ID3D11Buffer> cBuffer;
+	BOOL m_isDirty;
+	ComPtr<ID3D11Buffer> m_cBuffer;
 
-	virtual HRESULT CreateBuffer(ID3D11Device * device) = 0;
-	virtual void UpdateBuffer(ID3D11DeviceContext * deviceContext) = 0;
-	virtual void BindVS(ID3D11DeviceContext * deviceContext) = 0;
-	virtual void BindHS(ID3D11DeviceContext * deviceContext) = 0;
-	virtual void BindDS(ID3D11DeviceContext * deviceContext) = 0;
-	virtual void BindGS(ID3D11DeviceContext * deviceContext) = 0;
-	virtual void BindCS(ID3D11DeviceContext * deviceContext) = 0;
-	virtual void BindPS(ID3D11DeviceContext * deviceContext) = 0;
+	virtual HRESULT CreateBuffer(ID3D11Device* device) = 0;
+	virtual void UpdateBuffer(ID3D11DeviceContext* deviceContext) = 0;
+	virtual void BindVS(ID3D11DeviceContext* deviceContext) = 0;
+	virtual void BindHS(ID3D11DeviceContext* deviceContext) = 0;
+	virtual void BindDS(ID3D11DeviceContext* deviceContext) = 0;
+	virtual void BindGS(ID3D11DeviceContext* deviceContext) = 0;
+	virtual void BindCS(ID3D11DeviceContext* deviceContext) = 0;
+	virtual void BindPS(ID3D11DeviceContext* deviceContext) = 0;
 };
 
-template<UINT startSlot, class T>
-struct CBufferObject : CBufferBase
+template<UINT StartSlot, typename T>
+struct CBufferObject final : CBufferBase
 {
-	T data;
+	T m_data;
 
-	CBufferObject() : CBufferBase(), data() {}
+	CBufferObject() : CBufferBase(), m_data() {}
 
-	HRESULT CreateBuffer(ID3D11Device * device) override
+	HRESULT CreateBuffer(ID3D11Device* device) override
 	{
-		if (cBuffer != nullptr)
+		if (m_cBuffer != nullptr)
 			return S_OK;
 		D3D11_BUFFER_DESC cbd;
 		ZeroMemory(&cbd, sizeof(cbd));
@@ -81,14 +81,14 @@ struct CBufferObject : CBufferBase
 		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		cbd.ByteWidth = sizeof(T);
-		return device->CreateBuffer(&cbd, nullptr, cBuffer.GetAddressOf());
+		return device->CreateBuffer(&cbd, nullptr, m_cBuffer.GetAddressOf());
 	}
 
-	void UpdateBuffer(ID3D11DeviceContext * deviceContext) override
+	void UpdateBuffer(ID3D11DeviceContext* deviceContext) override
 	{
-		if (isDirty)
+		if (m_isDirty)
 		{
-			isDirty = false;
+			m_isDirty = false;
 			D3D11_MAPPED_SUBRESOURCE mappedData;
 			/*
 				获取指向缓冲区中数据的指针并拒绝GPU对该缓冲区的访问
@@ -114,8 +114,8 @@ struct CBufferObject : CBufferBase
 				适合于需要频繁更新，如每几帧更新一次，或每帧更新一次或多次的资源。
 
 			*/
-			deviceContext->Map(cBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
-			memcpy_s(mappedData.pData, sizeof(T), &data, sizeof(T));
+			deviceContext->Map(m_cBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
+			memcpy_s(mappedData.pData, sizeof(T), &m_data, sizeof(T));
 			/*
 				让指向资源的指针无效并重新启用GPU对该资源的访问权限
 				void ID3D11DeviceContext::Unmap(
@@ -123,38 +123,38 @@ struct CBufferObject : CBufferBase
 					UINT           Subresource      // [In]缓冲区资源填0
 				);
 			*/
-			deviceContext->Unmap(cBuffer.Get(), 0);
+			deviceContext->Unmap(m_cBuffer.Get(), 0);
 		}
 	}
 	
-	void BindVS(ID3D11DeviceContext * deviceContext) override
+	void BindVS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->VSSetConstantBuffers(startSlot, 1, cBuffer.GetAddressOf());
+		deviceContext->VSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
 	}
 
-	void BindHS(ID3D11DeviceContext * deviceContext) override
+	void BindHS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->HSSetConstantBuffers(startSlot, 1, cBuffer.GetAddressOf());
+		deviceContext->HSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
 	}
 
-	void BindDS(ID3D11DeviceContext * deviceContext) override
+	void BindDS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->DSSetConstantBuffers(startSlot, 1, cBuffer.GetAddressOf());
+		deviceContext->DSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
 	}
 
-	void BindGS(ID3D11DeviceContext * deviceContext) override
+	void BindGS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->GSSetConstantBuffers(startSlot, 1, cBuffer.GetAddressOf());
+		deviceContext->GSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
 	}
 
-	void BindCS(ID3D11DeviceContext * deviceContext) override
+	void BindCS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->CSSetConstantBuffers(startSlot, 1, cBuffer.GetAddressOf());
+		deviceContext->CSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
 	}
 
-	void BindPS(ID3D11DeviceContext * deviceContext) override
+	void BindPS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->PSSetConstantBuffers(startSlot, 1, cBuffer.GetAddressOf());
+		deviceContext->PSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
 	}
 };
 

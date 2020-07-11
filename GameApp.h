@@ -15,7 +15,7 @@ public:
 	// 摄像机模式
 	enum class CameraMode { FirstPerson, ThirdPerson };
 	
-	GameApp(HINSTANCE hInstance);
+	explicit GameApp(HINSTANCE hInstance);
 	~GameApp();
 
 	GameApp(const GameApp&) = delete;
@@ -35,23 +35,23 @@ private:
 	ComPtr<IDWriteFont> m_pFont;								// 字体
 	ComPtr<IDWriteTextFormat> m_pTextFormat;					// 文本格式
 
-	Player m_Player;
-	GameObject m_BoltAnim;									    // 闪电动画
-	GameObject m_Floor;										    // 地板
-	std::array<GameObject, 5> m_Walls;							// 墙壁
-	GameObject m_Mirror;										// 镜面
+	Player m_player;
+	GameObject m_boltAnim;									    // 闪电动画
+	GameObject m_floor;										    // 地板
+	std::array<GameObject, 5> m_walls;							// 墙壁
+	GameObject m_mirror;										// 镜面
 
-	std::vector<ComPtr<ID3D11ShaderResourceView>> mBoltSRVs;    // 闪电动画纹理
+	std::vector<ComPtr<ID3D11ShaderResourceView>> m_boltSRVs;    // 闪电动画纹理
 
-	ImguiPanel m_ImguiPanel;
+	ImguiPanel m_imguiPanel;
 	
-	Material m_ShadowMat;									    // 阴影材质
-	Material m_WoodCrateMat;									// 木盒材质
+	Material m_shadowMat;									    // 阴影材质
+	Material m_woodCrateMat;									// 木盒材质
 
-	BasicEffect m_BasicEffect;								    // 对象渲染特效管理
+	BasicEffect m_basicEffect;								    // 对象渲染特效管理
 
 	std::shared_ptr<Camera> m_pCamera;						    // 摄像机
-	CameraMode m_CameraMode;									// 摄像机模式
+	CameraMode m_cameraMode;									// 摄像机模式
 };
 
 #endif

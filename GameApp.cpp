@@ -2,12 +2,13 @@
 
 using namespace DirectX;
 
+// ReSharper disable once CppParameterMayBeConst,不要给HINSTANCE附加顶层const声明,不然实际上会变成底层const
 GameApp::GameApp(HINSTANCE hInstance)
 	:
 	D3DApp(hInstance),
-	m_ShadowMat(),
-	m_WoodCrateMat(),
-	m_CameraMode(CameraMode::ThirdPerson)
+	m_shadowMat(),
+	m_woodCrateMat(),
+	m_cameraMode(CameraMode::ThirdPerson)
 {
 }
 
@@ -21,7 +22,7 @@ bool GameApp::Init()
 	// 务必先初始化所有渲染状态，以供下面的特效使用
 	RenderStates::InitAll(m_pd3dDevice.Get());
 
-	if (!m_BasicEffect.InitAll(m_pd3dDevice.Get()))
+	if (!m_basicEffect.InitAll(m_pd3dDevice.Get()))
 		return false;
 	
 	if (!InitResource())
@@ -141,51 +142,51 @@ void GameApp::OnResize()
 	if (m_pCamera != nullptr)
 	{
 		m_pCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
-		m_pCamera->SetViewPort(0.0f, 0.0f, static_cast<float>(m_ClientWidth), static_cast<float>(m_ClientHeight));
-		m_BasicEffect.SetProjMatrix(m_pCamera->GetProjXM());
+		m_pCamera->SetViewPort(0.0f, 0.0f, static_cast<float>(m_clientWidth), static_cast<float>(m_clientHeight));
+		m_basicEffect.SetProjMatrix(m_pCamera->GetProjXM());
 	}
 }
 
 // IMGUI是否需要获取鼠标控制权
-bool g_is_imgui_capture_mouse = false;
+bool g_isImguiCaptureMouse = false;
 
-void GameApp::UpdateScene(float dt)
+void GameApp::UpdateScene(const float dt)
 {
 	 // 更新鼠标事件，获取相对偏移量
 	const Mouse::State mouseState = m_pMouse->GetState();
 	
 	const Keyboard::State keyState = m_pKeyboard->GetState();
-	m_KeyboardTracker.Update(keyState);
+	m_keyboardTracker.Update(keyState);
 
-	if (m_CameraMode == CameraMode::FirstPerson || (m_CameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl)))
+	if (m_cameraMode == CameraMode::FirstPerson || (m_cameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl)))
 	{
 		if (keyState.IsKeyDown(Keyboard::W))
 		{
-			m_Player.Walk(dt * 6.0f);
+			m_player.Walk(dt * 6.0f);
 		}
 		if (keyState.IsKeyDown(Keyboard::S))
 		{
-			m_Player.Walk(dt * -6.0f);
+			m_player.Walk(dt * -6.0f);
 		}
 		if (keyState.IsKeyDown(Keyboard::A))
 		{
-			m_Player.Strafe(dt * -6.0f);
+			m_player.Strafe(dt * -6.0f);
 		}
 		if (keyState.IsKeyDown(Keyboard::D))
 		{
-			m_Player.Strafe(dt * 6.0f);
+			m_player.Strafe(dt * 6.0f);
 		}
 	}
 
 	// 调整位置
-	m_Player.AdjustPosition();
+	m_player.AdjustPosition();
 
-	if (m_CameraMode == CameraMode::FirstPerson)
+	if (m_cameraMode == CameraMode::FirstPerson)
 	{
 		auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
 		
 		// 第一人称摄像机距物体中心偏一点
-		const XMFLOAT3 position = m_Player.GetTransform().GetPosition();
+		const XMFLOAT3 position = m_player.GetTransform().GetPosition();
 		firstPersonCamera->SetPosition(position.x, position.y + 1.5f, position.z + 1.5f);
 
 		// 在鼠标没进入窗口前仍为ABSOLUTE模式
@@ -198,22 +199,22 @@ void GameApp::UpdateScene(float dt)
 		if(keyState.IsKeyDown(Keyboard::LeftControl))
 		{
 			m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
-			g_is_imgui_capture_mouse = true;
+			g_isImguiCaptureMouse = true;
 		}
 		else
 		{
 			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-			g_is_imgui_capture_mouse = false;
+			g_isImguiCaptureMouse = false;
 		}
 	}
-	else if(m_CameraMode == CameraMode::ThirdPerson)
+	else if(m_cameraMode == CameraMode::ThirdPerson)
 	{
-		g_is_imgui_capture_mouse = false;
+		g_isImguiCaptureMouse = false;
 		
 		auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
 		
 		// 设置目标
-		thirdPersonCamera->SetTarget(m_Player.GetTransform().GetPosition());
+		thirdPersonCamera->SetTarget(m_player.GetTransform().GetPosition());
 		// 绕物体旋转
 		thirdPersonCamera->RotateX(static_cast<float>(mouseState.y) * dt * 2.5f);
 		thirdPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
@@ -221,35 +222,35 @@ void GameApp::UpdateScene(float dt)
 	}
 
 	// 更新观察矩阵
-	m_BasicEffect.SetViewMatrix(m_pCamera->GetViewXM());
-	m_BasicEffect.SetEyePos(m_pCamera->GetPositionXM());
+	m_basicEffect.SetViewMatrix(m_pCamera->GetViewXM());
+	m_basicEffect.SetEyePos(m_pCamera->GetPositionXM());
 
 	// 重置滚轮值
 	m_pMouse->ResetScrollWheelValue();
 
 	// 摄像机模式切换
-	if (m_KeyboardTracker.IsKeyPressed(Keyboard::D1) && m_CameraMode != CameraMode::FirstPerson)
+	if (m_keyboardTracker.IsKeyPressed(Keyboard::D1) && m_cameraMode != CameraMode::FirstPerson)
 	{
 		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
 		const XMFLOAT3 look = m_pCamera->GetLookAxis();
 		const XMFLOAT3 up = m_pCamera->GetUpAxis();
-		auto first_person_camera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
-		if (!first_person_camera)
+		auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
+		if (!firstPersonCamera)
 		{
-			first_person_camera.reset(new FirstPersonCamera);
-			first_person_camera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
-			m_pCamera = first_person_camera;
+			firstPersonCamera.reset(new FirstPersonCamera);
+			firstPersonCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
+			m_pCamera = firstPersonCamera;
 		}
 
-		first_person_camera->LookTo(
-			m_Player.GetTransform().GetPosition(),
+		firstPersonCamera->LookTo(
+			m_player.GetTransform().GetPosition(),
 			look,
 			up
 		);
 
-		m_CameraMode = CameraMode::FirstPerson;
+		m_cameraMode = CameraMode::FirstPerson;
 	}
-	else if (m_KeyboardTracker.IsKeyPressed(Keyboard::D2) && m_CameraMode != CameraMode::ThirdPerson)
+	else if (m_keyboardTracker.IsKeyPressed(Keyboard::D2) && m_cameraMode != CameraMode::ThirdPerson)
 	{
 		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
 		const XMFLOAT3 look = m_pCamera->GetLookAxis();
@@ -262,11 +263,11 @@ void GameApp::UpdateScene(float dt)
 			m_pCamera = thirdPersonCamera;
 		}
 		
-		thirdPersonCamera->SetTarget(m_Player.GetTransform().GetPosition(), true, look, up);
+		thirdPersonCamera->SetTarget(m_player.GetTransform().GetPosition(), true, look, up);
 		thirdPersonCamera->SetDistance(8.0f);
 		thirdPersonCamera->SetDistanceMinMax(3.0f, 20.0f);
 
-		m_CameraMode = CameraMode::ThirdPerson;
+		m_cameraMode = CameraMode::ThirdPerson;
 	}
 
 	// 退出程序，这里应向窗口发送销毁信息
@@ -278,7 +279,7 @@ void GameApp::UpdateScene(float dt)
 	// 更新闪电动画
 	static int currBoltFrame = 0;
 	static float frameTime = 0.0f;
-	m_BoltAnim.SetTexture(mBoltSRVs[currBoltFrame].Get());
+	m_boltAnim.SetTexture(m_boltSRVs[currBoltFrame].Get());
 	if (frameTime > 1.0f / 60)
 	{
 		currBoltFrame = (currBoltFrame + 1) % 60;
@@ -286,7 +287,7 @@ void GameApp::UpdateScene(float dt)
 	}
 	frameTime += dt;
 	
-	m_ImguiPanel.LoadData(m_Player);
+	m_imguiPanel.LoadData(m_player);
 }
 
 void GameApp::DrawScene()
@@ -294,7 +295,7 @@ void GameApp::DrawScene()
 	assert(m_pd3dImmediateContext);
 	assert(m_pSwapChain);
 
-	m_ImguiPanel.Draw();
+	m_imguiPanel.Draw();
 	
 	m_pd3dImmediateContext->ClearRenderTargetView(m_pRenderTargetView.Get(), Colors::Black);
 	/*
@@ -317,82 +318,82 @@ void GameApp::DrawScene()
 	// 1. 给镜面反射区域写入值1到模板缓冲区
 	//
 
-	m_BasicEffect.SetWriteStencilOnly(m_pd3dImmediateContext.Get(), 1);
+	m_basicEffect.SetWriteStencilOnly(m_pd3dImmediateContext.Get(), 1);
 
-	m_Mirror.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_mirror.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 
 	// ******************
 	// 2. 绘制不透明的反射物体
 	//
 
 	// 开启反射绘制
-	m_BasicEffect.SetReflectionState(true);	// 反射开启
-	m_BasicEffect.SetRenderDefaultWithStencil(m_pd3dImmediateContext.Get(), 1);
+	m_basicEffect.SetReflectionState(true);	// 反射开启
+	m_basicEffect.SetRenderDefaultWithStencil(m_pd3dImmediateContext.Get(), 1);
 
-	m_Walls[2].Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-	m_Walls[3].Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-	m_Walls[4].Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-	m_Floor.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_walls[2].Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
+	m_walls[3].Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
+	m_walls[4].Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
+	m_floor.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 	
-	m_Player.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_player.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 
 	// ******************
 	// 3. 绘制不透明反射物体的阴影
 	//
 
-	m_Player.SetMaterial(m_ShadowMat);
-	m_BasicEffect.SetShadowState(true);	// 反射开启，阴影开启			
-	m_BasicEffect.SetRenderNoDoubleBlend(m_pd3dImmediateContext.Get(), 1);
+	m_player.SetMaterial(m_shadowMat);
+	m_basicEffect.SetShadowState(true);	// 反射开启，阴影开启			
+	m_basicEffect.SetRenderNoDoubleBlend(m_pd3dImmediateContext.Get(), 1);
 
-	m_Player.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_player.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 
 	// 恢复到原来的状态
-	m_BasicEffect.SetShadowState(false);
-	m_Player.SetMaterial(m_WoodCrateMat);
+	m_basicEffect.SetShadowState(false);
+	m_player.SetMaterial(m_woodCrateMat);
 	
 
 	// ******************
 	// 4. 绘制需要混合的反射闪电动画和透明物体
 	//
 
-	m_BasicEffect.SetDrawBoltAnimNoDepthWriteWithStencil(m_pd3dImmediateContext.Get(), 1);
-	m_BoltAnim.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_basicEffect.SetDrawBoltAnimNoDepthWriteWithStencil(m_pd3dImmediateContext.Get(), 1);
+	m_boltAnim.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 
-	m_BasicEffect.SetReflectionState(false);		// 反射关闭
-	m_BasicEffect.SetRenderAlphaBlendWithStencil(m_pd3dImmediateContext.Get(), 1);
+	m_basicEffect.SetReflectionState(false);		// 反射关闭
+	m_basicEffect.SetRenderAlphaBlendWithStencil(m_pd3dImmediateContext.Get(), 1);
 
-	m_Mirror.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_mirror.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 	
 	// ******************
 	// 5. 绘制不透明的正常物体
 	//
 
-	m_BasicEffect.SetRenderDefault(m_pd3dImmediateContext.Get());
+	m_basicEffect.SetRenderDefault(m_pd3dImmediateContext.Get());
 	
-	for (auto& wall : m_Walls)
+	for (auto& wall : m_walls)
 	{
-		wall.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+		wall.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 	}
-	m_Floor.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
-	m_Player.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_floor.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
+	m_player.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 	
 	// ******************
 	// 6. 绘制不透明正常物体的阴影
 	//
 
-	m_Player.SetMaterial(m_ShadowMat);
-	m_BasicEffect.SetShadowState(true);	// 反射关闭，阴影开启
-	m_BasicEffect.SetRenderNoDoubleBlend(m_pd3dImmediateContext.Get(), 0);
+	m_player.SetMaterial(m_shadowMat);
+	m_basicEffect.SetShadowState(true);	// 反射关闭，阴影开启
+	m_basicEffect.SetRenderNoDoubleBlend(m_pd3dImmediateContext.Get(), 0);
 
-	m_Player.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_player.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 
-	m_BasicEffect.SetShadowState(false);		// 阴影关闭
-	m_Player.SetMaterial(m_WoodCrateMat);
+	m_basicEffect.SetShadowState(false);		// 阴影关闭
+	m_player.SetMaterial(m_woodCrateMat);
 
 	// ******************
 	// 7. 绘制需要混合的闪电动画
-	m_BasicEffect.SetDrawBoltAnimNoDepthWrite(m_pd3dImmediateContext.Get());
-	m_BoltAnim.Draw(m_pd3dImmediateContext.Get(), m_BasicEffect);
+	m_basicEffect.SetDrawBoltAnimNoDepthWrite(m_pd3dImmediateContext.Get());
+	m_boltAnim.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 	
 	// 绘制Direct2D部分
 	//
@@ -401,7 +402,7 @@ void GameApp::DrawScene()
 		m_pd2dRenderTarget->BeginDraw();
 		std::wstring text = L"基础特效\n"
 			L"当前模式: ";
-		if (m_CameraMode == CameraMode::ThirdPerson)
+		if (m_cameraMode == CameraMode::ThirdPerson)
 			text += L"第三人称";
 		else
 			text += L"第一人称";
@@ -432,14 +433,14 @@ bool GameApp::InitResource()
 	// 初始化游戏对象
 	ComPtr<ID3D11ShaderResourceView> texture;
 	Material material{};
-	material.ambient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
-	material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-	material.specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 16.0f);
+	material.m_ambient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+	material.m_diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+	material.m_specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 16.0f);
 
-	m_WoodCrateMat = material;
-	m_ShadowMat.ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	m_ShadowMat.diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.5f);
-	m_ShadowMat.specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 16.0f);
+	m_woodCrateMat = material;
+	m_shadowMat.m_ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	m_shadowMat.m_diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.5f);
+	m_shadowMat.m_specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 16.0f);
 
 	/*
 		DDS是一种图片格式，是DirectDraw Surface的缩写，
@@ -454,28 +455,28 @@ bool GameApp::InitResource()
 			size_t maxsize = 0,                     // [In]忽略
 			DDS_ALPHA_MODE* alphaMode = nullptr);  // [In]忽略
 	 */
-	mBoltSRVs.assign(60, nullptr);
+	m_boltSRVs.assign(60, nullptr);
 	wchar_t animFileName[50];
 	// 初始化闪电
 	for (int i = 1; i <= 60; ++i)
 	{
 		wsprintf(animFileName, L"Texture\\BoltAnim\\Bolt%03d.bmp", i);
-		HR(CreateWICTextureFromFile(m_pd3dDevice.Get(), animFileName, nullptr, mBoltSRVs[static_cast<size_t>(i) - 1].GetAddressOf()));
+		HR(CreateWICTextureFromFile(m_pd3dDevice.Get(), animFileName, nullptr, m_boltSRVs[static_cast<size_t>(i) - 1].GetAddressOf()));
 	}
-	m_BoltAnim.SetBuffer(m_pd3dDevice.Get(), Geometry::CreateCylinderNoCap(5.0f, 4.0f));
+	m_boltAnim.SetBuffer(m_pd3dDevice.Get(), Geometry::CreateCylinderNoCap(5.0f, 4.0f));
 	// 抬起高度避免深度缓冲区资源争夺
-	m_BoltAnim.GetTransform().SetPosition(0.0f, 2.01f, 0.0f);
-	m_BoltAnim.SetMaterial(material);
+	m_boltAnim.GetTransform().SetPosition(0.0f, 2.01f, 0.0f);
+	m_boltAnim.SetMaterial(material);
 
 	// 初始化玩家
-	m_Player.init(m_pd3dDevice.Get());
+	m_player.Init(m_pd3dDevice.Get());
 	
 	// 初始化地板
 	HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"Texture\\floor.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-	m_Floor.SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 50.0f), XMFLOAT2(5.0f, 5.0f)));
-	m_Floor.GetTransform().SetPosition(0.0f, -1.0f, 0.0f);
-	m_Floor.SetTexture(texture.Get());
-	m_Floor.SetMaterial(material);
+	m_floor.SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 50.0f), XMFLOAT2(5.0f, 5.0f)));
+	m_floor.GetTransform().SetPosition(0.0f, -1.0f, 0.0f);
+	m_floor.SetTexture(texture.Get());
+	m_floor.SetMaterial(material);
 
 	// 初始化墙体
 	HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"Texture\\brick.dds", nullptr, texture.ReleaseAndGetAddressOf()));
@@ -487,42 +488,42 @@ bool GameApp::InitResource()
 	// | /       3       \ |
 	// |/_________________\|
 	//
-	m_Walls[0].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(15.0f, 15.0f), XMFLOAT2(1.5f, 2.0f)));
-	m_Walls[1].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(15.0f, 15.0f), XMFLOAT2(1.5f, 2.0f)));
-	m_Walls[2].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 15.0f), XMFLOAT2(5.0f, 2.0f)));
-	m_Walls[3].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 15.0f), XMFLOAT2(5.0f, 2.0f)));
-	m_Walls[4].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 15.0f), XMFLOAT2(5.0f, 2.0f)));
+	m_walls[0].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(15.0f, 15.0f), XMFLOAT2(1.5f, 2.0f)));
+	m_walls[1].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(15.0f, 15.0f), XMFLOAT2(1.5f, 2.0f)));
+	m_walls[2].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 15.0f), XMFLOAT2(5.0f, 2.0f)));
+	m_walls[3].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 15.0f), XMFLOAT2(5.0f, 2.0f)));
+	m_walls[4].SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 15.0f), XMFLOAT2(5.0f, 2.0f)));
 	// 墙0
-	m_Walls[0].GetTransform().SetRotation(-XM_PIDIV2, 0.0f, 0.0f);
-	m_Walls[0].GetTransform().SetPosition(-17.5f, 6.5f, 25.0f);
+	m_walls[0].GetTransform().SetRotation(-XM_PIDIV2, 0.0f, 0.0f);
+	m_walls[0].GetTransform().SetPosition(-17.5f, 6.5f, 25.0f);
 	// 墙1
-	m_Walls[1].GetTransform().SetRotation(-XM_PIDIV2, 0.0f, 0.0f);
-	m_Walls[1].GetTransform().SetPosition(17.5f, 6.5f, 25.0f);
+	m_walls[1].GetTransform().SetRotation(-XM_PIDIV2, 0.0f, 0.0f);
+	m_walls[1].GetTransform().SetPosition(17.5f, 6.5f, 25.0f);
 	// 墙2
-	m_Walls[2].GetTransform().SetRotation(-XM_PIDIV2, XM_PIDIV2, 0.0f);
-	m_Walls[2].GetTransform().SetPosition(25.0f, 6.5f, 0.0f);
+	m_walls[2].GetTransform().SetRotation(-XM_PIDIV2, XM_PIDIV2, 0.0f);
+	m_walls[2].GetTransform().SetPosition(25.0f, 6.5f, 0.0f);
 	// 墙3
-	m_Walls[3].GetTransform().SetRotation(-XM_PIDIV2, XM_PI, 0.0f);
-	m_Walls[3].GetTransform().SetPosition(0.0f, 6.5f, -25.0f);
+	m_walls[3].GetTransform().SetRotation(-XM_PIDIV2, XM_PI, 0.0f);
+	m_walls[3].GetTransform().SetPosition(0.0f, 6.5f, -25.0f);
 	// 墙4
-	m_Walls[4].GetTransform().SetRotation(-XM_PIDIV2, -XM_PIDIV2, 0.0f);
-	m_Walls[4].GetTransform().SetPosition(-25.0f, 6.5f, 0.0f);
+	m_walls[4].GetTransform().SetRotation(-XM_PIDIV2, -XM_PIDIV2, 0.0f);
+	m_walls[4].GetTransform().SetPosition(-25.0f, 6.5f, 0.0f);
 	for (int i = 0; i < 5; ++i)
 	{
-		m_Walls[i].SetMaterial(material);
-		m_Walls[i].SetTexture(texture.Get());
+		m_walls[i].SetMaterial(material);
+		m_walls[i].SetTexture(texture.Get());
 	}
 
 	// 初始化镜面
-	material.ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-	material.diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f);
-	material.specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
+	material.m_ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	material.m_diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f);
+	material.m_specular = XMFLOAT4(0.4f, 0.4f, 0.4f, 16.0f);
 	HR(CreateDDSTextureFromFile(m_pd3dDevice.Get(), L"Texture\\ice.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-	m_Mirror.SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(20.0f, 15.0f), XMFLOAT2(1.0f, 1.0f)));
-	m_Mirror.GetTransform().SetPosition(0.0f, 6.5f, 25.0f);
-	m_Mirror.GetTransform().SetRotation(-XM_PIDIV2, 0.0f, 0.0f);
-	m_Mirror.SetTexture(texture.Get());
-	m_Mirror.SetMaterial(material);
+	m_mirror.SetBuffer(m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(20.0f, 15.0f), XMFLOAT2(1.0f, 1.0f)));
+	m_mirror.GetTransform().SetPosition(0.0f, 6.5f, 25.0f);
+	m_mirror.GetTransform().SetRotation(-XM_PIDIV2, 0.0f, 0.0f);
+	m_mirror.SetTexture(texture.Get());
+	m_mirror.SetMaterial(material);
 
 	// ******************
 	// 初始化摄像机
@@ -530,30 +531,30 @@ bool GameApp::InitResource()
 	
 	auto camera = std::make_shared<ThirdPersonCamera>();
 	m_pCamera = camera;
-	camera->SetViewPort(0.0f, 0.0f, static_cast<float>(m_ClientWidth), static_cast<float>(m_ClientHeight));
+	camera->SetViewPort(0.0f, 0.0f, static_cast<float>(m_clientWidth), static_cast<float>(m_clientHeight));
 	camera->SetTarget(XMFLOAT3(0.0f, 0.5f, 0.0f));
 	camera->SetDistance(8.0f);
 	camera->SetDistanceMinMax(3.0f, 20.0f);
 	camera->SetRotationX(XM_PIDIV4);
 
-	m_BasicEffect.SetViewMatrix(m_pCamera->GetViewXM());
-	m_BasicEffect.SetEyePos(m_pCamera->GetPositionXM());
+	m_basicEffect.SetViewMatrix(m_pCamera->GetViewXM());
+	m_basicEffect.SetEyePos(m_pCamera->GetPositionXM());
 	
 	// 初始化仅在窗口大小变动时修改的值
 	m_pCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
-	m_BasicEffect.SetProjMatrix(m_pCamera->GetProjXM());
+	m_basicEffect.SetProjMatrix(m_pCamera->GetProjXM());
 	
 	// ******************
 	// 初始化不会变化的值
 	//
 
-	m_BasicEffect.SetReflectionMatrix(XMMatrixReflect(XMVectorSet(0.0f, 0.0f, -1.0f, 25.0f)));
+	m_basicEffect.SetReflectionMatrix(XMMatrixReflect(XMVectorSet(0.0f, 0.0f, -1.0f, 25.0f)));
 	// 稍微高一点位置以显示阴影
-	m_BasicEffect.SetShadowMatrix(XMMatrixShadow(XMVectorSet(0.0f, 1.0f, 0.0f, 0.99f), XMVectorSet(0.0f, 15.0f, -25.0f, 1.0f)));
-	m_BasicEffect.SetRefShadowMatrix(XMMatrixShadow(XMVectorSet(0.0f, 1.0f, 0.0f, 0.99f), XMVectorSet(0.0f, 15.0f, 75.0f, 1.0f)));
+	m_basicEffect.SetShadowMatrix(XMMatrixShadow(XMVectorSet(0.0f, 1.0f, 0.0f, 0.99f), XMVectorSet(0.0f, 15.0f, -25.0f, 1.0f)));
+	m_basicEffect.SetRefShadowMatrix(XMMatrixShadow(XMVectorSet(0.0f, 1.0f, 0.0f, 0.99f), XMVectorSet(0.0f, 15.0f, 75.0f, 1.0f)));
 
 	// 环境光
-	m_BasicEffect.SetDirLight(
+	m_basicEffect.SetDirLight(
 		0, 
 		{
 			XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
@@ -563,7 +564,7 @@ bool GameApp::InitResource()
 		}
 	);
 	// 灯光
-	m_BasicEffect.SetPointLight(
+	m_basicEffect.SetPointLight(
 		0, 
 		{
 			XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f),
@@ -578,14 +579,14 @@ bool GameApp::InitResource()
 	// ******************
 	// 设置调试对象名
 	//
-	m_BoltAnim.SetDebugObjectName("BoltAnim");
-	m_Floor.SetDebugObjectName("Floor");
-	m_Mirror.SetDebugObjectName("Mirror");
-	m_Walls[0].SetDebugObjectName("Walls[0]");
-	m_Walls[1].SetDebugObjectName("Walls[1]");
-	m_Walls[2].SetDebugObjectName("Walls[2]");
-	m_Walls[3].SetDebugObjectName("Walls[3]");
-	m_Walls[4].SetDebugObjectName("Walls[4]");
+	m_boltAnim.SetDebugObjectName("BoltAnim");
+	m_floor.SetDebugObjectName("Floor");
+	m_mirror.SetDebugObjectName("Mirror");
+	m_walls[0].SetDebugObjectName("Walls[0]");
+	m_walls[1].SetDebugObjectName("Walls[1]");
+	m_walls[2].SetDebugObjectName("Walls[2]");
+	m_walls[3].SetDebugObjectName("Walls[3]");
+	m_walls[4].SetDebugObjectName("Walls[4]");
 	
 	return true;
 }

@@ -17,13 +17,13 @@ Player::Player(VehicleInfo tankInfo, XMFLOAT3 direction)
 	g_pplayer = this;
 }
 
-void Player::init(ID3D11Device* device)
+void Player::Init(ID3D11Device* device)
 {
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texture;
 	Material material{};
-	material.ambient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
-	material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-	material.specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 16.0f);
+	material.m_ambient = XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f);
+	material.m_diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+	material.m_specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 16.0f);
 
 	// 取得坦克的规格信息
 	const VehicleInfo& tankInfo = m_tank.m_tankInfo;

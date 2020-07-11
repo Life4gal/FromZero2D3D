@@ -12,34 +12,36 @@ namespace
 }
 
 LRESULT CALLBACK
-MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+// ReSharper disable once CppParameterMayBeConst,不要给HWND附加顶层const声明,不然实际上会变成底层const
+MainWndProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
-	// Forward hwnd on because we can get messages (e.g., WM_CREATE)
+	// Forward hWnd on because we can get messages (e.g., WM_CREATE)
 	// before CreateWindow returns, and thus before m_hMainWnd is valid.
-	return g_pd3dApp->MsgProc(hwnd, msg, wParam, lParam);
+	return g_pd3dApp->MsgProc(hWnd, msg, wParam, lParam);
 }
 
+// ReSharper disable once CppParameterMayBeConst,不要给HINSTANCE附加顶层const声明,不然实际上会变成底层const
 D3DApp::D3DApp(HINSTANCE hInstance)
 	: 
+	m_hAppInst(),
 	m_hMainWnd(nullptr),
-	m_AppPaused(false),
-	m_Minimized(false),
-	m_Maximized(false),
-	m_Resizing(false),
-	m_Enable4xMsaa(true),
-	m_4xMsaaQuality(0),
+	m_isAppPaused(false),
+	m_isMinimized(false),
+	m_isMaximized(false),
+	m_isResizing(false),
+	m_isEnable4XMsaa(true),
+	m_4XMsaaQuality(0),
 	m_pd3dDevice(nullptr),
 	m_pd3dImmediateContext(nullptr),
 	m_pSwapChain(nullptr),
 	m_pDepthStencilBuffer(nullptr),
 	m_pRenderTargetView(nullptr),
 	m_pDepthStencilView(nullptr),
-	m_MainWndCaption(L"DirectX11"),
-	m_ClientWidth(800),
-	m_ClientHeight(600)
+	m_mainWndCaption(L"DirectX11"),
+	m_clientWidth(800),
+	m_clientHeight(600)
 {
-	ZeroMemory(&m_ScreenViewport, sizeof(D3D11_VIEWPORT));
-
+	ZeroMemory(&m_screenViewport, sizeof(D3D11_VIEWPORT));
 
 	// 让一个全局指针获取这个类，这样我们就可以在Windows消息处理的回调函数
 	// 让这个类调用内部的回调函数了
@@ -68,14 +70,14 @@ HWND D3DApp::MainWnd() const
 
 float D3DApp::AspectRatio() const
 {
-	return static_cast<float>(m_ClientWidth) / static_cast<float>(m_ClientHeight);
+	return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight);
 }
 
 int D3DApp::Run()
 {
 	MSG msg{};
 
-	m_Timer.Reset();
+	m_gameTimer.Reset();
 
 	while (msg.message != WM_QUIT)
 	{
@@ -86,12 +88,12 @@ int D3DApp::Run()
 		}
 		else
 		{
-			m_Timer.Tick();
+			m_gameTimer.Tick();
 
-			if (!m_AppPaused)
+			if (!m_isAppPaused)
 			{
 				CalculateFrameStats();
-				UpdateScene(m_Timer.DeltaTime());
+				UpdateScene(m_gameTimer.DeltaTime());
 				DrawScene();
 			}
 			else
@@ -144,7 +146,7 @@ void D3DApp::OnResize()
 
 	// 重设交换链并且重新创建渲染目标视图
 	ComPtr<ID3D11Texture2D> backBuffer;
-	HR(m_pSwapChain->ResizeBuffers(1, m_ClientWidth, m_ClientHeight, DXGI_FORMAT_B8G8R8A8_UNORM, 0));	// 注意此处DXGI_FORMAT_B8G8R8A8_UNORM
+	HR(m_pSwapChain->ResizeBuffers(1, m_clientWidth, m_clientHeight, DXGI_FORMAT_B8G8R8A8_UNORM, 0));	// 注意此处DXGI_FORMAT_B8G8R8A8_UNORM
 	HR(m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf())));
 	HR(m_pd3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr, m_pRenderTargetView.GetAddressOf()));
 	
@@ -155,17 +157,17 @@ void D3DApp::OnResize()
 
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
 
-	depthStencilDesc.Width = m_ClientWidth;
-	depthStencilDesc.Height = m_ClientHeight;
+	depthStencilDesc.Width = m_clientWidth;
+	depthStencilDesc.Height = m_clientHeight;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.ArraySize = 1;
 	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
 	// 要使用 4X MSAA? --需要给交换链设置MASS参数
-	if (m_Enable4xMsaa)
+	if (m_isEnable4XMsaa)
 	{
 		depthStencilDesc.SampleDesc.Count = 4;
-		depthStencilDesc.SampleDesc.Quality = m_4xMsaaQuality - 1;
+		depthStencilDesc.SampleDesc.Quality = m_4XMsaaQuality - 1;
 	}
 	else
 	{
@@ -187,14 +189,14 @@ void D3DApp::OnResize()
 	m_pd3dImmediateContext->OMSetRenderTargets(1, m_pRenderTargetView.GetAddressOf(), m_pDepthStencilView.Get());
 
 	// 设置视口变换
-	m_ScreenViewport.TopLeftX = 0;
-	m_ScreenViewport.TopLeftY = 0;
-	m_ScreenViewport.Width = static_cast<float>(m_ClientWidth);
-	m_ScreenViewport.Height = static_cast<float>(m_ClientHeight);
-	m_ScreenViewport.MinDepth = 0.0f;
-	m_ScreenViewport.MaxDepth = 1.0f;
+	m_screenViewport.TopLeftX = 0;
+	m_screenViewport.TopLeftY = 0;
+	m_screenViewport.Width = static_cast<float>(m_clientWidth);
+	m_screenViewport.Height = static_cast<float>(m_clientHeight);
+	m_screenViewport.MinDepth = 0.0f;
+	m_screenViewport.MaxDepth = 1.0f;
 
-	m_pd3dImmediateContext->RSSetViewports(1, &m_ScreenViewport);
+	m_pd3dImmediateContext->RSSetViewports(1, &m_screenViewport);
 
 	// 设置调试对象名
 	D3D11SetDebugObjectName(m_pDepthStencilBuffer.Get(), "DepthStencilBuffer");
@@ -203,10 +205,11 @@ void D3DApp::OnResize()
 
 }
 
-extern bool g_is_imgui_capture_mouse;
+extern bool g_isImguiCaptureMouse;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+// ReSharper disable once CppParameterMayBeConst,不要给HWND附加顶层const声明,不然实际上会变成底层const
+LRESULT D3DApp::MsgProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
 	switch (msg)
 	{
@@ -216,55 +219,55 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_ACTIVATE:
 		if (LOWORD(wParam) == WA_INACTIVE)
 		{
-			m_AppPaused = true;
-			m_Timer.Stop();
+			m_isAppPaused = true;
+			m_gameTimer.Stop();
 		}
 		else
 		{
-			m_AppPaused = false;
-			m_Timer.Start();
+			m_isAppPaused = false;
+			m_gameTimer.Start();
 		}
 		return 0;
 
 		// WM_SIZE is sent when the user resizes the window.  
 	case WM_SIZE:
 		// Save the new client area dimensions.
-		m_ClientWidth = LOWORD(lParam);
-		m_ClientHeight = HIWORD(lParam);
+		m_clientWidth = LOWORD(lParam);
+		m_clientHeight = HIWORD(lParam);
 		if (m_pd3dDevice)
 		{
 			if (wParam == SIZE_MINIMIZED)
 			{
-				m_AppPaused = true;
-				m_Minimized = true;
-				m_Maximized = false;
+				m_isAppPaused = true;
+				m_isMinimized = true;
+				m_isMaximized = false;
 			}
 			else if (wParam == SIZE_MAXIMIZED)
 			{
-				m_AppPaused = false;
-				m_Minimized = false;
-				m_Maximized = true;
+				m_isAppPaused = false;
+				m_isMinimized = false;
+				m_isMaximized = true;
 				OnResize();
 			}
 			else if (wParam == SIZE_RESTORED)
 			{
 
 				// Restoring from minimized state?
-				if (m_Minimized)
+				if (m_isMinimized)
 				{
-					m_AppPaused = false;
-					m_Minimized = false;
+					m_isAppPaused = false;
+					m_isMinimized = false;
 					OnResize();
 				}
 
 				// Restoring from maximized state?
-				else if (m_Maximized)
+				else if (m_isMaximized)
 				{
-					m_AppPaused = false;
-					m_Maximized = false;
+					m_isAppPaused = false;
+					m_isMaximized = false;
 					OnResize();
 				}
-				else if (m_Resizing)
+				else if (m_isResizing)
 				{
 					// If user is dragging the resize bars, we do not resize 
 					// the buffers here because as the user continuously 
@@ -285,17 +288,17 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		// WM_EXITSIZEMOVE is sent when the user grabs the resize bars.
 	case WM_ENTERSIZEMOVE:
-		m_AppPaused = true;
-		m_Resizing = true;
-		m_Timer.Stop();
+		m_isAppPaused = true;
+		m_isResizing = true;
+		m_gameTimer.Stop();
 		return 0;
 
 		// WM_EXITSIZEMOVE is sent when the user releases the resize bars.
 		// Here we reset everything based on the new window dimensions.
 	case WM_EXITSIZEMOVE:
-		m_AppPaused = false;
-		m_Resizing = false;
-		m_Timer.Start();
+		m_isAppPaused = false;
+		m_isResizing = false;
+		m_gameTimer.Start();
 		OnResize();
 		return 0;
 
@@ -333,9 +336,9 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEHOVER:
 	case WM_MOUSEMOVE:
 		{
-			if (g_is_imgui_capture_mouse)
+			if (g_isImguiCaptureMouse)
 			{
-				return ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam);
+				return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
 			}
 			m_pMouse->ProcessMessage(msg, wParam, lParam);
 			return 0;
@@ -354,7 +357,7 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 		
 	default:
-		return DefWindowProc(hwnd, msg, wParam, lParam);
+		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
 }
 
@@ -384,14 +387,14 @@ bool D3DApp::InitMainWindow()
 	const int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	
 	// Compute window rectangle dimensions based on requested client area dimensions.
-	RECT rect = { 0, 0, m_ClientWidth, m_ClientHeight };
+	RECT rect = { 0, 0, m_clientWidth, m_clientHeight };
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 	const int width = rect.right - rect.left;
 	const int height = rect.bottom - rect.top;
 
 	m_hMainWnd = CreateWindow(
 		L"D3DWndClassName", 
-		m_MainWndCaption.c_str(),
+		m_mainWndCaption.c_str(),
 		WS_OVERLAPPEDWINDOW, 
 		(screenWidth - width) / 2, (screenHeight - height) / 2, width, height, 
 		nullptr, 
@@ -448,7 +451,7 @@ bool D3DApp::InitDirect3D()
 	const UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
 	D3D_FEATURE_LEVEL featureLevel;
-	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
+	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)  // NOLINT(modernize-loop-convert)
 	{
 		const D3D_DRIVER_TYPE d3dDriverType = driverTypes[driverTypeIndex];
 		hr = D3D11CreateDevice(nullptr, d3dDriverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
@@ -480,8 +483,8 @@ bool D3DApp::InitDirect3D()
 
 	// 检测 MSAA支持的质量等级
 	m_pd3dDevice->CheckMultisampleQualityLevels(
-		DXGI_FORMAT_B8G8R8A8_UNORM, 4, &m_4xMsaaQuality);	// 注意此处DXGI_FORMAT_B8G8R8A8_UNORM
-	assert(m_4xMsaaQuality > 0);
+		DXGI_FORMAT_B8G8R8A8_UNORM, 4, &m_4XMsaaQuality);	// 注意此处DXGI_FORMAT_B8G8R8A8_UNORM
+	assert(m_4XMsaaQuality > 0);
 
 	ComPtr<IDXGIDevice> dxgiDevice = nullptr;
 	ComPtr<IDXGIAdapter> dxgiAdapter = nullptr;
@@ -495,7 +498,7 @@ bool D3DApp::InitDirect3D()
 	HR(dxgiAdapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(dxgiFactory1.GetAddressOf())));
 
 	// 查看该对象是否包含IDXGIFactory2接口
-	hr = dxgiFactory1.As(&dxgiFactory2);
+	dxgiFactory1.As(&dxgiFactory2);
 	// 如果包含，则说明支持D3D11.1
 	if (dxgiFactory2 != nullptr)
 	{
@@ -504,14 +507,14 @@ bool D3DApp::InitDirect3D()
 		// 填充各种结构体用以描述交换链
 		DXGI_SWAP_CHAIN_DESC1 sd;
 		ZeroMemory(&sd, sizeof(sd));
-		sd.Width = m_ClientWidth;
-		sd.Height = m_ClientHeight;
+		sd.Width = m_clientWidth;
+		sd.Height = m_clientHeight;
 		sd.Format = DXGI_FORMAT_B8G8R8A8_UNORM;		// 注意此处DXGI_FORMAT_B8G8R8A8_UNORM
 		// 是否开启4倍多重采样？
-		if (m_Enable4xMsaa)
+		if (m_isEnable4XMsaa)
 		{
 			sd.SampleDesc.Count = 4;
-			sd.SampleDesc.Quality = m_4xMsaaQuality - 1;
+			sd.SampleDesc.Quality = m_4XMsaaQuality - 1;
 		}
 		else
 		{
@@ -538,18 +541,18 @@ bool D3DApp::InitDirect3D()
 		// 填充DXGI_SWAP_CHAIN_DESC用以描述交换链
 		DXGI_SWAP_CHAIN_DESC sd;
 		ZeroMemory(&sd, sizeof(sd));
-		sd.BufferDesc.Width = m_ClientWidth;
-		sd.BufferDesc.Height = m_ClientHeight;
+		sd.BufferDesc.Width = m_clientWidth;
+		sd.BufferDesc.Height = m_clientHeight;
 		sd.BufferDesc.RefreshRate.Numerator = 60;
 		sd.BufferDesc.RefreshRate.Denominator = 1;
 		sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;	// 注意此处DXGI_FORMAT_B8G8R8A8_UNORM
 		sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 		sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		// 是否开启4倍多重采样？
-		if (m_Enable4xMsaa)
+		if (m_isEnable4XMsaa)
 		{
 			sd.SampleDesc.Count = 4;
-			sd.SampleDesc.Quality = m_4xMsaaQuality - 1;
+			sd.SampleDesc.Quality = m_4XMsaaQuality - 1;
 		}
 		else
 		{
@@ -589,16 +592,16 @@ void D3DApp::CalculateFrameStats() const
 
 	frameCnt++;
 
-	if ((m_Timer.TotalTime() - timeElapsed) >= 1.0f)
+	if ((m_gameTimer.TotalTime() - timeElapsed) >= 1.0f)
 	{
-		const float fps = static_cast<float>(frameCnt); // fps = frameCnt / 1
-		const float mspf = 1000.0f / fps;
+		const auto fps = static_cast<float>(frameCnt); // fps = frameCnt / 1
+		const float msPerFrame = 1000.0f / fps;
 
 		std::wostringstream outs;
 		outs.precision(6);
-		outs << m_MainWndCaption << L"    "
+		outs << m_mainWndCaption << L"    "
 			<< L"FPS: " << fps << L"    "
-			<< L"Frame Time: " << mspf << L" (ms)";
+			<< L"Frame Time: " << msPerFrame << L" (ms)";
 		SetWindowText(m_hMainWnd, outs.str().c_str());
 
 		// Reset for next average.

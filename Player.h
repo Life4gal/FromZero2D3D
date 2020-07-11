@@ -13,8 +13,8 @@ class Player
 	
 public:
 	struct VehicleInfo;
-	
-	Player(
+
+	explicit Player(
 		VehicleInfo tankInfo =
 		{
 			3.5f,
@@ -23,14 +23,14 @@ public:
 			2.0f,
 			2.0f,
 			1.2f,
-			0.5f,
+			0.25f,
 			4.5f,
 			0.75f,
 			0.5f
 		}, 
 		DirectX::XMFLOAT3 direction = {0.0f, 0.0f, 1.0f});
 
-	void init(ID3D11Device* device);
+	void Init(ID3D11Device* device);
 	
 	static Player& Get();
 	

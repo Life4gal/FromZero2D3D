@@ -1,13 +1,11 @@
 //***************************************************************************************
-// Camera.h by X_Jun(MKXJun) (C) 2018-2020 All Rights Reserved.
-// Licensed under the MIT License.
+// Author: X_Jun(MKXJun)(MIT License)
+//
+// Modified By: life4gal(NiceT)(MIT License)
 //
 // 提供第一人称(自由视角)和第三人称摄像机
 // Provide 1st person(free view) and 3rd person cameras.
 //***************************************************************************************
-//
-// Life4Gal 进行了大量改动, 总体使用方式部分改变
-//
 
 #ifndef CAMERA_H
 #define CAMERA_H
@@ -22,10 +20,15 @@ public:
 	Camera() = default;
 	virtual ~Camera() = 0;
 
+	Camera(const Camera& other) = default;
+	Camera(Camera && other) noexcept = default;
+	Camera& operator=(const Camera & other) = default;
+	Camera& operator=(Camera && other) noexcept = default;
+	
 	//
 	// 获取摄像机位置
 	//
-	
+
 	DirectX::XMFLOAT3 GetPosition() const;
 	DirectX::XMVECTOR GetPositionXM() const;
 
@@ -75,24 +78,29 @@ public:
 protected:
 
 	// 摄像机的变换
-	Transform m_Transform{};
+	Transform m_transform{};
 	
 	// 视锥体属性
-	float m_NearZ = 0.0f;
-	float m_FarZ = 0.0f;
-	float m_Aspect = 0.0f;
-	float m_FovY = 0.0f;
+	float m_nearZ = 0.0f;
+	float m_farZ = 0.0f;
+	float m_aspect = 0.0f;
+	float m_fovY = 0.0f;
 
 	// 当前视口
-	D3D11_VIEWPORT m_ViewPort{};
+	D3D11_VIEWPORT m_viewPort{};
 };
 
-class FirstPersonCamera : public Camera
+class FirstPersonCamera final : public Camera
 {
 public:
 	FirstPersonCamera() = default;
 	~FirstPersonCamera() override;
 
+	FirstPersonCamera(const FirstPersonCamera& other) = default;
+	FirstPersonCamera(FirstPersonCamera&& other) noexcept = default;
+	FirstPersonCamera& operator=(const FirstPersonCamera& other) = default;
+	FirstPersonCamera& operator=(FirstPersonCamera&& other) noexcept = default;
+	
 	// 设置第一人称摄像机的朝向
 	void LookAt(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up);
 	void LookAt(const DirectX::XMVECTOR& pos, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up);
@@ -115,12 +123,17 @@ public:
 	void RotateY(float rad);
 };
 
-class ThirdPersonCamera : public Camera
+class ThirdPersonCamera final : public Camera
 {
 public:
 	ThirdPersonCamera() = default;
 	~ThirdPersonCamera() override;
 
+	ThirdPersonCamera(const ThirdPersonCamera& other) = default;
+	ThirdPersonCamera(ThirdPersonCamera&& other) noexcept = default;
+	ThirdPersonCamera& operator=(const ThirdPersonCamera& other) = default;
+	ThirdPersonCamera& operator=(ThirdPersonCamera&& other) noexcept = default;
+	
 	// 获取当前跟踪物体的位置
 	DirectX::XMFLOAT3 GetTargetPosition() const;
 	// 获取与物体的距离
@@ -148,9 +161,10 @@ public:
 
 private:
 	DirectX::XMFLOAT3 m_Target{};
-	float m_Distance = 0.0f;
+	float m_distance = 0.0f;
 	// 最小允许距离，最大允许距离
-	float m_MinDist = 0.0f, m_MaxDist = 0.0f;
+	float m_minDist = 0.0f;
+	float m_maxDist = 0.0f;
 };
 
 #endif

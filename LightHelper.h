@@ -1,117 +1,94 @@
+//***************************************************************************************
+// Author: X_Jun(MKXJun)(MIT License)
+//
+// Modified By: life4gal(NiceT)(MIT License)
+// 
+//***************************************************************************************
+
 #ifndef LIGHTHELPER_H
 #define LIGHTHELPER_H
 
-#include <cstring>
 #include <DirectXMath.h>
-
 
 // 方向光
 struct DirectionalLight
 {
 	DirectionalLight() = default;
-	~DirectionalLight() = default;
+	
+	DirectionalLight(const DirectX::XMFLOAT4& ambient, const DirectX::XMFLOAT4& diffuse, const DirectX::XMFLOAT4& specular,
+		const DirectX::XMFLOAT3& direction) :
+		m_ambient(ambient), m_diffuse(diffuse), m_specular(specular), m_direction(direction), m_pad() {}
 
-	DirectionalLight(const DirectionalLight&) = default;
-	DirectionalLight& operator=(const DirectionalLight&) = default;
-
-	DirectionalLight(DirectionalLight&&) = default;
-	DirectionalLight& operator=(DirectionalLight&&) = default;
-
-	DirectionalLight(const DirectX::XMFLOAT4& _ambient, const DirectX::XMFLOAT4& _diffuse, const DirectX::XMFLOAT4& _specular,
-		const DirectX::XMFLOAT3& _direction) :
-		ambient(_ambient), diffuse(_diffuse), specular(_specular), direction(_direction), pad() {}
-
-	DirectX::XMFLOAT4 ambient;
-	DirectX::XMFLOAT4 diffuse;
-	DirectX::XMFLOAT4 specular;
-	DirectX::XMFLOAT3 direction;
-	float pad; // 最后用一个浮点数填充使得该结构体大小满足16的倍数，便于我们以后在HLSL设置数组
+	DirectX::XMFLOAT4 m_ambient;
+	DirectX::XMFLOAT4 m_diffuse;
+	DirectX::XMFLOAT4 m_specular;
+	DirectX::XMFLOAT3 m_direction;
+	float m_pad; // 最后用一个浮点数填充使得该结构体大小满足16的倍数，便于我们以后在HLSL设置数组
 };
 
 // 点光
 struct PointLight
 {
 	PointLight() = default;
-	~PointLight() = default;
+	
+	PointLight(const DirectX::XMFLOAT4& ambient, const DirectX::XMFLOAT4& diffuse, const DirectX::XMFLOAT4& specular,
+		const DirectX::XMFLOAT3& position, const float range, const DirectX::XMFLOAT3& att) :
+		m_ambient(ambient), m_diffuse(diffuse), m_specular(specular), m_position(position), m_range(range), m_att(att), m_pad() {}
 
-	PointLight(const PointLight&) = default;
-	PointLight& operator=(const PointLight&) = default;
-
-	PointLight(PointLight&&) = default;
-	PointLight& operator=(PointLight&&) = default;
-
-	PointLight(const DirectX::XMFLOAT4& _ambient, const DirectX::XMFLOAT4& _diffuse, const DirectX::XMFLOAT4& _specular,
-		const DirectX::XMFLOAT3& _position, float _range, const DirectX::XMFLOAT3& _att) :
-		ambient(_ambient), diffuse(_diffuse), specular(_specular), position(_position), range(_range), att(_att), pad() {}
-
-	DirectX::XMFLOAT4 ambient;
-	DirectX::XMFLOAT4 diffuse;
-	DirectX::XMFLOAT4 specular;
+	DirectX::XMFLOAT4 m_ambient;
+	DirectX::XMFLOAT4 m_diffuse;
+	DirectX::XMFLOAT4 m_specular;
 
 	// 打包成4D向量: (position, range)
-	DirectX::XMFLOAT3 position;
-	float range;
+	DirectX::XMFLOAT3 m_position;
+	float m_range;
 
 	// 打包成4D向量: (A0, A1, A2, pad)
-	DirectX::XMFLOAT3 att;
-	float pad; // 最后用一个浮点数填充使得该结构体大小满足16的倍数，便于我们以后在HLSL设置数组
+	DirectX::XMFLOAT3 m_att;
+	float m_pad; // 最后用一个浮点数填充使得该结构体大小满足16的倍数，便于我们以后在HLSL设置数组
 };
 
 // 聚光灯
 struct SpotLight
 {
 	SpotLight() = default;
-	~SpotLight() = default;
+	
+	SpotLight(const DirectX::XMFLOAT4& ambient, const DirectX::XMFLOAT4& diffuse, const DirectX::XMFLOAT4& specular,
+		const DirectX::XMFLOAT3& position, const float range, const DirectX::XMFLOAT3& direction,
+		const float spot, const DirectX::XMFLOAT3& att) :
+		m_ambient(ambient), m_diffuse(diffuse), m_specular(specular), 
+		m_position(position), m_range(range), m_direction(direction), m_spot(spot), m_att(att), m_pad() {}
 
-	SpotLight(const SpotLight&) = default;
-	SpotLight& operator=(const SpotLight&) = default;
-
-	SpotLight(SpotLight&&) = default;
-	SpotLight& operator=(SpotLight&&) = default;
-
-	SpotLight(const DirectX::XMFLOAT4& _ambient, const DirectX::XMFLOAT4& _diffuse, const DirectX::XMFLOAT4& _specular,
-		const DirectX::XMFLOAT3& _position, float _range, const DirectX::XMFLOAT3& _direction,
-		float _spot, const DirectX::XMFLOAT3& _att) :
-		ambient(_ambient), diffuse(_diffuse), specular(_specular), 
-		position(_position), range(_range), direction(_direction), spot(_spot), att(_att), pad() {}
-
-	DirectX::XMFLOAT4 ambient;
-	DirectX::XMFLOAT4 diffuse;
-	DirectX::XMFLOAT4 specular;
+	DirectX::XMFLOAT4 m_ambient;
+	DirectX::XMFLOAT4 m_diffuse;
+	DirectX::XMFLOAT4 m_specular;
 
 	// 打包成4D向量: (position, range)
-	DirectX::XMFLOAT3 position;
-	float range;
+	DirectX::XMFLOAT3 m_position;
+	float m_range;
 
 	// 打包成4D向量: (direction, spot)
-	DirectX::XMFLOAT3 direction;
-	float spot;
+	DirectX::XMFLOAT3 m_direction;
+	float m_spot;
 
 	// 打包成4D向量: (att, pad)
-	DirectX::XMFLOAT3 att;
-	float pad; // 最后用一个浮点数填充使得该结构体大小满足16的倍数，便于我们以后在HLSL设置数组
+	DirectX::XMFLOAT3 m_att;
+	float m_pad; // 最后用一个浮点数填充使得该结构体大小满足16的倍数，便于我们以后在HLSL设置数组
 };
 
 // 物体表面材质
 struct Material
 {
 	Material() = default;
-	~Material() = default;
 
-	Material(const Material&) = default;
-	Material& operator=(const Material&) = default;
+	Material(const DirectX::XMFLOAT4& ambient, const DirectX::XMFLOAT4& diffuse, const DirectX::XMFLOAT4& specular,
+		const DirectX::XMFLOAT4& reflect) :
+		m_ambient(ambient), m_diffuse(diffuse), m_specular(specular), m_reflect(reflect) {}
 
-	Material(Material&&) = default;
-	Material& operator=(Material&&) = default;
-
-	Material(const DirectX::XMFLOAT4& _ambient, const DirectX::XMFLOAT4& _diffuse, const DirectX::XMFLOAT4& _specular,
-		const DirectX::XMFLOAT4& _reflect) :
-		ambient(_ambient), diffuse(_diffuse), specular(_specular), reflect(_reflect) {}
-
-	DirectX::XMFLOAT4 ambient;
-	DirectX::XMFLOAT4 diffuse;
-	DirectX::XMFLOAT4 specular; // w = 镜面反射强度
-	DirectX::XMFLOAT4 reflect;
+	DirectX::XMFLOAT4 m_ambient;
+	DirectX::XMFLOAT4 m_diffuse;
+	DirectX::XMFLOAT4 m_specular; // w = 镜面反射强度
+	DirectX::XMFLOAT4 m_reflect;
 };
 
 #endif

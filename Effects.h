@@ -5,8 +5,6 @@
 // 
 // 简易特效管理框架
 // Simple effect management framework.
-//
-// 总体使用方式基本相同
 //***************************************************************************************
 
 #ifndef EFFECTS_H
@@ -20,7 +18,7 @@ class IEffect
 {
 public:
 	// 使用模板别名(C++11)简化类型名
-	template <class T>
+	template <typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 	IEffect() = default;
@@ -37,7 +35,7 @@ public:
 	virtual void Apply(ID3D11DeviceContext * deviceContext) = 0;
 };
 
-class BasicEffect : public IEffect
+class BasicEffect final : public IEffect
 {
 public:
 
@@ -55,55 +53,55 @@ public:
 	static BasicEffect& Get();
 
 	// 初始化所需资源
-	bool InitAll(ID3D11Device * device) const;
+	bool InitAll(ID3D11Device* device) const;
 
 	//
 	// 渲染模式的变更
 	//
 
 	// 默认状态来绘制
-	void SetRenderDefault(ID3D11DeviceContext * deviceContext) const;
+	void SetRenderDefault(ID3D11DeviceContext* deviceContext) const;
 	// Alpha混合绘制
-	void SetRenderAlphaBlend(ID3D11DeviceContext * deviceContext) const;
+	void SetRenderAlphaBlend(ID3D11DeviceContext* deviceContext) const;
 	// 绘制闪电动画所需要的特效，关闭深度测试
 	void SetDrawBoltAnimNoDepthTest(ID3D11DeviceContext* deviceContext) const;
 	// 绘制闪电动画所需要的特效，关闭深度写入
 	void SetDrawBoltAnimNoDepthWrite(ID3D11DeviceContext* deviceContext) const;
 	// 无二次混合
-	void SetRenderNoDoubleBlend(ID3D11DeviceContext * deviceContext, UINT stencilRef) const;
+	void SetRenderNoDoubleBlend(ID3D11DeviceContext* deviceContext, UINT stencilRef) const;
 	// 仅写入模板值
-	void SetWriteStencilOnly(ID3D11DeviceContext * deviceContext, UINT stencilRef) const;
+	void SetWriteStencilOnly(ID3D11DeviceContext* deviceContext, UINT stencilRef) const;
 	// 对指定模板值的区域进行绘制，采用默认状态
-	void SetRenderDefaultWithStencil(ID3D11DeviceContext * deviceContext, UINT stencilRef) const;
+	void SetRenderDefaultWithStencil(ID3D11DeviceContext* deviceContext, UINT stencilRef) const;
 	// 对指定模板值的区域进行绘制，采用Alpha混合
-	void SetRenderAlphaBlendWithStencil(ID3D11DeviceContext * deviceContext, UINT stencilRef) const;
+	void SetRenderAlphaBlendWithStencil(ID3D11DeviceContext* deviceContext, UINT stencilRef) const;
 	// 绘制闪电动画所需要的特效，关闭深度测试，对指定模板值区域进行绘制
 	void SetDrawBoltAnimNoDepthTestWithStencil(ID3D11DeviceContext* deviceContext, UINT stencilRef) const;
 	// 绘制闪电动画所需要的特效，关闭深度写入，对指定模板值区域进行绘制
 	void SetDrawBoltAnimNoDepthWriteWithStencil(ID3D11DeviceContext* deviceContext, UINT stencilRef) const;
 	// 2D默认状态绘制
-	void Set2DRenderDefault(ID3D11DeviceContext * deviceContext) const;
+	void Set2DRenderDefault(ID3D11DeviceContext* deviceContext) const;
 	// 2D混合绘制
-	void Set2DRenderAlphaBlend(ID3D11DeviceContext * deviceContext) const;
+	void Set2DRenderAlphaBlend(ID3D11DeviceContext* deviceContext) const;
 
 	//
 	// 矩阵设置
 	//
 
-	void XM_CALLCONV SetWorldMatrix(DirectX::FXMMATRIX W) const;
-	void XM_CALLCONV SetViewMatrix(DirectX::FXMMATRIX V) const;
-	void XM_CALLCONV SetProjMatrix(DirectX::FXMMATRIX P) const;
+	void XM_CALLCONV SetWorldMatrix(const DirectX::FXMMATRIX& world) const;
+	void XM_CALLCONV SetViewMatrix(const DirectX::FXMMATRIX& view) const;
+	void XM_CALLCONV SetProjMatrix(const DirectX::FXMMATRIX& proj) const;
 
-	void XM_CALLCONV SetReflectionMatrix(DirectX::FXMMATRIX R) const;
-	void XM_CALLCONV SetShadowMatrix(DirectX::FXMMATRIX S) const;
-	void XM_CALLCONV SetRefShadowMatrix(DirectX::FXMMATRIX RefS) const;
+	void XM_CALLCONV SetReflectionMatrix(const DirectX::FXMMATRIX& reflection) const;
+	void XM_CALLCONV SetShadowMatrix(const DirectX::FXMMATRIX& shadow) const;
+	void XM_CALLCONV SetRefShadowMatrix(const DirectX::FXMMATRIX& refShadow) const;
 	
 	//
 	// 光照、材质和纹理相关设置
 	//
 
 	// 各种类型灯光允许的最大数目
-	static const int maxLights = 5;
+	static const int MaxLights = 5;
 
 	void SetDirLight(size_t pos, const DirectionalLight& dirLight) const;
 	void SetPointLight(size_t pos, const PointLight& pointLight) const;
@@ -111,9 +109,9 @@ public:
 
 	void SetMaterial(const Material& material) const;
 
-	void SetTexture(ID3D11ShaderResourceView * texture) const;
+	void SetTexture(ID3D11ShaderResourceView* texture) const;
 
-	void XM_CALLCONV SetEyePos(DirectX::FXMVECTOR eyePos) const;
+	void XM_CALLCONV SetEyePos(const DirectX::FXMVECTOR& eyePos) const;
 
 	//
 	// 状态开关设置
@@ -124,11 +122,11 @@ public:
 	
 
 	// 应用常量缓冲区和纹理资源的变更
-	void Apply(ID3D11DeviceContext * deviceContext) override;
+	void Apply(ID3D11DeviceContext* deviceContext) override;
 	
 private:
 	class Impl;
-	std::unique_ptr<Impl> pImpl;
+	std::unique_ptr<Impl> m_pImpl;
 };
 
 #endif

@@ -15,7 +15,7 @@
 class RenderStates
 {
 public:
-	template <class T>
+	template <typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 	static bool IsInit();
@@ -44,7 +44,5 @@ public:
 	static ComPtr<ID3D11DepthStencilState> DSSNoDepthTestWithStencil;	// 深度/模板状态：关闭深度测试，对指定模板值的区域进行绘制
 	static ComPtr<ID3D11DepthStencilState> DSSNoDepthWriteWithStencil;	// 深度/模板状态：仅深度测试，不写入深度值，对指定模板值的区域进行绘制
 };
-
-
 
 #endif

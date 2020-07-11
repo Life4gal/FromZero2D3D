@@ -20,58 +20,57 @@ public:
 
 	struct CBChangesEveryDrawing
 	{
-		XMMATRIX world;
-		XMMATRIX worldInvTranspose;
-		Material material;
+		XMMATRIX m_world;
+		XMMATRIX m_worldInvTranspose;
+		Material m_material;
 	};
 
 	struct CBDrawingStates
 	{
-		int isReflection;
-		int isShadow;
-		XMINT2 pad;
+		int m_isReflection;
+		int m_isShadow;
+		XMINT2 m_pad;
 	};
 
 	struct CBChangesEveryFrame
 	{
-		XMMATRIX view;
-		XMVECTOR eyePos;
+		XMMATRIX m_view;
+		XMVECTOR m_eyePos;
 	};
 
 	struct CBChangesOnResize
 	{
-		XMMATRIX proj;
+		XMMATRIX m_proj;
 	};
 
 
 	struct CBChangesRarely
 	{
-		XMMATRIX reflection;
-		XMMATRIX shadow;
-		XMMATRIX refShadow;
-		DirectionalLight dirLight[maxLights];
-		PointLight pointLight[maxLights];
-		SpotLight spotLight[maxLights];
+		XMMATRIX m_reflection;
+		XMMATRIX m_shadow;
+		XMMATRIX m_refShadow;
+		DirectionalLight m_dirLight[MaxLights];
+		PointLight m_pointLight[MaxLights];
+		SpotLight m_spotLight[MaxLights];
 	};
 
 	// 必须显式指定
-	Impl() : m_IsDirty() {}
+	Impl() : m_isDirty() {}
 	~Impl() = default;
 
 	Impl(const Impl& other) = default;
-	Impl(Impl && other) noexcept = default;
-	Impl& operator=(const Impl & other) = default;
-	Impl& operator=(Impl && other) noexcept = default;
+	Impl(Impl&& other) noexcept = default;
+	Impl& operator=(const Impl& other) = default;
+	Impl& operator=(Impl&& other) noexcept = default;
 
 	// 需要16字节对齐的优先放在前面
-	CBufferObject<0, CBChangesEveryDrawing> m_CBDrawing;		// 每次对象绘制的常量缓冲区
-	CBufferObject<1, CBDrawingStates>       m_CBStates;		    // 每次绘制状态变更的常量缓冲区
-	CBufferObject<2, CBChangesEveryFrame>   m_CBFrame;		    // 每帧绘制的常量缓冲区
-	CBufferObject<3, CBChangesOnResize>     m_CBOnResize;		// 每次窗口大小变更的常量缓冲区
-	CBufferObject<4, CBChangesRarely>		m_CBRarely;		    // 几乎不会变更的常量缓冲区
-	BOOL m_IsDirty;												// 是否有值变更
+	CBufferObject<0, CBChangesEveryDrawing> m_cbDrawing;		// 每次对象绘制的常量缓冲区
+	CBufferObject<1, CBDrawingStates>       m_cbStates;		    // 每次绘制状态变更的常量缓冲区
+	CBufferObject<2, CBChangesEveryFrame>   m_cbFrame;		    // 每帧绘制的常量缓冲区
+	CBufferObject<3, CBChangesOnResize>     m_cbOnResize;		// 每次窗口大小变更的常量缓冲区
+	CBufferObject<4, CBChangesRarely>		m_cbRarely;		    // 几乎不会变更的常量缓冲区
+	BOOL m_isDirty;												// 是否有值变更
 	std::vector<CBufferBase*> m_pCBuffers;					    // 统一管理上面所有的常量缓冲区
-
 
 	ComPtr<ID3D11VertexShader> m_pVertexShader3D;				// 用于3D的顶点着色器
 	ComPtr<ID3D11PixelShader>  m_pPixelShader3D;				// 用于3D的像素着色器
@@ -91,7 +90,7 @@ public:
 namespace
 {
 	// BasicEffect单例
-	BasicEffect * g_pInstance = nullptr;
+	BasicEffect* g_pInstance = nullptr;
 }
 
 BasicEffect::BasicEffect()
@@ -99,23 +98,23 @@ BasicEffect::BasicEffect()
 	if (g_pInstance)
 		throw std::exception("BasicEffect is a singleton!");
 	g_pInstance = this;
-	pImpl = std::make_unique<Impl>();
+	m_pImpl = std::make_unique<Impl>();
 }
 
 BasicEffect::~BasicEffect() = default;
 
-BasicEffect::BasicEffect(BasicEffect && moveFrom) noexcept
+BasicEffect::BasicEffect(BasicEffect&& moveFrom) noexcept
 {
-	pImpl.swap(moveFrom.pImpl);
+	m_pImpl.swap(moveFrom.m_pImpl);
 }
 
-BasicEffect & BasicEffect::operator=(BasicEffect && moveFrom) noexcept
+BasicEffect& BasicEffect::operator=(BasicEffect&& moveFrom) noexcept
 {
-	pImpl.swap(moveFrom.pImpl);
+	m_pImpl.swap(moveFrom.m_pImpl);
 	return *this;
 }
 
-BasicEffect & BasicEffect::Get()
+BasicEffect& BasicEffect::Get()
 {
 	if (!g_pInstance)
 		throw std::exception("BasicEffect needs an instance!");
@@ -123,12 +122,12 @@ BasicEffect & BasicEffect::Get()
 }
 
 
-bool BasicEffect::InitAll(ID3D11Device * device) const
+bool BasicEffect::InitAll(ID3D11Device* device) const
 {
 	if (!device)
 		return false;
 
-	if (!pImpl->m_pCBuffers.empty())
+	if (!m_pImpl->m_pCBuffers.empty())
 		return true;
 
 	if (!RenderStates::IsInit())
@@ -138,57 +137,57 @@ bool BasicEffect::InitAll(ID3D11Device * device) const
 
 	// 创建顶点着色器(2D)
 	HR(CreateShaderFromFile(L"HLSL\\Basic_VS_2D.cso", L"HLSL\\Basic_VS_2D.hlsl", "VS_2D", "vs_5_0", blob.GetAddressOf()));
-	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, pImpl->m_pVertexShader2D.GetAddressOf()));
+	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pVertexShader2D.GetAddressOf()));
 	// 创建顶点布局(2D)
-	HR(device->CreateInputLayout(VertexPosTex::inputLayout, ARRAYSIZE(VertexPosTex::inputLayout),
-		blob->GetBufferPointer(), blob->GetBufferSize(), pImpl->m_pVertexLayout2D.GetAddressOf()));
+	HR(device->CreateInputLayout(VertexPosTex::InputLayout, ARRAYSIZE(VertexPosTex::InputLayout),
+		blob->GetBufferPointer(), blob->GetBufferSize(), m_pImpl->m_pVertexLayout2D.GetAddressOf()));
 
 	// 创建像素着色器(2D)
 	HR(CreateShaderFromFile(L"HLSL\\Basic_PS_2D.cso", L"HLSL\\Basic_PS_2D.hlsl", "PS_2D", "ps_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, pImpl->m_pPixelShader2D.GetAddressOf()));
+	HR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pPixelShader2D.GetAddressOf()));
 
 	// 创建顶点着色器(3D)
 	HR(CreateShaderFromFile(L"HLSL\\Basic_VS_3D.cso", L"HLSL\\Basic_VS_3D.hlsl", "VS_3D", "vs_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, pImpl->m_pVertexShader3D.GetAddressOf()));
+	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pVertexShader3D.GetAddressOf()));
 	// 创建顶点布局(3D)
-	HR(device->CreateInputLayout(VertexPosNormalTex::inputLayout, ARRAYSIZE(VertexPosNormalTex::inputLayout),
-		blob->GetBufferPointer(), blob->GetBufferSize(), pImpl->m_pVertexLayout3D.GetAddressOf()));
+	HR(device->CreateInputLayout(VertexPosNormalTex::InputLayout, ARRAYSIZE(VertexPosNormalTex::InputLayout),
+		blob->GetBufferPointer(), blob->GetBufferSize(), m_pImpl->m_pVertexLayout3D.GetAddressOf()));
 
 	// 创建像素着色器(3D)
 	HR(CreateShaderFromFile(L"HLSL\\Basic_PS_3D.cso", L"HLSL\\Basic_PS_3D.hlsl", "PS_3D", "ps_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, pImpl->m_pPixelShader3D.GetAddressOf()));
+	HR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pPixelShader3D.GetAddressOf()));
 
 
-	pImpl->m_pCBuffers.assign({
-		&pImpl->m_CBDrawing, 
-		&pImpl->m_CBFrame, 
-		&pImpl->m_CBStates, 
-		&pImpl->m_CBOnResize, 
-		&pImpl->m_CBRarely});
+	m_pImpl->m_pCBuffers.assign({
+		&m_pImpl->m_cbDrawing, 
+		&m_pImpl->m_cbFrame, 
+		&m_pImpl->m_cbStates, 
+		&m_pImpl->m_cbOnResize, 
+		&m_pImpl->m_cbRarely});
 
 	// 创建常量缓冲区
-	for (auto& pBuffer : pImpl->m_pCBuffers)
+	for (auto& pBuffer : m_pImpl->m_pCBuffers)
 	{
 		HR(pBuffer->CreateBuffer(device));
 	}
 
 	// 设置调试对象名
-	D3D11SetDebugObjectName(pImpl->m_pVertexLayout2D.Get(), "VertexPosTexLayout");
-	D3D11SetDebugObjectName(pImpl->m_pVertexLayout3D.Get(), "VertexPosNormalTexLayout");
-	D3D11SetDebugObjectName(pImpl->m_pCBuffers[0]->cBuffer.Get(), "CBDrawing");
-	D3D11SetDebugObjectName(pImpl->m_pCBuffers[1]->cBuffer.Get(), "CBStates");
-	D3D11SetDebugObjectName(pImpl->m_pCBuffers[2]->cBuffer.Get(), "CBFrame");
-	D3D11SetDebugObjectName(pImpl->m_pCBuffers[3]->cBuffer.Get(), "CBOnResize");
-	D3D11SetDebugObjectName(pImpl->m_pCBuffers[4]->cBuffer.Get(), "CBRarely");
-	D3D11SetDebugObjectName(pImpl->m_pVertexShader2D.Get(), "Basic_VS_2D");
-	D3D11SetDebugObjectName(pImpl->m_pVertexShader3D.Get(), "Basic_VS_3D");
-	D3D11SetDebugObjectName(pImpl->m_pPixelShader2D.Get(), "Basic_PS_2D");
-	D3D11SetDebugObjectName(pImpl->m_pPixelShader3D.Get(), "Basic_PS_3D");
+	D3D11SetDebugObjectName(m_pImpl->m_pVertexLayout2D.Get(), "VertexPosTexLayout");
+	D3D11SetDebugObjectName(m_pImpl->m_pVertexLayout3D.Get(), "VertexPosNormalTexLayout");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[0]->m_cBuffer.Get(), "CBDrawing");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[1]->m_cBuffer.Get(), "CBStates");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[2]->m_cBuffer.Get(), "CBFrame");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[3]->m_cBuffer.Get(), "CBOnResize");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[4]->m_cBuffer.Get(), "CBRarely");
+	D3D11SetDebugObjectName(m_pImpl->m_pVertexShader2D.Get(), "Basic_VS_2D");
+	D3D11SetDebugObjectName(m_pImpl->m_pVertexShader3D.Get(), "Basic_VS_3D");
+	D3D11SetDebugObjectName(m_pImpl->m_pPixelShader2D.Get(), "Basic_PS_2D");
+	D3D11SetDebugObjectName(m_pImpl->m_pPixelShader3D.Get(), "Basic_PS_3D");
 
 	return true;
 }
 
-void BasicEffect::SetRenderDefault(ID3D11DeviceContext * deviceContext) const
+void BasicEffect::SetRenderDefault(ID3D11DeviceContext* deviceContext) const
 {
 	/*
 		图元类型									含义
@@ -203,10 +202,10 @@ void BasicEffect::SetRenderDefault(ID3D11DeviceContext * deviceContext) const
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ	抛弃所有索引模2为奇数的顶点或索引，剩余的进行Triangle Strip的绘制
 	 */
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(nullptr);
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(nullptr, 0);
 	/*
@@ -218,13 +217,13 @@ void BasicEffect::SetRenderDefault(ID3D11DeviceContext * deviceContext) const
 	deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::SetRenderAlphaBlend(ID3D11DeviceContext * deviceContext) const
+void BasicEffect::SetRenderAlphaBlend(ID3D11DeviceContext* deviceContext) const
 {
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(nullptr, 0);
 	deviceContext->OMSetBlendState(RenderStates::BSTransparent.Get(), nullptr, 0xFFFFFFFF);
@@ -232,10 +231,10 @@ void BasicEffect::SetRenderAlphaBlend(ID3D11DeviceContext * deviceContext) const
 
 void BasicEffect::SetDrawBoltAnimNoDepthTest(ID3D11DeviceContext* deviceContext) const
 {
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(RenderStates::DSSNoDepthTest.Get(), 0);
 	deviceContext->OMSetBlendState(RenderStates::BSAdditive.Get(), nullptr, 0xFFFFFFFF);
@@ -243,209 +242,209 @@ void BasicEffect::SetDrawBoltAnimNoDepthTest(ID3D11DeviceContext* deviceContext)
 
 void BasicEffect::SetDrawBoltAnimNoDepthWrite(ID3D11DeviceContext* deviceContext) const
 {
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(RenderStates::DSSNoDepthWrite.Get(), 0);
 	deviceContext->OMSetBlendState(RenderStates::BSAdditive.Get(), nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::SetRenderNoDoubleBlend(ID3D11DeviceContext * deviceContext, UINT stencilRef) const
+void BasicEffect::SetRenderNoDoubleBlend(ID3D11DeviceContext* deviceContext, const UINT stencilRef) const
 {
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(RenderStates::DSSNoDoubleBlend.Get(), stencilRef);
 	deviceContext->OMSetBlendState(RenderStates::BSTransparent.Get(), nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::SetWriteStencilOnly(ID3D11DeviceContext * deviceContext, UINT stencilRef) const
+void BasicEffect::SetWriteStencilOnly(ID3D11DeviceContext* deviceContext, const UINT stencilRef) const
 {
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(nullptr);
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(RenderStates::DSSWriteStencil.Get(), stencilRef);
 	deviceContext->OMSetBlendState(RenderStates::BSNoColorWrite.Get(), nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::SetRenderDefaultWithStencil(ID3D11DeviceContext * deviceContext, UINT stencilRef) const
+void BasicEffect::SetRenderDefaultWithStencil(ID3D11DeviceContext* deviceContext, const UINT stencilRef) const
 {
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSCullClockWise.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(RenderStates::DSSDrawWithStencil.Get(), stencilRef);
 	deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::SetRenderAlphaBlendWithStencil(ID3D11DeviceContext * deviceContext, UINT stencilRef) const
+void BasicEffect::SetRenderAlphaBlendWithStencil(ID3D11DeviceContext* deviceContext, const UINT stencilRef) const
 {
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(RenderStates::DSSDrawWithStencil.Get(), stencilRef);
 	deviceContext->OMSetBlendState(RenderStates::BSTransparent.Get(), nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::SetDrawBoltAnimNoDepthTestWithStencil(ID3D11DeviceContext* deviceContext, UINT stencilRef) const
+void BasicEffect::SetDrawBoltAnimNoDepthTestWithStencil(ID3D11DeviceContext* deviceContext, const UINT stencilRef) const
 {
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(RenderStates::DSSNoDepthTestWithStencil.Get(), stencilRef);
 	deviceContext->OMSetBlendState(RenderStates::BSAdditive.Get(), nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::SetDrawBoltAnimNoDepthWriteWithStencil(ID3D11DeviceContext* deviceContext, UINT stencilRef) const
+void BasicEffect::SetDrawBoltAnimNoDepthWriteWithStencil(ID3D11DeviceContext* deviceContext, const UINT stencilRef) const
 {
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout3D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader3D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout3D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader3D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader3D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader3D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(RenderStates::DSSNoDepthWriteWithStencil.Get(), stencilRef);
 	deviceContext->OMSetBlendState(RenderStates::BSAdditive.Get(), nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::Set2DRenderDefault(ID3D11DeviceContext * deviceContext) const
+void BasicEffect::Set2DRenderDefault(ID3D11DeviceContext* deviceContext) const
 {
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout2D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader2D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout2D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader2D.Get(), nullptr, 0);
 	deviceContext->RSSetState(nullptr);
-	deviceContext->PSSetShader(pImpl->m_pPixelShader2D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader2D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(nullptr, 0);
 	deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 }
 
-void BasicEffect::Set2DRenderAlphaBlend(ID3D11DeviceContext * deviceContext) const
+void BasicEffect::Set2DRenderAlphaBlend(ID3D11DeviceContext* deviceContext) const
 {
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	deviceContext->IASetInputLayout(pImpl->m_pVertexLayout2D.Get());
-	deviceContext->VSSetShader(pImpl->m_pVertexShader2D.Get(), nullptr, 0);
+	deviceContext->IASetInputLayout(m_pImpl->m_pVertexLayout2D.Get());
+	deviceContext->VSSetShader(m_pImpl->m_pVertexShader2D.Get(), nullptr, 0);
 	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-	deviceContext->PSSetShader(pImpl->m_pPixelShader2D.Get(), nullptr, 0);
+	deviceContext->PSSetShader(m_pImpl->m_pPixelShader2D.Get(), nullptr, 0);
 	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
 	deviceContext->OMSetDepthStencilState(nullptr, 0);
 	deviceContext->OMSetBlendState(RenderStates::BSTransparent.Get(), nullptr, 0xFFFFFFFF);
 }
 
-void XM_CALLCONV BasicEffect::SetWorldMatrix(FXMMATRIX W) const
+void XM_CALLCONV BasicEffect::SetWorldMatrix(const FXMMATRIX& world) const
 {
-	auto& cBuffer = pImpl->m_CBDrawing;
-	cBuffer.data.world = XMMatrixTranspose(W);
-	cBuffer.data.worldInvTranspose = XMMatrixInverse(nullptr, W);	// 两次转置抵消
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbDrawing;
+	cBuffer.m_data.m_world = XMMatrixTranspose(world);
+	cBuffer.m_data.m_worldInvTranspose = XMMatrixInverse(nullptr, world);	// 两次转置抵消
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void XM_CALLCONV BasicEffect::SetViewMatrix(FXMMATRIX V) const
+void XM_CALLCONV BasicEffect::SetViewMatrix(const FXMMATRIX& view) const
 {
-	auto& cBuffer = pImpl->m_CBFrame;
-	cBuffer.data.view = XMMatrixTranspose(V);
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbFrame;
+	cBuffer.m_data.m_view = XMMatrixTranspose(view);
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void XM_CALLCONV BasicEffect::SetProjMatrix(FXMMATRIX P) const
+void XM_CALLCONV BasicEffect::SetProjMatrix(const FXMMATRIX& proj) const
 {
-	auto& cBuffer = pImpl->m_CBOnResize;
-	cBuffer.data.proj = XMMatrixTranspose(P);
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbOnResize;
+	cBuffer.m_data.m_proj = XMMatrixTranspose(proj);
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void XM_CALLCONV BasicEffect::SetReflectionMatrix(FXMMATRIX R) const
+void XM_CALLCONV BasicEffect::SetReflectionMatrix(const FXMMATRIX& reflection) const
 {
-	auto& cBuffer = pImpl->m_CBRarely;
-	cBuffer.data.reflection = XMMatrixTranspose(R);
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbRarely;
+	cBuffer.m_data.m_reflection = XMMatrixTranspose(reflection);
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void XM_CALLCONV BasicEffect::SetShadowMatrix(FXMMATRIX S) const
+void XM_CALLCONV BasicEffect::SetShadowMatrix(const FXMMATRIX& shadow) const
 {
-	auto& cBuffer = pImpl->m_CBRarely;
-	cBuffer.data.shadow = XMMatrixTranspose(S);
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbRarely;
+	cBuffer.m_data.m_shadow = XMMatrixTranspose(shadow);
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void XM_CALLCONV BasicEffect::SetRefShadowMatrix(FXMMATRIX RefS) const
+void XM_CALLCONV BasicEffect::SetRefShadowMatrix(const FXMMATRIX& refShadow) const
 {
-	auto& cBuffer = pImpl->m_CBRarely;
-	cBuffer.data.refShadow = XMMatrixTranspose(RefS);
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbRarely;
+	cBuffer.m_data.m_refShadow = XMMatrixTranspose(refShadow);
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void BasicEffect::SetDirLight(size_t pos, const DirectionalLight & dirLight) const
+void BasicEffect::SetDirLight(const size_t pos, const DirectionalLight& dirLight) const
 {
-	auto& cBuffer = pImpl->m_CBRarely;
-	cBuffer.data.dirLight[pos] = dirLight;
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbRarely;
+	cBuffer.m_data.m_dirLight[pos] = dirLight;
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void BasicEffect::SetPointLight(size_t pos, const PointLight & pointLight) const
+void BasicEffect::SetPointLight(const size_t pos, const PointLight& pointLight) const
 {
-	auto& cBuffer = pImpl->m_CBRarely;
-	cBuffer.data.pointLight[pos] = pointLight;
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbRarely;
+	cBuffer.m_data.m_pointLight[pos] = pointLight;
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void BasicEffect::SetSpotLight(size_t pos, const SpotLight & spotLight) const
+void BasicEffect::SetSpotLight(const size_t pos, const SpotLight& spotLight) const
 {
-	auto& cBuffer = pImpl->m_CBRarely;
-	cBuffer.data.spotLight[pos] = spotLight;
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbRarely;
+	cBuffer.m_data.m_spotLight[pos] = spotLight;
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void BasicEffect::SetMaterial(const Material & material) const
+void BasicEffect::SetMaterial(const Material& material) const
 {
-	auto& cBuffer = pImpl->m_CBDrawing;
-	cBuffer.data.material = material;
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbDrawing;
+	cBuffer.m_data.m_material = material;
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void BasicEffect::SetTexture(ID3D11ShaderResourceView * texture) const
+void BasicEffect::SetTexture(ID3D11ShaderResourceView* texture) const
 {
-	pImpl->m_pTexture = texture;
+	m_pImpl->m_pTexture = texture;
 }
 
-void XM_CALLCONV BasicEffect::SetEyePos(FXMVECTOR eyePos) const
+void XM_CALLCONV BasicEffect::SetEyePos(const FXMVECTOR& eyePos) const
 {
-	auto& cBuffer = pImpl->m_CBFrame;
-	cBuffer.data.eyePos = eyePos;
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbFrame;
+	cBuffer.m_data.m_eyePos = eyePos;
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void BasicEffect::SetReflectionState(bool isOn) const
+void BasicEffect::SetReflectionState(const bool isOn) const
 {
-	auto& cBuffer = pImpl->m_CBStates;
-	cBuffer.data.isReflection = isOn;
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbStates;
+	cBuffer.m_data.m_isReflection = isOn;
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void BasicEffect::SetShadowState(bool isOn) const
+void BasicEffect::SetShadowState(const bool isOn) const
 {
-	auto& cBuffer = pImpl->m_CBStates;
-	cBuffer.data.isShadow = isOn;
-	pImpl->m_IsDirty = cBuffer.isDirty = true;
+	auto& cBuffer = m_pImpl->m_cbStates;
+	cBuffer.m_data.m_isShadow = isOn;
+	m_pImpl->m_isDirty = cBuffer.m_isDirty = true;
 }
 
-void BasicEffect::Apply(ID3D11DeviceContext * deviceContext)
+void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
 {
-	auto& pCBuffers = pImpl->m_pCBuffers;
+	auto& pCBuffers = m_pImpl->m_pCBuffers;
 	// 将缓冲区绑定到渲染管线上
 	pCBuffers[0]->BindVS(deviceContext);
 	pCBuffers[1]->BindVS(deviceContext);
@@ -459,11 +458,11 @@ void BasicEffect::Apply(ID3D11DeviceContext * deviceContext)
 	pCBuffers[4]->BindPS(deviceContext);
 
 	// 设置纹理
-	deviceContext->PSSetShaderResources(0, 1, pImpl->m_pTexture.GetAddressOf());
+	deviceContext->PSSetShaderResources(0, 1, m_pImpl->m_pTexture.GetAddressOf());
 
-	if (pImpl->m_IsDirty)
+	if (m_pImpl->m_isDirty)
 	{
-		pImpl->m_IsDirty = false;
+		m_pImpl->m_isDirty = false;
 		for (auto& pCBuffer : pCBuffers)
 		{
 			pCBuffer->UpdateBuffer(deviceContext);

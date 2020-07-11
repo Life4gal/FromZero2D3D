@@ -1,13 +1,11 @@
 //***************************************************************************************
-// Transform.h by X_Jun(MKXJun) (C) 2018-2020 All Rights Reserved.
-// Licensed under the MIT License.
+// Author: X_Jun(MKXJun)(MIT License)
+//
+// Modified By: life4gal(NiceT)(MIT License)
 //
 // 描述对象缩放、旋转(欧拉角为基础)、平移
 // Provide 1st person(free view) and 3rd person cameras.
 //***************************************************************************************
-//
-// Life4Gal 进行了大量改动, 总体使用方式无差异
-//
 
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
@@ -17,15 +15,8 @@
 class Transform
 {
 public:
-	Transform() = default;
+	Transform();
 	Transform(const DirectX::XMFLOAT3& scale, const DirectX::XMFLOAT3& rotation, const DirectX::XMFLOAT3& position);
-	~Transform() = default;
-
-	Transform(const Transform&) = default;
-	Transform& operator=(const Transform&) = default;
-
-	Transform(Transform&&) = default;
-	Transform& operator=(Transform&&) = default;
 
 	// 获取对象缩放比例
 	DirectX::XMFLOAT3 GetScale() const;
@@ -85,9 +76,9 @@ private:
 	// 从旋转矩阵获取旋转欧拉角
 	static DirectX::XMFLOAT3 GetEulerAnglesFromRotationMatrix(const DirectX::XMFLOAT4X4& rotationMatrix);
 
-	DirectX::XMFLOAT3 m_Scale{ 1.0f, 1.0f, 1.0f };				// 缩放
-	DirectX::XMFLOAT3 m_Rotation{};								// 旋转欧拉角(弧度制)
-	DirectX::XMFLOAT3 m_Position{};								// 位置
+	DirectX::XMFLOAT3 m_scale;				// 缩放
+	DirectX::XMFLOAT3 m_rotation;			// 旋转欧拉角(弧度制)
+	DirectX::XMFLOAT3 m_position;			// 位置
 };
 
 #endif

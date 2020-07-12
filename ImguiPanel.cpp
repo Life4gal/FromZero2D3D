@@ -28,8 +28,8 @@ bool ImguiPanel::init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* devi
 
 void ImguiPanel::LoadData(const Player& player)
 {
-	m_direction = player.m_tank.m_direction;
-	m_position = player.m_tank.m_self.GetTransform().GetPosition();
+	m_direction = player.m_tank.direction;
+	m_position = player.m_tank.self.GetTransform().GetPosition();
 }
 
 void ImguiPanel::Draw() const

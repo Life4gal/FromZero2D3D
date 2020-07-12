@@ -116,9 +116,6 @@
     <ClInclude Include="EffectHelper.h">
       <Filter>特效文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ImGui\imstb_truetype.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
@@ -142,6 +139,15 @@
     </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjReader.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>模块文件\头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -199,9 +205,6 @@
     <ClCompile Include="BasicEffect.cpp">
       <Filter>特效文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="RenderStates.cpp">
       <Filter>特效文件\源文件</Filter>
     </ClCompile>
@@ -217,18 +220,21 @@
     <ClCompile Include="Player.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ObjReader.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="HLSL\Basic_PS_3D.hlsl">
+    <FxCompile Include="HLSL\Basic_VS.hlsl">
       <Filter>着色器</Filter>
     </FxCompile>
-    <FxCompile Include="HLSL\Basic_VS_2D.hlsl">
-      <Filter>着色器</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\Basic_VS_3D.hlsl">
-      <Filter>着色器</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\Basic_PS_2D.hlsl">
+    <FxCompile Include="HLSL\Basic_PS.hlsl">
       <Filter>着色器</Filter>
     </FxCompile>
   </ItemGroup>

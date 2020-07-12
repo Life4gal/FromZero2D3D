@@ -10,6 +10,8 @@
 #define MODEL_H
 
 #include <DirectXCollision.h>
+#include "d3dUtil.h"
+#include "DXTrace.h"
 #include "Effects.h"
 #include "ObjReader.h"
 #include "Geometry.h"
@@ -20,22 +22,14 @@ struct ModelPart
 	template <class T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	ModelPart() : material(), texDiffuse(), vertexBuffer(), indexBuffer(),
-		vertexCount(), indexCount(), indexFormat() {}
+	ModelPart() : material(), vertexCount(), indexCount(), indexFormat() {}
 
-	ModelPart(const ModelPart&) = default;
-	ModelPart& operator=(const ModelPart&) = default;
-
-	ModelPart(ModelPart&&) = default;
-	ModelPart& operator=(ModelPart&&) = default;
-
-
-	Material material;
-	ComPtr<ID3D11ShaderResourceView> texDiffuse;
-	ComPtr<ID3D11Buffer> vertexBuffer;
-	ComPtr<ID3D11Buffer> indexBuffer;
-	UINT vertexCount;
-	UINT indexCount;
+	Material material;									// 物体材质
+	ComPtr<ID3D11ShaderResourceView> texDiffuse;		// 纹理
+	ComPtr<ID3D11Buffer> vertexBuffer;					// 顶点缓冲区
+	ComPtr<ID3D11Buffer> indexBuffer;					// 索引缓冲区
+	UINT vertexCount;									// 顶点字节大小
+	UINT indexCount;									// 索引数目	
 	DXGI_FORMAT indexFormat;
 };
 
@@ -46,34 +40,33 @@ struct Model
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 	
 	Model();
-	Model(ID3D11Device * device, const ObjReader& model);
+	Model(ID3D11Device* device, const ObjReader& model);
 	// 设置缓冲区
 	template<class VertexType, class IndexType>
-	Model(ID3D11Device * device, const Geometry::MeshData<VertexType, IndexType>& meshData);
+	Model(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData);
 	
 	template<class VertexType, class IndexType>
-	Model(ID3D11Device * device, const std::vector<VertexType> & vertices, const std::vector<IndexType>& indices);
-	
-	
-	Model(ID3D11Device * device, const void* vertices, UINT vertexSize, UINT vertexCount,
-		const void * indices, UINT indexCount, DXGI_FORMAT indexFormat);
+	Model(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices);
+
+	Model(ID3D11Device* device, const void* vertices, UINT vertexSize, UINT vertexCount,
+		const void* indices, UINT indexCount, DXGI_FORMAT indexFormat);
 	//
 	// 设置模型
 	//
 
-	void SetModel(ID3D11Device * device, const ObjReader& model);
+	void SetModel(ID3D11Device* device, const ObjReader& model);
 
 	//
 	// 设置网格
 	//
 	template<class VertexType, class IndexType>
-	void SetMesh(ID3D11Device * device, const Geometry::MeshData<VertexType, IndexType>& meshData);
+	void SetMesh(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData);
 
 	template<class VertexType, class IndexType>
-	void SetMesh(ID3D11Device * device, const std::vector<VertexType> & vertices, const std::vector<IndexType>& indices);
+	void SetMesh(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices);
 
-	void SetMesh(ID3D11Device * device, const void* vertices, UINT vertexSize, UINT vertexCount,
-		const void * indices, UINT indexCount, DXGI_FORMAT indexFormat);
+	void SetMesh(ID3D11Device* device, const void* vertices, UINT vertexSize, UINT vertexCount,
+		const void* indices, UINT indexCount, DXGI_FORMAT indexFormat);
 
 	//
 	// 调试 
@@ -88,40 +81,36 @@ struct Model
 	UINT vertexStride;
 };
 
-
-
-
 template<class VertexType, class IndexType>
-inline Model::Model(ID3D11Device * device, const Geometry::MeshData<VertexType, IndexType>& meshData)
-	: modelParts(), boundingBox(), vertexStride()
+Model::Model(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData)
+	: vertexStride()
 {
 	SetMesh(device, meshData);
 }
 
 template<class VertexType, class IndexType>
-inline Model::Model(ID3D11Device * device, const std::vector<VertexType> & vertices, const std::vector<IndexType>& indices)
-	: modelParts(), boundingBox(), vertexStride()
+Model::Model(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices)
+	: vertexStride()
 {
 	SetMesh(device, vertices, indices);
 }
 
 template<class VertexType, class IndexType>
-inline void Model::SetMesh(ID3D11Device * device, const Geometry::MeshData<VertexType, IndexType>& meshData)
+void Model::SetMesh(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData)
 {
 	SetMesh(device, meshData.vertexVec, meshData.indexVec);
 }
 
 template<class VertexType, class IndexType>
-inline void Model::SetMesh(ID3D11Device * device, const std::vector<VertexType> & vertices, const std::vector<IndexType>& indices)
+void Model::SetMesh(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices)
 {
 	static_assert(sizeof(IndexType) == 2 || sizeof(IndexType) == 4, "The size of IndexType must be 2 bytes or 4 bytes!");
 	static_assert(std::is_unsigned<IndexType>::value, "IndexType must be unsigned integer!");
+	
 	SetMesh(device, vertices.data(), sizeof(VertexType),
-		(UINT)vertices.size(), indices.data(), (UINT)indices.size(),
+		static_cast<UINT>(vertices.size()), indices.data(), static_cast<UINT>(indices.size()),
 		(sizeof(IndexType) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT));
 
 }
-
-
 
 #endif

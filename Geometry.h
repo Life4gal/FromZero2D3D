@@ -22,8 +22,8 @@ namespace Geometry
 	template<typename VertexType = VertexPosNormalTex, typename IndexType = DWORD>
 	struct MeshData
 	{
-		std::vector<VertexType> m_vertexVec;	// 顶点数组
-		std::vector<IndexType> m_indexVec;	// 索引数组
+		std::vector<VertexType> vertexVec;	// 顶点数组
+		std::vector<IndexType> indexVec;	// 索引数组
 
 		MeshData()
 		{
@@ -102,11 +102,11 @@ namespace Geometry
 
 		struct VertexData
 		{
-			DirectX::XMFLOAT3 m_pos;
-			DirectX::XMFLOAT3 m_normal;
-			DirectX::XMFLOAT4 m_tangent;
-			DirectX::XMFLOAT4 m_color;
-			DirectX::XMFLOAT2 m_tex;
+			DirectX::XMFLOAT3 pos;
+			DirectX::XMFLOAT3 normal;
+			DirectX::XMFLOAT4 tangent;
+			DirectX::XMFLOAT4 color;
+			DirectX::XMFLOAT2 tex;
 		};
 
 		// 根据目标顶点类型选择性将数据插入
@@ -152,8 +152,8 @@ namespace Geometry
 		UINT vertexCount = 2 + (levels - 1) * (slices + 1);
 		// 每个点连出六条线(算上了上下两个顶点额外射出的线), 共有 levels - 1 个平面
 		UINT indexCount = 6 * (levels - 1) * slices;
-		meshData.m_vertexVec.resize(vertexCount);
-		meshData.m_indexVec.resize(indexCount);
+		meshData.vertexVec.resize(vertexCount);
+		meshData.indexVec.resize(indexCount);
 
 		// YOZ平面半个圆面 PI 分成 levels 个扇形, 可以求出高度 Y
 		float perPhi = XM_PI / levels;
@@ -164,7 +164,7 @@ namespace Geometry
 		Internal::VertexData vertexData = { XMFLOAT3(0.0f, radius, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.0f, 0.0f) };
 		// 顶点下标
 		IndexType vIndex = 0;
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		// 自顶向下一层一层遍历, 因为有 levels - 1 个平面, 所以从 1 开始
 		for (UINT i = 1; i < levels; ++i)
@@ -189,14 +189,14 @@ namespace Geometry
 				XMStoreFloat3(&normal, XMVector3Normalize(XMLoadFloat3(&pos)));
 				// 纹理坐标 x = j / slices , y = i / levels
 				vertexData = { pos, normal, XMFLOAT4(-sinf(theta), 0.0f, cosf(theta), 1.0f), color, XMFLOAT2(theta / XM_2PI, phi / XM_PI) };
-				Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+				Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 			}
 		}
 
 		// 先把球体底端的额外顶点加入
 		vertexData = { XMFLOAT3(0.0f, -radius, 0.0f), XMFLOAT3(0.0f, -1.0f, 0.0f),
 			XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.0f, 1.0f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 
 		// 放入索引
@@ -204,22 +204,22 @@ namespace Geometry
 		IndexType iIndex = 0;
 		for (UINT j = 1; j <= slices; ++j)
 		{
-			meshData.m_indexVec[iIndex++] = 0;
-			meshData.m_indexVec[iIndex++] = j % (slices + 1) + 1;
-			meshData.m_indexVec[iIndex++] = j;
+			meshData.indexVec[iIndex++] = 0;
+			meshData.indexVec[iIndex++] = j % (slices + 1) + 1;
+			meshData.indexVec[iIndex++] = j;
 		}
 
 		for (UINT i = 1; i < levels - 1; ++i)
 		{
 			for (UINT j = 1; j <= slices; ++j)
 			{
-				meshData.m_indexVec[iIndex++] = (i - 1) * (slices + 1) + j;
-				meshData.m_indexVec[iIndex++] = (i - 1) * (slices + 1) + j % (slices + 1) + 1;
-				meshData.m_indexVec[iIndex++] = i * (slices + 1) + j % (slices + 1) + 1;
+				meshData.indexVec[iIndex++] = (i - 1) * (slices + 1) + j;
+				meshData.indexVec[iIndex++] = (i - 1) * (slices + 1) + j % (slices + 1) + 1;
+				meshData.indexVec[iIndex++] = i * (slices + 1) + j % (slices + 1) + 1;
 
-				meshData.m_indexVec[iIndex++] = i * (slices + 1) + j % (slices + 1) + 1;
-				meshData.m_indexVec[iIndex++] = i * (slices + 1) + j;
-				meshData.m_indexVec[iIndex++] = (i - 1) * (slices + 1) + j;
+				meshData.indexVec[iIndex++] = i * (slices + 1) + j % (slices + 1) + 1;
+				meshData.indexVec[iIndex++] = i * (slices + 1) + j;
+				meshData.indexVec[iIndex++] = (i - 1) * (slices + 1) + j;
 			}
 		}
 
@@ -228,9 +228,9 @@ namespace Geometry
 		{
 			for (UINT j = 1; j <= slices; ++j)
 			{
-				meshData.m_indexVec[iIndex++] = (levels - 2) * (slices + 1) + j;
-				meshData.m_indexVec[iIndex++] = (levels - 2) * (slices + 1) + j % (slices + 1) + 1;
-				meshData.m_indexVec[iIndex++] = (levels - 1) * (slices + 1) + 1;
+				meshData.indexVec[iIndex++] = (levels - 2) * (slices + 1) + j;
+				meshData.indexVec[iIndex++] = (levels - 2) * (slices + 1) + j % (slices + 1) + 1;
+				meshData.indexVec[iIndex++] = (levels - 1) * (slices + 1) + 1;
 			}
 		}
 
@@ -243,7 +243,7 @@ namespace Geometry
 		using namespace DirectX;
 
 		MeshData<VertexType, IndexType> meshData;
-		meshData.m_vertexVec.resize(24);
+		meshData.vertexVec.resize(24);
 
 		Internal::VertexData vertexDataArr[24];
 		const float l2 = length / 2;
@@ -251,78 +251,78 @@ namespace Geometry
 		const float w2 = width / 2;
 
 		// 右面(+X面)
-		vertexDataArr[0].m_pos = XMFLOAT3(l2, -h2, -w2);
-		vertexDataArr[1].m_pos = XMFLOAT3(l2, h2, -w2);
-		vertexDataArr[2].m_pos = XMFLOAT3(l2, h2, w2);
-		vertexDataArr[3].m_pos = XMFLOAT3(l2, -h2, w2);
+		vertexDataArr[0].pos = XMFLOAT3(l2, -h2, -w2);
+		vertexDataArr[1].pos = XMFLOAT3(l2, h2, -w2);
+		vertexDataArr[2].pos = XMFLOAT3(l2, h2, w2);
+		vertexDataArr[3].pos = XMFLOAT3(l2, -h2, w2);
 		// 左面(-X面)
-		vertexDataArr[4].m_pos = XMFLOAT3(-l2, -h2, w2);
-		vertexDataArr[5].m_pos = XMFLOAT3(-l2, h2, w2);
-		vertexDataArr[6].m_pos = XMFLOAT3(-l2, h2, -w2);
-		vertexDataArr[7].m_pos = XMFLOAT3(-l2, -h2, -w2);
+		vertexDataArr[4].pos = XMFLOAT3(-l2, -h2, w2);
+		vertexDataArr[5].pos = XMFLOAT3(-l2, h2, w2);
+		vertexDataArr[6].pos = XMFLOAT3(-l2, h2, -w2);
+		vertexDataArr[7].pos = XMFLOAT3(-l2, -h2, -w2);
 		// 顶面(+Y面)
-		vertexDataArr[8].m_pos = XMFLOAT3(-l2, h2, -w2);
-		vertexDataArr[9].m_pos = XMFLOAT3(-l2, h2, w2);
-		vertexDataArr[10].m_pos = XMFLOAT3(l2, h2, w2);
-		vertexDataArr[11].m_pos = XMFLOAT3(l2, h2, -w2);
+		vertexDataArr[8].pos = XMFLOAT3(-l2, h2, -w2);
+		vertexDataArr[9].pos = XMFLOAT3(-l2, h2, w2);
+		vertexDataArr[10].pos = XMFLOAT3(l2, h2, w2);
+		vertexDataArr[11].pos = XMFLOAT3(l2, h2, -w2);
 		// 底面(-Y面)
-		vertexDataArr[12].m_pos = XMFLOAT3(l2, -h2, -w2);
-		vertexDataArr[13].m_pos = XMFLOAT3(l2, -h2, w2);
-		vertexDataArr[14].m_pos = XMFLOAT3(-l2, -h2, w2);
-		vertexDataArr[15].m_pos = XMFLOAT3(-l2, -h2, -w2);
+		vertexDataArr[12].pos = XMFLOAT3(l2, -h2, -w2);
+		vertexDataArr[13].pos = XMFLOAT3(l2, -h2, w2);
+		vertexDataArr[14].pos = XMFLOAT3(-l2, -h2, w2);
+		vertexDataArr[15].pos = XMFLOAT3(-l2, -h2, -w2);
 		// 背面(+Z面)
-		vertexDataArr[16].m_pos = XMFLOAT3(l2, -h2, w2);
-		vertexDataArr[17].m_pos = XMFLOAT3(l2, h2, w2);
-		vertexDataArr[18].m_pos = XMFLOAT3(-l2, h2, w2);
-		vertexDataArr[19].m_pos = XMFLOAT3(-l2, -h2, w2);
+		vertexDataArr[16].pos = XMFLOAT3(l2, -h2, w2);
+		vertexDataArr[17].pos = XMFLOAT3(l2, h2, w2);
+		vertexDataArr[18].pos = XMFLOAT3(-l2, h2, w2);
+		vertexDataArr[19].pos = XMFLOAT3(-l2, -h2, w2);
 		// 正面(-Z面)
-		vertexDataArr[20].m_pos = XMFLOAT3(-l2, -h2, -w2);
-		vertexDataArr[21].m_pos = XMFLOAT3(-l2, h2, -w2);
-		vertexDataArr[22].m_pos = XMFLOAT3(l2, h2, -w2);
-		vertexDataArr[23].m_pos = XMFLOAT3(l2, -h2, -w2);
+		vertexDataArr[20].pos = XMFLOAT3(-l2, -h2, -w2);
+		vertexDataArr[21].pos = XMFLOAT3(-l2, h2, -w2);
+		vertexDataArr[22].pos = XMFLOAT3(l2, h2, -w2);
+		vertexDataArr[23].pos = XMFLOAT3(l2, -h2, -w2);
 
 		for (UINT i = 0; i < 4; ++i)
 		{
 			// 右面(+X面)
-			vertexDataArr[i].m_normal = XMFLOAT3(1.0f, 0.0f, 0.0f);
-			vertexDataArr[i].m_tangent = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-			vertexDataArr[i].m_color = color;
+			vertexDataArr[i].normal = XMFLOAT3(1.0f, 0.0f, 0.0f);
+			vertexDataArr[i].tangent = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+			vertexDataArr[i].color = color;
 			// 左面(-X面)
-			vertexDataArr[i + 4].m_normal = XMFLOAT3(-1.0f, 0.0f, 0.0f);
-			vertexDataArr[i + 4].m_tangent = XMFLOAT4(0.0f, 0.0f, -1.0f, 1.0f);
-			vertexDataArr[i + 4].m_color = color;
+			vertexDataArr[i + 4].normal = XMFLOAT3(-1.0f, 0.0f, 0.0f);
+			vertexDataArr[i + 4].tangent = XMFLOAT4(0.0f, 0.0f, -1.0f, 1.0f);
+			vertexDataArr[i + 4].color = color;
 			// 顶面(+Y面)
-			vertexDataArr[i + 8].m_normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-			vertexDataArr[i + 8].m_tangent = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-			vertexDataArr[i + 8].m_color = color;
+			vertexDataArr[i + 8].normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+			vertexDataArr[i + 8].tangent = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+			vertexDataArr[i + 8].color = color;
 			// 底面(-Y面)
-			vertexDataArr[i + 12].m_normal = XMFLOAT3(0.0f, -1.0f, 0.0f);
-			vertexDataArr[i + 12].m_tangent = XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f);
-			vertexDataArr[i + 12].m_color = color;
+			vertexDataArr[i + 12].normal = XMFLOAT3(0.0f, -1.0f, 0.0f);
+			vertexDataArr[i + 12].tangent = XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f);
+			vertexDataArr[i + 12].color = color;
 			// 背面(+Z面)
-			vertexDataArr[i + 16].m_normal = XMFLOAT3(0.0f, 0.0f, 1.0f);
-			vertexDataArr[i + 16].m_tangent = XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f);
-			vertexDataArr[i + 16].m_color = color;
+			vertexDataArr[i + 16].normal = XMFLOAT3(0.0f, 0.0f, 1.0f);
+			vertexDataArr[i + 16].tangent = XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f);
+			vertexDataArr[i + 16].color = color;
 			// 正面(-Z面)
-			vertexDataArr[i + 20].m_normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-			vertexDataArr[i + 20].m_tangent = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-			vertexDataArr[i + 20].m_color = color;
+			vertexDataArr[i + 20].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
+			vertexDataArr[i + 20].tangent = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+			vertexDataArr[i + 20].color = color;
 		}
 
 		for (UINT i = 0; i < 6; ++i)
 		{
-			vertexDataArr[i * 4].m_tex = XMFLOAT2(0.0f, 1.0f);
-			vertexDataArr[i * 4 + 1].m_tex = XMFLOAT2(0.0f, 0.0f);
-			vertexDataArr[i * 4 + 2].m_tex = XMFLOAT2(1.0f, 0.0f);
-			vertexDataArr[i * 4 + 3].m_tex = XMFLOAT2(1.0f, 1.0f);
+			vertexDataArr[i * 4].tex = XMFLOAT2(0.0f, 1.0f);
+			vertexDataArr[i * 4 + 1].tex = XMFLOAT2(0.0f, 0.0f);
+			vertexDataArr[i * 4 + 2].tex = XMFLOAT2(1.0f, 0.0f);
+			vertexDataArr[i * 4 + 3].tex = XMFLOAT2(1.0f, 1.0f);
 		}
 
 		for (UINT i = 0; i < 24; ++i)
 		{
-			Internal::InsertVertexElement(meshData.m_vertexVec[i], vertexDataArr[i]);
+			Internal::InsertVertexElement(meshData.vertexVec[i], vertexDataArr[i]);
 		}
 
-		meshData.m_indexVec = {
+		meshData.indexVec = {
 			0, 1, 2, 2, 3, 0,		// 右面(+X面)
 			4, 5, 6, 6, 7, 4,		// 左面(-X面)
 			8, 9, 10, 10, 11, 8,	// 顶面(+Y面)
@@ -342,8 +342,8 @@ namespace Geometry
 		MeshData<VertexType, IndexType>  meshData = CreateCylinderNoCap<VertexType, IndexType>(radius, height, slices, color);
 		UINT vertexCount = 4 * (slices + 1) + 2;
 		UINT indexCount = 12 * slices;
-		meshData.m_vertexVec.resize(vertexCount);
-		meshData.m_indexVec.resize(indexCount);
+		meshData.vertexVec.resize(vertexCount);
+		meshData.indexVec.resize(indexCount);
 
 		float h2 = height / 2;
 		float perTheta = XM_2PI / slices;
@@ -355,7 +355,7 @@ namespace Geometry
 		// 放入顶端圆心
 		vertexData = { XMFLOAT3(0.0f, h2, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.5f, 0.5f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		// 放入顶端圆上各点
 		for (UINT i = 0; i <= slices; ++i)
@@ -363,13 +363,13 @@ namespace Geometry
 			float theta = i * perTheta;
 			vertexData = { XMFLOAT3(radius * cosf(theta), h2, radius * sinf(theta)), XMFLOAT3(0.0f, 1.0f, 0.0f),
 				XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(cosf(theta) / 2 + 0.5f, sinf(theta) / 2 + 0.5f) };
-			Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+			Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 		}
 
 		// 放入底端圆心
 		vertexData = { XMFLOAT3(0.0f, -h2, 0.0f), XMFLOAT3(0.0f, -1.0f, 0.0f),
 			XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.5f, 0.5f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		// 放入底部圆上各点
 		for (UINT i = 0; i <= slices; ++i)
@@ -377,24 +377,24 @@ namespace Geometry
 			float theta = i * perTheta;
 			vertexData = { XMFLOAT3(radius * cosf(theta), -h2, radius * sinf(theta)), XMFLOAT3(0.0f, -1.0f, 0.0f),
 				XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(cosf(theta) / 2 + 0.5f, sinf(theta) / 2 + 0.5f) };
-			Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+			Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 		}
 
 		// 放入顶部三角形索引
 		for (UINT i = 1; i <= slices; ++i)
 		{
-			meshData.m_indexVec[iIndex++] = offset;
-			meshData.m_indexVec[iIndex++] = offset + i % (slices + 1) + 1;
-			meshData.m_indexVec[iIndex++] = offset + i;
+			meshData.indexVec[iIndex++] = offset;
+			meshData.indexVec[iIndex++] = offset + i % (slices + 1) + 1;
+			meshData.indexVec[iIndex++] = offset + i;
 		}
 
 		// 放入底部三角形索引
 		offset += slices + 2;
 		for (UINT i = 1; i <= slices; ++i)
 		{
-			meshData.m_indexVec[iIndex++] = offset;
-			meshData.m_indexVec[iIndex++] = offset + i;
-			meshData.m_indexVec[iIndex++] = offset + i % (slices + 1) + 1;
+			meshData.indexVec[iIndex++] = offset;
+			meshData.indexVec[iIndex++] = offset + i;
+			meshData.indexVec[iIndex++] = offset + i % (slices + 1) + 1;
 		}
 
 		return meshData;
@@ -413,8 +413,8 @@ namespace Geometry
 		UINT vertexCount = 2 * (slices + 1);
 		// 每个点连出五条线,额外的圆心点对每个点都连接一条线,即总计六倍的点数
 		UINT indexCount = 6 * slices;
-		meshData.m_vertexVec.resize(vertexCount);
-		meshData.m_indexVec.resize(indexCount);
+		meshData.vertexVec.resize(vertexCount);
+		meshData.indexVec.resize(indexCount);
 
 		// 原点在图形中心,上下各占高度一半
 		const float h2 = height / 2;
@@ -442,7 +442,7 @@ namespace Geometry
 			const float theta = i * perTheta;
 			vertexData = { XMFLOAT3(radius * cosf(theta), h2, radius * sinf(theta)), XMFLOAT3(cosf(theta), 0.0f, sinf(theta)),
 				XMFLOAT4(-sinf(theta), 0.0f, cosf(theta), 1.0f), color, XMFLOAT2(theta / XM_2PI, 0.0f) };
-			Internal::InsertVertexElement(meshData.m_vertexVec[i], vertexData);
+			Internal::InsertVertexElement(meshData.vertexVec[i], vertexData);
 		}
 
 		// 放入侧面底端点
@@ -452,7 +452,7 @@ namespace Geometry
 			vertexData = { XMFLOAT3(radius * cosf(theta), -h2, radius * sinf(theta)), XMFLOAT3(cosf(theta), 0.0f, sinf(theta)),
 				XMFLOAT4(-sinf(theta), 0.0f, cosf(theta), 1.0f), color, XMFLOAT2(theta / XM_2PI, 1.0f) };
 			UINT vIndex = (slices + 1) + i;
-			Internal::InsertVertexElement(meshData.m_vertexVec[vIndex], vertexData);
+			Internal::InsertVertexElement(meshData.vertexVec[vIndex], vertexData);
 		}
 
 		// 放入索引
@@ -460,13 +460,13 @@ namespace Geometry
 
 		for (UINT i = 0; i < slices; ++i)
 		{
-			meshData.m_indexVec[iIndex++] = i;
-			meshData.m_indexVec[iIndex++] = i + 1;
-			meshData.m_indexVec[iIndex++] = (slices + 1) + i + 1;
+			meshData.indexVec[iIndex++] = i;
+			meshData.indexVec[iIndex++] = i + 1;
+			meshData.indexVec[iIndex++] = (slices + 1) + i + 1;
 
-			meshData.m_indexVec[iIndex++] = (slices + 1) + i + 1;
-			meshData.m_indexVec[iIndex++] = (slices + 1) + i;
-			meshData.m_indexVec[iIndex++] = i;
+			meshData.indexVec[iIndex++] = (slices + 1) + i + 1;
+			meshData.indexVec[iIndex++] = (slices + 1) + i;
+			meshData.indexVec[iIndex++] = i;
 		}
 
 		return meshData;
@@ -480,8 +480,8 @@ namespace Geometry
 
 		UINT vertexCount = 3 * slices + 1;
 		UINT indexCount = 6 * slices;
-		meshData.m_vertexVec.resize(vertexCount);
-		meshData.m_indexVec.resize(indexCount);
+		meshData.vertexVec.resize(vertexCount);
+		meshData.indexVec.resize(indexCount);
 
 		const float h2 = height / 2;
 		const float perTheta = XM_2PI / slices;
@@ -495,20 +495,20 @@ namespace Geometry
 			const float theta = i * perTheta;
 			vertexData = { XMFLOAT3(radius * cosf(theta), -h2, radius * sinf(theta)), XMFLOAT3(0.0f, -1.0f, 0.0f),
 				XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(cosf(theta) / 2 + 0.5f, sinf(theta) / 2 + 0.5f) };
-			Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+			Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 		}
 		// 放入圆锥底面圆心
 		vertexData = { XMFLOAT3(0.0f, -h2, 0.0f), XMFLOAT3(0.0f, -1.0f, 0.0f),
 				XMFLOAT4(-1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.5f, 0.5f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex], vertexData);
 
 		// 放入索引
 		const UINT offset = 2 * slices;
 		for (UINT i = 0; i < slices; ++i)
 		{
-			meshData.m_indexVec[iIndex++] = offset + slices;
-			meshData.m_indexVec[iIndex++] = offset + i % slices;
-			meshData.m_indexVec[iIndex++] = offset + (i + 1) % slices;
+			meshData.indexVec[iIndex++] = offset + slices;
+			meshData.indexVec[iIndex++] = offset + i % slices;
+			meshData.indexVec[iIndex++] = offset + (i + 1) % slices;
 		}
 
 		return meshData;
@@ -525,8 +525,8 @@ namespace Geometry
 		MeshData<VertexType, IndexType> meshData;
 		UINT vertexCount = 2 * slices;
 		UINT indexCount = 3 * slices;
-		meshData.m_vertexVec.resize(vertexCount);
-		meshData.m_indexVec.resize(indexCount);
+		meshData.vertexVec.resize(vertexCount);
+		meshData.indexVec.resize(indexCount);
 
 		const float h2 = height / 2;
 		float theta;
@@ -542,7 +542,7 @@ namespace Geometry
 			theta = i * perTheta + perTheta / 2;
 			vertexData = { XMFLOAT3(0.0f, h2, 0.0f), XMFLOAT3(radius * cosf(theta) / len, height / len, radius * sinf(theta) / len),
 				XMFLOAT4(-sinf(theta), 0.0f, cosf(theta), 1.0f), color, XMFLOAT2(0.5f, 0.5f) };
-			Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+			Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 		}
 
 		// 放入圆锥侧面底部顶点
@@ -551,15 +551,15 @@ namespace Geometry
 			theta = i * perTheta;
 			vertexData = { XMFLOAT3(radius * cosf(theta), -h2, radius * sinf(theta)), XMFLOAT3(radius * cosf(theta) / len, height / len, radius * sinf(theta) / len),
 				XMFLOAT4(-sinf(theta), 0.0f, cosf(theta), 1.0f), color, XMFLOAT2(cosf(theta) / 2 + 0.5f, sinf(theta) / 2 + 0.5f) };
-			Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+			Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 		}
 
 		// 放入索引
 		for (UINT i = 0; i < slices; ++i)
 		{
-			meshData.m_indexVec[iIndex++] = i;
-			meshData.m_indexVec[iIndex++] = slices + (i + 1) % slices;
-			meshData.m_indexVec[iIndex++] = slices + i % slices;
+			meshData.indexVec[iIndex++] = i;
+			meshData.indexVec[iIndex++] = slices + (i + 1) % slices;
+			meshData.indexVec[iIndex++] = slices + i % slices;
 		}
 
 		return meshData;
@@ -577,7 +577,7 @@ namespace Geometry
 		using namespace DirectX;
 
 		MeshData<VertexType, IndexType> meshData;
-		meshData.m_vertexVec.resize(4);
+		meshData.vertexVec.resize(4);
 
 		UINT vIndex = 0;
 
@@ -585,21 +585,21 @@ namespace Geometry
 			XMFLOAT3(centerX - scaleX, centerY - scaleY, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.0f, 1.0f)
 		};
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		vertexData = { XMFLOAT3(centerX - scaleX, centerY + scaleY, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.0f, 0.0f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		vertexData = { XMFLOAT3(centerX + scaleX, centerY + scaleY, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(1.0f, 0.0f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		vertexData = { XMFLOAT3(centerX + scaleX, centerY - scaleY, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(1.0f, 1.0f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex], vertexData);
 
-		meshData.m_indexVec = { 0, 1, 2, 2, 3, 0 };
+		meshData.indexVec = { 0, 1, 2, 2, 3, 0 };
 		return meshData;
 	}
 
@@ -616,7 +616,7 @@ namespace Geometry
 		using namespace DirectX;
 
 		MeshData<VertexType, IndexType> meshData;
-		meshData.m_vertexVec.resize(4);
+		meshData.vertexVec.resize(4);
 
 		UINT vIndex = 0;
 
@@ -624,21 +624,21 @@ namespace Geometry
 			XMFLOAT3(-width / 2, 0.0f, -depth / 2), XMFLOAT3(0.0f, 1.0f, 0.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.0f, texV)
 		};
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		vertexData = { XMFLOAT3(-width / 2, 0.0f, depth / 2), XMFLOAT3(0.0f, 1.0f, 0.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.0f, 0.0f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		vertexData = { XMFLOAT3(width / 2, 0.0f, depth / 2), XMFLOAT3(0.0f, 1.0f, 0.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(texU, 0.0f) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 
 		vertexData = { XMFLOAT3(width / 2, 0.0f, -depth / 2), XMFLOAT3(0.0f, 1.0f, 0.0f),
 			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(texU, texV) };
-		Internal::InsertVertexElement(meshData.m_vertexVec[vIndex], vertexData);
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex], vertexData);
 
-		meshData.m_indexVec = { 0, 1, 2, 2, 3, 0 };
+		meshData.indexVec = { 0, 1, 2, 2, 3, 0 };
 		return meshData;
 	}
 	template<typename VertexType, typename IndexType>
@@ -662,8 +662,8 @@ namespace Geometry
 		MeshData<VertexType, IndexType> meshData;
 		UINT vertexCount = (slicesX + 1) * (slicesZ + 1);
 		UINT indexCount = 6 * slicesX * slicesZ;
-		meshData.m_vertexVec.resize(vertexCount);
-		meshData.m_indexVec.resize(indexCount);
+		meshData.vertexVec.resize(vertexCount);
+		meshData.indexVec.resize(indexCount);
 
 		UINT vIndex = 0;
 		UINT iIndex = 0;
@@ -699,7 +699,7 @@ namespace Geometry
 					XMFLOAT3(posX, heightFunc(posX, posZ), posZ),
 					normal, tangent, colorFunc(posX, posZ), XMFLOAT2(x * sliceTexWidth, texV - z * sliceTexDepth)
 				};
-				Internal::InsertVertexElement(meshData.m_vertexVec[vIndex++], vertexData);
+				Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
 			}
 		}
 		// 放入索引
@@ -707,13 +707,13 @@ namespace Geometry
 		{
 			for (UINT j = 0; j < slicesX; ++j)
 			{
-				meshData.m_indexVec[iIndex++] = i * (slicesX + 1) + j;
-				meshData.m_indexVec[iIndex++] = (i + 1) * (slicesX + 1) + j;
-				meshData.m_indexVec[iIndex++] = (i + 1) * (slicesX + 1) + j + 1;
+				meshData.indexVec[iIndex++] = i * (slicesX + 1) + j;
+				meshData.indexVec[iIndex++] = (i + 1) * (slicesX + 1) + j;
+				meshData.indexVec[iIndex++] = (i + 1) * (slicesX + 1) + j + 1;
 
-				meshData.m_indexVec[iIndex++] = (i + 1) * (slicesX + 1) + j + 1;
-				meshData.m_indexVec[iIndex++] = i * (slicesX + 1) + j + 1;
-				meshData.m_indexVec[iIndex++] = i * (slicesX + 1) + j;
+				meshData.indexVec[iIndex++] = (i + 1) * (slicesX + 1) + j + 1;
+				meshData.indexVec[iIndex++] = i * (slicesX + 1) + j + 1;
+				meshData.indexVec[iIndex++] = i * (slicesX + 1) + j;
 			}
 		}
 

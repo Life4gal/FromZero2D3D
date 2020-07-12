@@ -78,9 +78,8 @@ class MtlReader
 public:
 	bool ReadMtl(const wchar_t* mtlFileName);
 
-	std::map<std::wstring, Material> materials;
-	std::map<std::wstring, std::wstring> mapKdStrs;
+	std::map<std::wstring, Material> m_materials;
+	std::map<std::wstring, std::wstring> m_mapKdStrs;
 };
-
 
 #endif

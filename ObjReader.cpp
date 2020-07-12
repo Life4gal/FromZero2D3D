@@ -2,15 +2,15 @@
 
 using namespace DirectX;
 
-bool ObjReader::Read(const wchar_t * mboFileName, const wchar_t * objFileName)
+bool ObjReader::Read(const wchar_t* mboFileName, const wchar_t* objFileName)
 {
 	if (mboFileName && ReadMbo(mboFileName))
 	{
 		return true;
 	}
-	else if (objFileName)
+	if (objFileName)
 	{
-		bool status = ReadObj(objFileName);
+		const bool status = ReadObj(objFileName);
 		if (status && mboFileName)
 			return WriteMbo(mboFileName);
 		return status;
@@ -50,8 +50,7 @@ bool ObjReader::ReadObj(const wchar_t * objFileName)
 			//
 			// 忽略注释所在行
 			//
-			while (!wfin.eof() && wfin.get() != '\n')
-				continue;
+			while (!wfin.eof() && wfin.get() != '\n');
 		}
 		else if (wstr == L"o" || wstr == L"g")
 		{
@@ -74,7 +73,7 @@ bool ObjReader::ReadObj(const wchar_t * objFileName)
 
 			// 注意obj使用的是右手坐标系，而不是左手坐标系
 			// 需要将z值反转
-			XMFLOAT3 pos;
+			XMFLOAT3 pos{};
 			wfin >> pos.x >> pos.y >> pos.z;
 			pos.z = -pos.z;
 			positions.push_back(pos);
@@ -152,15 +151,15 @@ bool ObjReader::ReadObj(const wchar_t * objFileName)
 				ed--;
 			mtlName = mtlName.substr(beg, ed - beg);
 
-			m_objParts.back().material = mtlReader.materials[mtlName];
-			m_objParts.back().texStrDiffuse = mtlReader.mapKdStrs[mtlName];
+			m_objParts.back().material = mtlReader.m_materials[mtlName];
+			m_objParts.back().texStrDiffuse = mtlReader.m_mapKdStrs[mtlName];
 		}
 		else if (wstr == L"f")
 		{
 			//
 			// 几何面
 			//
-			VertexPosNormalTex vertex;
+			VertexPosNormalTex vertex{};
 			DWORD vpi[3], vni[3], vti[3];
 			wchar_t ignore;
 
@@ -196,7 +195,7 @@ bool ObjReader::ReadObj(const wchar_t * objFileName)
 		{
 			for (auto& i : part.indices32)
 			{
-				part.indices16.push_back((WORD)i);
+				part.indices16.push_back(static_cast<WORD>(i));
 			}
 			part.indices32.clear();
 		}
@@ -226,7 +225,7 @@ bool ObjReader::ReadMbo(const wchar_t * mboFileName)
 	if (!fin.is_open())
 		return false;
 
-	UINT parts = (UINT)m_objParts.size();
+	UINT parts = static_cast<UINT>(m_objParts.size());
 	// [Part数目] 4字节
 	fin.read(reinterpret_cast<char*>(&parts), sizeof(UINT));
 	m_objParts.resize(parts);
@@ -289,7 +288,7 @@ bool ObjReader::WriteMbo(const wchar_t * mboFileName)
 	// ]
 	// ...
 	std::ofstream fout(mboFileName, std::ios::out | std::ios::binary);
-	UINT parts = (UINT)m_objParts.size();
+	UINT parts = static_cast<UINT>(m_objParts.size());
 	// [Part数目] 4字节
 	fout.write(reinterpret_cast<const char*>(&parts), sizeof(UINT));
 
@@ -307,14 +306,14 @@ bool ObjReader::WriteMbo(const wchar_t * mboFileName)
 		fout.write(reinterpret_cast<const char*>(filePath), MAX_PATH * sizeof(wchar_t));
 		// [材质]64字节
 		fout.write(reinterpret_cast<const char*>(&m_objParts[i].material), sizeof(Material));
-		UINT vertexCount = (UINT)m_objParts[i].vertices.size();
+		UINT vertexCount = static_cast<UINT>(m_objParts[i].vertices.size());
 		// [顶点数]4字节
 		fout.write(reinterpret_cast<const char*>(&vertexCount), sizeof(UINT));
 
 		UINT indexCount;
 		if (vertexCount > 65535)
 		{
-			indexCount = (UINT)m_objParts[i].indices32.size();
+			indexCount = static_cast<UINT>(m_objParts[i].indices32.size());
 			// [索引数]4字节
 			fout.write(reinterpret_cast<const char*>(&indexCount), sizeof(UINT));
 			// [顶点]32*顶点数 字节
@@ -324,7 +323,7 @@ bool ObjReader::WriteMbo(const wchar_t * mboFileName)
 		}
 		else
 		{
-			indexCount = (UINT)m_objParts[i].indices16.size();
+			indexCount = static_cast<UINT>(m_objParts[i].indices16.size());
 			// [索引数]4字节
 			fout.write(reinterpret_cast<const char*>(&indexCount), sizeof(UINT));
 			// [顶点]32*顶点数 字节
@@ -339,12 +338,12 @@ bool ObjReader::WriteMbo(const wchar_t * mboFileName)
 	return true;
 }
 
-void ObjReader::AddVertex(const VertexPosNormalTex& vertex, DWORD vpi, DWORD vti, DWORD vni)
+void ObjReader::AddVertex(const VertexPosNormalTex& vertex, const DWORD vpi, const DWORD vti, const DWORD vni)
 {
-	std::wstring idxStr = std::to_wstring(vpi) + L"/" + std::to_wstring(vti) + L"/" + std::to_wstring(vni);
+	const std::wstring idxStr = std::to_wstring(vpi) + L"/" + std::to_wstring(vti) + L"/" + std::to_wstring(vni);
 
 	// 寻找是否有重复顶点
-	auto it = m_vertexCache.find(idxStr);
+	const auto it = m_vertexCache.find(idxStr);
 	if (it != m_vertexCache.end())
 	{
 		m_objParts.back().indices32.push_back(it->second);
@@ -352,7 +351,7 @@ void ObjReader::AddVertex(const VertexPosNormalTex& vertex, DWORD vpi, DWORD vti
 	else
 	{
 		m_objParts.back().vertices.push_back(vertex);
-		DWORD pos = (DWORD)m_objParts.back().vertices.size() - 1;
+		const DWORD pos = static_cast<DWORD>(m_objParts.back().vertices.size()) - 1;
 		m_vertexCache[idxStr] = pos;
 		m_objParts.back().indices32.push_back(pos);
 	}
@@ -362,9 +361,8 @@ void ObjReader::AddVertex(const VertexPosNormalTex& vertex, DWORD vpi, DWORD vti
 
 bool MtlReader::ReadMtl(const wchar_t * mtlFileName)
 {
-	materials.clear();
-	mapKdStrs.clear();
-
+	m_materials.clear();
+	m_mapKdStrs.clear();
 
 	std::wifstream wfin(mtlFileName);
 	std::locale china("chs");
@@ -409,7 +407,7 @@ bool MtlReader::ReadMtl(const wchar_t * mtlFileName)
 			//
 			// 环境光反射颜色
 			//
-			XMFLOAT4& ambient = materials[currMtl].ambient;
+			XMFLOAT4& ambient = m_materials[currMtl].ambient;
 			wfin >> ambient.x >> ambient.y >> ambient.z;
 			if (ambient.w == 0.0f)
 				ambient.w = 1.0f;
@@ -419,7 +417,7 @@ bool MtlReader::ReadMtl(const wchar_t * mtlFileName)
 			//
 			// 漫射光反射颜色
 			//
-			XMFLOAT4& diffuse = materials[currMtl].diffuse;
+			XMFLOAT4& diffuse = m_materials[currMtl].diffuse;
 			wfin >> diffuse.x >> diffuse.y >> diffuse.z;
 			if (diffuse.w == 0.0f)
 				diffuse.w = 1.0f;
@@ -429,7 +427,7 @@ bool MtlReader::ReadMtl(const wchar_t * mtlFileName)
 			//
 			// 镜面光反射颜色
 			//
-			XMFLOAT4& specular = materials[currMtl].specular;
+			XMFLOAT4& specular = m_materials[currMtl].specular;
 			wfin >> specular.x >> specular.y >> specular.z;
 		}
 		else if (wstr == L"Ns")
@@ -437,7 +435,7 @@ bool MtlReader::ReadMtl(const wchar_t * mtlFileName)
 			//
 			// 镜面系数
 			//
-			wfin >> materials[currMtl].specular.w;
+			wfin >> m_materials[currMtl].specular.w;
 		}
 		else if (wstr == L"d" || wstr == L"Tr")
 		{
@@ -448,8 +446,8 @@ bool MtlReader::ReadMtl(const wchar_t * mtlFileName)
 			wfin >> alpha;
 			if (wstr == L"Tr")
 				alpha = 1.0f - alpha;
-			materials[currMtl].ambient.w = alpha;
-			materials[currMtl].diffuse.w = alpha;
+			m_materials[currMtl].ambient.w = alpha;
+			m_materials[currMtl].diffuse.w = alpha;
 		}
 		else if (wstr == L"map_Kd")
 		{
@@ -475,7 +473,7 @@ bool MtlReader::ReadMtl(const wchar_t * mtlFileName)
 			else
 				pos += 1;
 
-			mapKdStrs[currMtl] = dir.erase(pos) + fileName;
+			m_mapKdStrs[currMtl] = dir.erase(pos) + fileName;
 		}
 	}
 

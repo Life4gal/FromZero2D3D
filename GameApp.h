@@ -7,6 +7,8 @@
 
 #include "Camera.h"
 #include "GameObject.h"
+#include "ObjReader.h"
+
 #include "ImguiPanel.h"
 
 class GameApp final : public D3DApp
@@ -36,22 +38,18 @@ private:
 	ComPtr<IDWriteTextFormat> m_pTextFormat;					// 文本格式
 
 	Player m_player;
-	GameObject m_boltAnim;									    // 闪电动画
-	GameObject m_floor;										    // 地板
-	std::array<GameObject, 5> m_walls;							// 墙壁
-	GameObject m_mirror;										// 镜面
-
-	std::vector<ComPtr<ID3D11ShaderResourceView>> m_boltSRVs;    // 闪电动画纹理
+	std::array<GameObject, 4> m_walls;							// 墙壁
+	GameObject m_house;										// 房屋
+	GameObject m_ground;										// 地面
 
 	ImguiPanel m_imguiPanel;
-	
-	Material m_shadowMat;									    // 阴影材质
-	Material m_woodCrateMat;									// 木盒材质
 
 	BasicEffect m_basicEffect;								    // 对象渲染特效管理
 
 	std::shared_ptr<Camera> m_pCamera;						    // 摄像机
 	CameraMode m_cameraMode;									// 摄像机模式
+
+	ObjReader m_objReader;									    // 模型读取对象
 };
 
 #endif

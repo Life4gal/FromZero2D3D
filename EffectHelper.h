@@ -43,7 +43,7 @@ struct CBufferBase
 	template<typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	CBufferBase() : m_isDirty() {}
+	CBufferBase() : isDirty() {}
 	virtual ~CBufferBase() = default;
 
 	CBufferBase(const CBufferBase& other) = default;
@@ -51,8 +51,8 @@ struct CBufferBase
 	CBufferBase& operator=(const CBufferBase& other) = default;
 	CBufferBase& operator=(CBufferBase&& other) noexcept = default;
 
-	BOOL m_isDirty;
-	ComPtr<ID3D11Buffer> m_cBuffer;
+	BOOL isDirty;
+	ComPtr<ID3D11Buffer> cBuffer;
 
 	virtual HRESULT CreateBuffer(ID3D11Device* device) = 0;
 	virtual void UpdateBuffer(ID3D11DeviceContext* deviceContext) = 0;
@@ -67,13 +67,13 @@ struct CBufferBase
 template<UINT StartSlot, typename T>
 struct CBufferObject final : CBufferBase
 {
-	T m_data;
+	T data;
 
-	CBufferObject() : CBufferBase(), m_data() {}
+	CBufferObject() : CBufferBase(), data() {}
 
 	HRESULT CreateBuffer(ID3D11Device* device) override
 	{
-		if (m_cBuffer != nullptr)
+		if (cBuffer != nullptr)
 			return S_OK;
 		D3D11_BUFFER_DESC cbd;
 		ZeroMemory(&cbd, sizeof(cbd));
@@ -81,14 +81,14 @@ struct CBufferObject final : CBufferBase
 		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		cbd.ByteWidth = sizeof(T);
-		return device->CreateBuffer(&cbd, nullptr, m_cBuffer.GetAddressOf());
+		return device->CreateBuffer(&cbd, nullptr, cBuffer.GetAddressOf());
 	}
 
 	void UpdateBuffer(ID3D11DeviceContext* deviceContext) override
 	{
-		if (m_isDirty)
+		if (isDirty)
 		{
-			m_isDirty = false;
+			isDirty = false;
 			D3D11_MAPPED_SUBRESOURCE mappedData;
 			/*
 				获取指向缓冲区中数据的指针并拒绝GPU对该缓冲区的访问
@@ -114,8 +114,8 @@ struct CBufferObject final : CBufferBase
 				适合于需要频繁更新，如每几帧更新一次，或每帧更新一次或多次的资源。
 
 			*/
-			deviceContext->Map(m_cBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
-			memcpy_s(mappedData.pData, sizeof(T), &m_data, sizeof(T));
+			deviceContext->Map(cBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
+			memcpy_s(mappedData.pData, sizeof(T), &data, sizeof(T));
 			/*
 				让指向资源的指针无效并重新启用GPU对该资源的访问权限
 				void ID3D11DeviceContext::Unmap(
@@ -123,38 +123,38 @@ struct CBufferObject final : CBufferBase
 					UINT           Subresource      // [In]缓冲区资源填0
 				);
 			*/
-			deviceContext->Unmap(m_cBuffer.Get(), 0);
+			deviceContext->Unmap(cBuffer.Get(), 0);
 		}
 	}
 	
 	void BindVS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->VSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
+		deviceContext->VSSetConstantBuffers(StartSlot, 1, cBuffer.GetAddressOf());
 	}
 
 	void BindHS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->HSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
+		deviceContext->HSSetConstantBuffers(StartSlot, 1, cBuffer.GetAddressOf());
 	}
 
 	void BindDS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->DSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
+		deviceContext->DSSetConstantBuffers(StartSlot, 1, cBuffer.GetAddressOf());
 	}
 
 	void BindGS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->GSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
+		deviceContext->GSSetConstantBuffers(StartSlot, 1, cBuffer.GetAddressOf());
 	}
 
 	void BindCS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->CSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
+		deviceContext->CSSetConstantBuffers(StartSlot, 1, cBuffer.GetAddressOf());
 	}
 
 	void BindPS(ID3D11DeviceContext* deviceContext) override
 	{
-		deviceContext->PSSetConstantBuffers(StartSlot, 1, m_cBuffer.GetAddressOf());
+		deviceContext->PSSetConstantBuffers(StartSlot, 1, cBuffer.GetAddressOf());
 	}
 };
 

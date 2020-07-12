@@ -2,58 +2,72 @@
 
 using namespace DirectX;
 
-GameObject::GameObject()
-	:
-	m_Material(),
-	m_VertexStride(),
-	m_IndexCount()
-{
-}
-
 Transform& GameObject::GetTransform()
 {
-	return m_Transform;
+	return m_transform;
 }
 
 const Transform& GameObject::GetTransform() const
 {
-	return m_Transform;
+	return m_transform;
 }
 
-void GameObject::SetTexture(ID3D11ShaderResourceView* texture)
+
+BoundingBox GameObject::GetBoundingBox() const
 {
-	m_pTexture = texture;
+	BoundingBox box;
+	m_model.boundingBox.Transform(box, m_transform.GetLocalToWorldMatrixXM());
+	return box;
 }
 
-void GameObject::SetMaterial(const Material& material)
+BoundingBox GameObject::GetLocalBoundingBox() const
 {
-	m_Material = material;
+	return m_model.boundingBox;
 }
 
-void GameObject::Draw(ID3D11DeviceContext * deviceContext, BasicEffect& effect)
+BoundingOrientedBox GameObject::GetBoundingOrientedBox() const
 {
-	// 设置顶点/索引缓冲区
-	UINT strides = m_VertexStride;
+	BoundingOrientedBox box;
+	BoundingOrientedBox::CreateFromBoundingBox(box, m_model.boundingBox);
+	box.Transform(box, m_transform.GetLocalToWorldMatrixXM());
+	return box;
+}
+
+void GameObject::SetModel(Model&& model)
+{
+	std::swap(m_model, model);
+	model.modelParts.clear();
+	model.boundingBox = BoundingBox();
+}
+
+void GameObject::SetModel(const Model& model)
+{
+	m_model = model;
+}
+
+void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
+{
+	UINT strides = m_model.vertexStride;
 	UINT offsets = 0;
-	deviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &strides, &offsets);
-	deviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-	// 更新数据并应用
-	effect.SetWorldMatrix(m_Transform.GetLocalToWorldMatrixXM());
-	effect.SetTexture(m_pTexture.Get());
-	effect.SetMaterial(m_Material);
-	effect.Apply(deviceContext);
+	for (auto& part : m_model.modelParts)
+	{
+		// 设置顶点/索引缓冲区
+		deviceContext->IASetVertexBuffers(0, 1, part.vertexBuffer.GetAddressOf(), &strides, &offsets);
+		deviceContext->IASetIndexBuffer(part.indexBuffer.Get(), part.indexFormat, 0);
 
-	deviceContext->DrawIndexed(m_IndexCount, 0, 0);
+		// 更新数据并应用
+		effect.SetWorldMatrix(m_transform.GetLocalToWorldMatrixXM());
+		effect.SetTextureDiffuse(part.texDiffuse.Get());
+		effect.SetMaterial(part.material);
+
+		effect.Apply(deviceContext);
+
+		deviceContext->DrawIndexed(part.indexCount, 0, 0);
+	}
 }
 
-void GameObject::SetDebugObjectName(const std::string& name) const
+void GameObject::SetDebugObjectName(const std::string& name)
 {
-#if (defined(DEBUG) || defined(_DEBUG)) && (GRAPHICS_DEBUGGER_OBJECT_NAME)
-	D3D11SetDebugObjectName(m_pVertexBuffer.Get(), name + ".VertexBuffer");
-	D3D11SetDebugObjectName(m_pIndexBuffer.Get(), name + ".IndexBuffer");
-#else
-	UNREFERENCED_PARAMETER(name);
-#endif
+	m_model.SetDebugObjectName(name);
 }
-

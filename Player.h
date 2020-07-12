@@ -1,7 +1,6 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "DXTrace.h"
 #include <array>
 
 #include "GameObject.h"
@@ -44,9 +43,6 @@ public:
 	// 获取物体变换
 	const Transform& GetTransform() const;
 
-	// 设置材质
-	void SetMaterial(const Material& material);
-
 	// 绘制
 	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
 
@@ -61,19 +57,19 @@ public:
 		// 不可变信息
 		
 		// 载具规格(立方体)
-		const float m_bodyWidth;				// 载具俯视角(车头朝上下)宽度
-		const float m_bodyLength;			// 载具俯视角(车头朝上下)长度
-		const float m_bodyHeight;			// 载具高度
+		const float bodyWidth;				// 载具俯视角(车头朝上下)宽度
+		const float bodyLength;			// 载具俯视角(车头朝上下)长度
+		const float bodyHeight;			// 载具高度
 		// 炮台底座规格(立方体)
-		const float m_barrelBaseWidth;		// 底座俯视角宽度
-		const float m_barrelBaseLength;		// 底座俯视角长度
-		const float m_barrelBaseHeight;		// 底座俯视角高度
+		const float barrelBaseWidth;		// 底座俯视角宽度
+		const float barrelBaseLength;		// 底座俯视角长度
+		const float barrelBaseHeight;		// 底座俯视角高度
 		// 炮管规格(圆柱)
-		const float m_barrelCaliber;			// 炮管的口径
-		const float m_barrelLength;			// 炮管的长度
+		const float barrelCaliber;			// 炮管的口径
+		const float barrelLength;			// 炮管的长度
 		// 轮子规格(圆柱)
-		const float m_wheelRadius;			// 轮子的半径
-		const float m_wheelLength;			// 轮子的长度
+		const float wheelRadius;			// 轮子的半径
+		const float wheelLength;			// 轮子的长度
 	};
 
 private:
@@ -103,10 +99,10 @@ private:
 		void Strafe(float d, DirectX::XMFLOAT3& direction);
 
 		// 自身对象
-		GameObject m_self;
+		GameObject self;
 
 		// 轮子的相对车身位置,不可变
-		const WheelPos m_wheelPos;
+		const WheelPos wheelPos;
 	};
 	
 	// 炮管底座
@@ -121,13 +117,13 @@ private:
 			void AdjustPosition(const BarrelBase& body, const VehicleInfo& tankInfo);
 
 			// 自身对象
-			GameObject m_self;
+			GameObject self;
 		};
 
 		// 炮管
-		Barrel m_barrel;
+		Barrel barrel;
 		// 自身对象
-		GameObject m_self;
+		GameObject self;
 	};
 
 	// 车身
@@ -144,16 +140,16 @@ private:
 		void AdjustPosition();
 		
 		// 当前方向
-		DirectX::XMFLOAT3 m_direction;
+		DirectX::XMFLOAT3 direction;
 		// 四个轮子
-		std::array<Wheel, 4> m_wheels;
+		std::array<Wheel, 4> wheels;
 		// 一个炮台
-		BarrelBase m_barrelBase;
+		BarrelBase barrelBase;
 		// 自身对象
-		GameObject m_self;
+		GameObject self;
 		
 		// 坦克规格信息
-		VehicleInfo m_tankInfo;
+		VehicleInfo tankInfo;
 	};
 
 	Tank m_tank;

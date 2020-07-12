@@ -1,7 +1,15 @@
+//***************************************************************************************
+// Author: X_Jun(MKXJun)(MIT License)
+//
+// Modified By: life4gal(NiceT)(MIT License)
+//
+// 简易游戏对象
+// Simple game object.
+//***************************************************************************************
+
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
 
-#include "d3dUtil.h"
 #include "Model.h"
 #include "Transform.h"
 
@@ -26,6 +34,15 @@ public:
 	DirectX::BoundingOrientedBox GetBoundingOrientedBox() const;
 
 	//
+	// 设置实例缓冲区
+	//
+
+	// 获取缓冲区可容纳实例的数目
+	size_t GetCapacity() const;
+	// 重新设置实例缓冲区可容纳实例的数目
+	void ResizeBuffer(ID3D11Device* device, size_t count);
+
+	//
 	// 设置模型
 	//
 
@@ -38,6 +55,8 @@ public:
 
 	// 绘制对象
 	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
+	// 绘制实例
+	void DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const std::vector<Transform>& data);
 
 	//
 	// 调试 
@@ -56,6 +75,9 @@ private:
 	
 	Model m_model{};							// 模型
 	Transform m_transform{};
+
+	ComPtr<ID3D11Buffer> m_pInstancedBuffer = nullptr;				// 实例缓冲区
+	size_t m_capacity = 0;
 };
 
 #endif

@@ -32,13 +32,15 @@ public:
 	IEffect& operator=(IEffect&&) = default;
 
 	// 更新并绑定常量缓冲区
-	virtual void Apply(ID3D11DeviceContext * deviceContext) = 0;
+	virtual void Apply(ID3D11DeviceContext* deviceContext) = 0;
 };
 
 class BasicEffect final : public IEffect
 {
 public:
 
+	enum class RenderType { RenderObject, RenderInstance };
+	
 	BasicEffect();
 	// 不应该对这个类使用多态,这个类也只需要默认的合成析构就够了(不需要自己特别指定default dtor)(但是IDE一直有警告就很烦....)
 	~BasicEffect() override;
@@ -60,7 +62,7 @@ public:
 	//
 
 	// 默认状态来绘制
-	void SetRenderDefault(ID3D11DeviceContext* deviceContext) const;
+	void SetRenderDefault(ID3D11DeviceContext* deviceContext, RenderType type) const;
 
 	//
 	// 矩阵设置
@@ -86,15 +88,6 @@ public:
 	void SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const;
 
 	void XM_CALLCONV SetEyePos(const DirectX::FXMVECTOR& eyePos) const;
-
-	//
-	// 状态设置
-	//
-
-	void SetFogState(bool isOn);
-	void SetFogStart(float fogStart);
-	void SetFogColor(const DirectX::XMVECTOR& fogColor);
-	void SetFogRange(float fogRange);
 	
 	// 应用常量缓冲区和纹理资源的变更
 	void Apply(ID3D11DeviceContext* deviceContext) override;

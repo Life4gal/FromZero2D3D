@@ -6,6 +6,8 @@ using namespace DirectX;
 GameApp::GameApp(HINSTANCE hInstance)
 	:
 	D3DApp(hInstance),
+	m_EnableFrustumCulling(true),
+	m_EnableInstancing(true),
 	m_cameraMode(CameraMode::ThirdPerson)
 {
 }
@@ -267,6 +269,14 @@ void GameApp::UpdateScene(const float dt)
 
 		m_cameraMode = CameraMode::ThirdPerson;
 	}
+	else if (m_keyboardTracker.IsKeyPressed(Keyboard::D3))
+	{
+		m_EnableInstancing = !m_EnableInstancing;
+	}
+	else if (m_keyboardTracker.IsKeyPressed(Keyboard::D4))
+	{
+		m_EnableFrustumCulling = !m_EnableFrustumCulling;
+	}
 
 	// 退出程序，这里应向窗口发送销毁信息
 	if (keyState.IsKeyDown(Keyboard::Escape))
@@ -305,15 +315,42 @@ void GameApp::DrawScene()
 	// 绘制Direct3D部分
 	//
 
-	m_basicEffect.SetRenderDefault(m_pd3dImmediateContext.Get());
+	// 统计实际绘制的物体数目
+	std::vector<Transform> acceptedData;
+	// 是否开启视锥体裁剪
+	if (m_EnableFrustumCulling)
+	{
+		acceptedData = Collision::FrustumCulling(m_InstancedData, m_Trees.GetLocalBoundingBox(),
+			m_pCamera->GetViewXM(), m_pCamera->GetProjXM());
+	}
+	// 确定使用的数据集
+	const std::vector<Transform>& refData = m_EnableFrustumCulling ? acceptedData : m_InstancedData;
+	// 是否开启硬件实例化
+	if (m_EnableInstancing)
+	{
+		// 硬件实例化绘制
+		m_basicEffect.SetRenderDefault(m_pd3dImmediateContext.Get(), BasicEffect::RenderType::RenderInstance);
+		m_Trees.DrawInstanced(m_pd3dImmediateContext.Get(), m_basicEffect, refData);
+	}
+	else
+	{
+		// 遍历的形式逐个绘制
+		m_basicEffect.SetRenderDefault(m_pd3dImmediateContext.Get(), BasicEffect::RenderType::RenderObject);
+		for (const Transform& transform : refData)
+		{
+			m_Trees.GetTransform() = transform;
+			m_Trees.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
+		}
+	}
+	
+	m_basicEffect.SetRenderDefault(m_pd3dImmediateContext.Get(), BasicEffect::RenderType::RenderObject);
 	m_basicEffect.Apply(m_pd3dImmediateContext.Get());
 	
 	for (auto& wall : m_walls)
 	{
-		wall.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
+		//wall.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 	}
 	m_ground.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
-	m_house.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 	m_player.Draw(m_pd3dImmediateContext.Get(), m_basicEffect);
 	
 	// 绘制Direct2D部分
@@ -321,12 +358,18 @@ void GameApp::DrawScene()
 	if (m_pd2dRenderTarget != nullptr)
 	{
 		m_pd2dRenderTarget->BeginDraw();
-		std::wstring text = L"模型加载\n"
+		std::wstring text = L"数字键1:硬件实例化开关 2:视锥体裁剪开关\n"
 			L"当前模式: ";
 		if (m_cameraMode == CameraMode::ThirdPerson)
-			text += L"第三人称";
+			text += L"第三人称\n";
 		else
-			text += L"第一人称";
+			text += L"第一人称\n";
+		text += L"硬件实例化: ";
+		text += (m_EnableInstancing ? L"开" : L"关");
+		text += L" 视锥体裁剪: ";
+		text += (m_EnableFrustumCulling ? L"开" : L"关");
+		text += L"\n视野中树木数量: " + std::to_wstring(refData.size());
+		
 		/*
 			void ID2D1RenderTarget::DrawTextW(
 			    WCHAR *string,                      // [In]要输出的文本
@@ -356,24 +399,14 @@ bool GameApp::InitResource()
 	// 初始化玩家
 	m_player.Init(m_pd3dDevice.Get());
 
+	// 创建随机的树
+	CreateRandomTrees();
+	
 	 // 初始化地面
 	m_objReader.Read(L"Model\\ground.mbo", L"Model\\ground.obj");
 	m_ground.SetModel(Model(m_pd3dDevice.Get(), m_objReader));
-	m_ground.GetTransform().SetScale(2.5f, 1.0f, 2.5f);
+	m_ground.GetTransform().SetScale(10.0f, 1.0f, 10.0f);
 	
-	// 初始化房屋模型
-	m_objReader.Read(L"Model\\house.mbo", L"Model\\house.obj");
-	m_house.SetModel(Model(m_pd3dDevice.Get(), m_objReader));
-
-	// 获取房屋包围盒
-	const XMMATRIX scale = XMMatrixScaling(0.035f, 0.035f, 0.035f);
-	BoundingBox houseBox = m_house.GetLocalBoundingBox();
-	houseBox.Transform(houseBox, scale);
-	// 让房屋底部紧贴地面
-	Transform& houseTransform = m_house.GetTransform();
-	houseTransform.SetScale(0.035f, 0.035f, 0.035f);
-	houseTransform.SetPosition(0.0f, -(houseBox.Center.y - houseBox.Extents.y + 1.0f), 15.0f);
-
 	/*
 		DDS是一种图片格式，是DirectDraw Surface的缩写，
 		它是DirectX纹理压缩（DirectX Texture Compression，简称DXTC）的产物。由NVIDIA公司开发。
@@ -399,7 +432,7 @@ bool GameApp::InitResource()
 	// | /       2       \ |
 	// |/_________________\|
 	//
-	Model wall{ m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(50.0f, 15.0f), XMFLOAT2(5.5f, 2.0f)) };
+	Model wall{ m_pd3dDevice.Get(), Geometry::CreatePlane(XMFLOAT2(100.0f, 15.0f), XMFLOAT2(5.5f, 2.0f)) };
 	wall.modelParts.front().texDiffuse = texture;
 	
 	m_walls[0].SetModel(wall);
@@ -408,16 +441,16 @@ bool GameApp::InitResource()
 	m_walls[3].SetModel(wall);
 	// 墙0
 	m_walls[0].GetTransform().SetRotation(-XM_PIDIV2, 0.0f, 0.0f);
-	m_walls[0].GetTransform().SetPosition(0.0f, 6.5f, 25.0f);
+	m_walls[0].GetTransform().SetPosition(0.0f, 6.5f, 50.0f);
 	// 墙1
 	m_walls[1].GetTransform().SetRotation(-XM_PIDIV2, XM_PIDIV2, 0.0f);
-	m_walls[1].GetTransform().SetPosition(25.0f, 6.5f, 0.0f);
+	m_walls[1].GetTransform().SetPosition(50.0f, 6.5f, 0.0f);
 	// 墙2
 	m_walls[2].GetTransform().SetRotation(-XM_PIDIV2, XM_PI, 0.0f);
-	m_walls[2].GetTransform().SetPosition(0.0f, 6.5f, -25.0f);
+	m_walls[2].GetTransform().SetPosition(0.0f, 6.5f, -50.0f);
 	// 墙3
 	m_walls[3].GetTransform().SetRotation(-XM_PIDIV2, -XM_PIDIV2, 0.0f);
-	m_walls[3].GetTransform().SetPosition(-25.0f, 6.5f, 0.0f);
+	m_walls[3].GetTransform().SetPosition(-50.0f, 6.5f, 0.0f);
 
 	// ******************
 	// 初始化摄像机
@@ -441,7 +474,8 @@ bool GameApp::InitResource()
 	// 初始化不会变化的值
 	//
 
-	// 环境光
+	/*
+	// 方向光
 	m_basicEffect.SetDirLight(
 		0, 
 		{
@@ -462,7 +496,22 @@ bool GameApp::InitResource()
 			40.0f,
 			XMFLOAT3(0.0f, 0.1f, 0.0f)
 		}
-	);
+	);*/
+
+	// 方向光
+	DirectionalLight dirLight[4];
+	dirLight[0].ambient = XMFLOAT4(0.15f, 0.15f, 0.15f, 1.0f);
+	dirLight[0].diffuse = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
+	dirLight[0].specular = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	dirLight[0].direction = XMFLOAT3(-0.577f, -0.577f, 0.577f);
+	dirLight[1] = dirLight[0];
+	dirLight[1].direction = XMFLOAT3(0.577f, -0.577f, 0.577f);
+	dirLight[2] = dirLight[0];
+	dirLight[2].direction = XMFLOAT3(0.577f, -0.577f, -0.577f);
+	dirLight[3] = dirLight[0];
+	dirLight[3].direction = XMFLOAT3(-0.577f, -0.577f, -0.577f);
+	for (int i = 0; i < 4; ++i)
+		m_basicEffect.SetDirLight(i, dirLight[i]);
 
 	// ******************
 	// 设置调试对象名
@@ -472,7 +521,46 @@ bool GameApp::InitResource()
 	m_walls[2].SetDebugObjectName("Walls[2]");
 	m_walls[3].SetDebugObjectName("Walls[3]");
 	m_ground.SetDebugObjectName("Ground");
-	m_house.SetDebugObjectName("House");
+	m_Trees.SetDebugObjectName("Trees");
 	
 	return true;
+}
+
+void GameApp::CreateRandomTrees()
+{
+	srand(static_cast<unsigned>(time(nullptr)));
+	
+	// 初始化树
+	m_objReader.Read(L"Model\\tree.mbo", L"Model\\tree.obj");
+	m_Trees.SetModel(Model(m_pd3dDevice.Get(), m_objReader));
+	const XMMATRIX scale = XMMatrixScaling(0.015f, 0.015f, 0.015f);
+
+	BoundingBox treeBox = m_Trees.GetLocalBoundingBox();
+
+	// 让树木底部紧贴地面位于y = -1的平面
+	treeBox.Transform(treeBox, scale);
+	const float treeY = -(treeBox.Center.y - treeBox.Extents.y + 1.0f);
+	// 随机生成256颗随机朝向的树
+	m_InstancedData.resize(256);
+	m_Trees.ResizeBuffer(m_pd3dDevice.Get(), 256);
+
+	float theta = 0.0f;
+	int pos = 0;
+	for (int i = 0; i < 16; ++i)
+	{
+		// 取5-125的半径放置随机的树
+		for (int j = 0; j < 4; ++j)
+		{
+			// 距离越远，树木越多
+			for (int k = 0; k < 2 * j + 1; ++k, ++pos)
+			{
+				const auto radius = static_cast<float>(rand() % 30 + 30 * j + 5);
+				const float randomRad = static_cast<float>(rand() % 256) / 256.0f * XM_2PI / 16;
+				m_InstancedData[pos].SetScale(0.015f, 0.015f, 0.015f);
+				m_InstancedData[pos].SetRotation(0.0f, rand() % 256 / 256.0f * XM_2PI, 0.0f);
+				m_InstancedData[pos].SetPosition(radius * cosf(theta + randomRad), treeY, radius * sinf(theta + randomRad));
+			}
+		}
+		theta += XM_2PI / 16;
+	}
 }

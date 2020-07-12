@@ -142,7 +142,7 @@ void Player::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
 	}
 }
 
-Player::Tank::Tank(XMFLOAT3 direction, VehicleInfo tankInfo)
+Player::Tank::Tank(const XMFLOAT3 direction, const VehicleInfo tankInfo)
 	:
 	direction(direction),
 	wheels({
@@ -159,7 +159,7 @@ void Player::Tank::AdjustPosition()
 {
 	Transform& tankTransform = self.GetTransform();
 	XMFLOAT3 adjustedPos{};
-	XMStoreFloat3(&adjustedPos, XMVectorClamp(tankTransform.GetPositionXM(), XMVectorSet(-24.0f, 0.5f, -24.0f, 0.0f), XMVectorSet(24.0f, 0.5f, 24.0f, 0.0f)));
+	XMStoreFloat3(&adjustedPos, XMVectorClamp(tankTransform.GetPositionXM(), XMVectorSet(-100.0f, 0.5f, -100.0f, 0.0f), XMVectorSet(100.0f, 0.5f, 100.0f, 0.0f)));
 	tankTransform.SetPosition(adjustedPos);
 
 	barrelBase.AdjustPosition(*this, tankInfo);
@@ -170,7 +170,7 @@ void Player::Tank::AdjustPosition()
 	}
 }
 
-void Player::Tank::Walk(float d)
+void Player::Tank::Walk(const float d)
 {
 	Transform& tankTransform = self.GetTransform();
 	// 车身移动
@@ -185,7 +185,7 @@ void Player::Tank::Walk(float d)
 	}
 }
 
-void Player::Tank::Strafe(float d)
+void Player::Tank::Strafe(const float d)
 {
 	// 轮子转向
 	for (auto& wheel : wheels)
@@ -194,13 +194,13 @@ void Player::Tank::Strafe(float d)
 	}
 }
 
-Player::Wheel::Wheel(WheelPos wheelPos)
+Player::Wheel::Wheel(const WheelPos wheelPos)
 	: 
 	wheelPos(wheelPos)
 {
 }
 
-void Player::Wheel::Walk(float d, const XMFLOAT3& direction)
+void Player::Wheel::Walk(const float d, const XMFLOAT3& direction)
 {
 	Transform& wheelTransform = self.GetTransform();
 	// 移动
@@ -210,7 +210,7 @@ void Player::Wheel::Walk(float d, const XMFLOAT3& direction)
 	wheelTransform.SetRotation(rotation.x + 2.5f * d, rotation.y, rotation.z);
 }
 
-void Player::Wheel::Strafe(float d, XMFLOAT3& direction)
+void Player::Wheel::Strafe(const float d, XMFLOAT3& direction)
 {
 	// 后轮不转
 	if(wheelPos == WheelPos::LeftBack || wheelPos == WheelPos::RightBack)

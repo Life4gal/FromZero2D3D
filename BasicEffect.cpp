@@ -30,6 +30,12 @@ public:
 	{
 		Material material;
 	};
+
+	struct CBDrawingStates
+	{
+		int textureUsed;
+		XMFLOAT3 pad;
+	};
 	
 	struct CBChangesEveryFrame
 	{
@@ -61,11 +67,12 @@ public:
 	// 需要16字节对齐的优先放在前面
 	CBufferObject<0, CBChangesEveryInstanceDrawing>	m_cbInstDrawing;		// 每次实例绘制的常量缓冲区
 	CBufferObject<1, CBChangesEveryObjectDrawing>	m_cbObjDrawing;		    // 每次对象绘制的常量缓冲区
-	CBufferObject<2, CBChangesEveryFrame>			m_cbFrame;			    // 每帧绘制的常量缓冲区
-	CBufferObject<3, CBChangesOnResize>				m_cbOnResize;			// 每次窗口大小变更的常量缓冲区
-	CBufferObject<4, CBChangesRarely>				m_cbRarely;			    // 几乎不会变更的常量缓冲区
+	CBufferObject<2, CBDrawingStates>				m_cbStates;			    // 每次绘制状态改变的常量缓冲区
+	CBufferObject<3, CBChangesEveryFrame>			m_cbFrame;			    // 每帧绘制的常量缓冲区
+	CBufferObject<4, CBChangesOnResize>				m_cbOnResize;			// 每次窗口大小变更的常量缓冲区
+	CBufferObject<5, CBChangesRarely>				m_cbRarely;			    // 几乎不会变更的常量缓冲区
 	BOOL m_isDirty;											    // 是否有值变更
-	std::array<CBufferBase*, 5> m_pCBuffers;					    // 统一管理上面所有的常量缓冲区// 统一管理上面所有的常量缓冲区
+	std::array<CBufferBase*, 6> m_pCBuffers;					    // 统一管理上面所有的常量缓冲区// 统一管理上面所有的常量缓冲区
 
 	ComPtr<ID3D11VertexShader> m_pBasicInstanceVS;
 	ComPtr<ID3D11VertexShader> m_pBasicObjectVS;
@@ -146,7 +153,7 @@ bool BasicEffect::InitAll(ID3D11Device* device) const
 	
 	ComPtr<ID3DBlob> blob;
 
-	//
+	// ******************
 	// 创建顶点着色器
 	//
 
@@ -162,7 +169,7 @@ bool BasicEffect::InitAll(ID3D11Device* device) const
 	HR(device->CreateInputLayout(VertexPosNormalTex::InputLayout, ARRAYSIZE(VertexPosNormalTex::InputLayout),
 		blob->GetBufferPointer(), blob->GetBufferSize(), m_pImpl->m_pVertexPosNormalTexLayout.GetAddressOf()));
 
-	//
+	// ******************
 	// 创建像素着色器
 	//
 
@@ -173,6 +180,7 @@ bool BasicEffect::InitAll(ID3D11Device* device) const
 	m_pImpl->m_pCBuffers = {
 		&m_pImpl->m_cbInstDrawing,
 		&m_pImpl->m_cbObjDrawing,
+		&m_pImpl->m_cbStates,
 		&m_pImpl->m_cbFrame,
 		&m_pImpl->m_cbOnResize,
 		&m_pImpl->m_cbRarely
@@ -189,9 +197,10 @@ bool BasicEffect::InitAll(ID3D11Device* device) const
 	D3D11SetDebugObjectName(m_pImpl->m_pVertexPosNormalTexLayout.Get(), "VertexPosNormalTexLayout");
 	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[0]->cBuffer.Get(), "CBInstDrawing");
 	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[1]->cBuffer.Get(), "CBObjDrawing");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[2]->cBuffer.Get(), "CBFrame");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[3]->cBuffer.Get(), "CBOnResize");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[4]->cBuffer.Get(), "CBRarely");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[2]->cBuffer.Get(), "CBStates");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[3]->cBuffer.Get(), "CBFrame");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[4]->cBuffer.Get(), "CBOnResize");
+	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[5]->cBuffer.Get(), "CBRarely");
 	D3D11SetDebugObjectName(m_pImpl->m_pBasicObjectVS.Get(), "BasicObject_VS");
 	D3D11SetDebugObjectName(m_pImpl->m_pBasicInstanceVS.Get(), "BasicInstance_VS");
 	D3D11SetDebugObjectName(m_pImpl->m_pBasicPS.Get(), "Basic_PS");
@@ -292,6 +301,13 @@ void BasicEffect::SetMaterial(const Material& material) const
 	m_pImpl->m_isDirty = cBuffer.isDirty = true;
 }
 
+void BasicEffect::SetTextureUsed(const bool isUsed) const
+{
+	auto& cBuffer = m_pImpl->m_cbStates;
+	cBuffer.data.textureUsed = isUsed;
+	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+}
+
 void BasicEffect::SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const
 {
 	m_pImpl->m_pTextureDiffuse = textureDiffuse;
@@ -309,16 +325,20 @@ void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
 	auto& pCBuffers = m_pImpl->m_pCBuffers;
 	// 将缓冲区绑定到渲染管线上
 	pCBuffers[0]->BindVS(deviceContext);
-	pCBuffers[2]->BindVS(deviceContext);
 	pCBuffers[3]->BindVS(deviceContext);
+	pCBuffers[4]->BindVS(deviceContext);
 
 	pCBuffers[1]->BindPS(deviceContext);
 	pCBuffers[2]->BindPS(deviceContext);
-	pCBuffers[4]->BindPS(deviceContext);
+	pCBuffers[3]->BindPS(deviceContext);
+	pCBuffers[5]->BindPS(deviceContext);
 
 	// 设置纹理
-	deviceContext->PSSetShaderResources(0, 1, m_pImpl->m_pTextureDiffuse.GetAddressOf());
-
+	if (m_pImpl->m_cbStates.data.textureUsed)
+	{
+		deviceContext->PSSetShaderResources(0, 1, m_pImpl->m_pTextureDiffuse.GetAddressOf());
+	}
+	
 	if (m_pImpl->m_isDirty)
 	{
 		m_pImpl->m_isDirty = false;

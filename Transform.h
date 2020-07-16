@@ -62,7 +62,7 @@ public:
 	// 指定以原点为中心绕轴旋转
 	void RotateAxis(const DirectX::XMVECTOR& axis, float radian);
 	// 指定以point为旋转中心绕轴旋转
-	void RotateAround(const DirectX::XMVECTOR& point, const DirectX::XMVECTOR& axis, float radian) const;
+	void RotateAround(const DirectX::XMVECTOR& point, const DirectX::XMVECTOR& axis, float radian);
 
 	// 沿着某一方向平移
 	void Translate(const DirectX::XMVECTOR& direction, float magnitude);

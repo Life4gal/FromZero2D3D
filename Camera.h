@@ -78,13 +78,13 @@ public:
 protected:
 
 	// 摄像机的变换
-	Transform m_transform{};
+	Transform m_transform;
 	
 	// 视锥体属性
-	float m_nearZ = 0.0f;
-	float m_farZ = 0.0f;
-	float m_aspect = 0.0f;
-	float m_fovY = 0.0f;
+	float m_nearZ;
+	float m_farZ;
+	float m_aspect;
+	float m_fovY;
 
 	// 当前视口
 	D3D11_VIEWPORT m_viewPort{};

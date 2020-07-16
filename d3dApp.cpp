@@ -55,7 +55,7 @@ D3DApp::~D3DApp()
 		m_pd3dImmediateContext->ClearState();
 	
 	// 关闭ImGui
-	ImguiPanel::shutdown();
+	ImguiPanel::Shutdown();
 }
 
 HINSTANCE D3DApp::AppInst() const
@@ -120,7 +120,7 @@ bool D3DApp::Init()
 	if (!InitDirect3D())
 		return false;
 	
-	if (!ImguiPanel::init(MainWnd(), m_pd3dDevice.Get(), m_pd3dImmediateContext.Get()))
+	if (!ImguiPanel::Init(MainWnd(), m_pd3dDevice.Get(), m_pd3dImmediateContext.Get()))
 		return false;
 
 	return true;

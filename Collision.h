@@ -1,6 +1,7 @@
 //***************************************************************************************
-// Collision.h by X_Jun(MKXJun) (C) 2018-2020 All Rights Reserved.
-// Licensed under the MIT License.
+// Author: X_Jun(MKXJun)(MIT License)
+//
+// Modified By: life4gal(NiceT)(MIT License)
 //
 // 提供一些封装好的对象和碰撞检测方法
 // 注意：WireFrameData目前仍未经过稳定测试，未来有可能会移植到Geometry.h中
@@ -13,7 +14,24 @@
 #include <DirectXCollision.h>
 #include <vector>
 #include "Vertex.h"
-#include "Transform.h"
+#include "Camera.h"
+
+struct Ray
+{
+	Ray();
+	Ray(const DirectX::XMFLOAT3& origin, const DirectX::XMFLOAT3& direction);
+
+	static Ray ScreenToRay(const Camera& camera, float screenX, float screenY);
+
+	bool Hit(const DirectX::BoundingBox& box, float* pOutDist = nullptr, float maxDist = FLT_MAX) const;
+	bool Hit(const DirectX::BoundingOrientedBox& box, float* pOutDist = nullptr, float maxDist = FLT_MAX) const;
+	bool Hit(const DirectX::BoundingSphere& sphere, float* pOutDist = nullptr, float maxDist = FLT_MAX) const;
+	// 三角形检测
+	bool XM_CALLCONV Hit(DirectX::FXMVECTOR v0, DirectX::FXMVECTOR v1, DirectX::FXMVECTOR v2, float* pOutDist = nullptr, float maxDist = FLT_MAX) const;
+
+	DirectX::XMFLOAT3 origin;		// 射线原点
+	DirectX::XMFLOAT3 direction;	// 单位方向向量
+};
 
 class Collision
 {

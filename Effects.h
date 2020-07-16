@@ -85,6 +85,8 @@ public:
 
 	void SetMaterial(const Material& material) const;
 
+	void SetTextureUsed(bool isUsed) const;
+	
 	void SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const;
 
 	void XM_CALLCONV SetEyePos(const DirectX::FXMVECTOR& eyePos) const;

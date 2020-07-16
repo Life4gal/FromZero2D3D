@@ -4,6 +4,7 @@
 #include <array>
 
 #include "GameObject.h"
+#include "Collision.h"
 
 class Player
 {
@@ -14,19 +15,7 @@ public:
 	struct VehicleInfo;
 
 	explicit Player(
-		VehicleInfo tankInfo =
-		{
-			3.5f,
-			6.0f,
-			1.7f,
-			2.0f,
-			2.0f,
-			1.2f,
-			0.25f,
-			4.5f,
-			0.75f,
-			0.5f
-		}, 
+		VehicleInfo tankInfo = NormalTank,
 		DirectX::XMFLOAT3 direction = {0.0f, 0.0f, 1.0f});
 
 	void Init(ID3D11Device* device);
@@ -35,6 +24,9 @@ public:
 	
 	void Walk(float d);
 	void Strafe(float d);
+	Ray Shoot();
+	// 转动炮管,大于0向右转
+	void Turn(float d);
 
 	void AdjustPosition();
 
@@ -49,10 +41,6 @@ public:
 	// 坦克相关信息的结果可以公开
 	struct VehicleInfo
 	{
-		// ******************
-		// 可变信息
-		// @TODO
-
 		// ******************
 		// 不可变信息
 		
@@ -70,7 +58,12 @@ public:
 		// 轮子规格(圆柱)
 		const float wheelRadius;			// 轮子的半径
 		const float wheelLength;			// 轮子的长度
+
+		// ******************
+		// 可变信息
 	};
+
+	static const VehicleInfo NormalTank;
 
 private:
 	// *************************
@@ -115,7 +108,7 @@ private:
 		{
 			// 炮管限制在底座上
 			void AdjustPosition(const BarrelBase& body, const VehicleInfo& tankInfo);
-
+			
 			// 自身对象
 			GameObject self;
 		};
@@ -135,9 +128,15 @@ private:
 		void Walk(float d);
 		// 左右转向,会改变方向
 		void Strafe(float d);
+		Ray Shoot();
+		// 转动炮管,大于0向右转
+		void Turn(float d);
 		
 		// 限制车身移动范围
 		void AdjustPosition();
+
+		// 坦克规格信息
+		VehicleInfo tankInfo;
 		
 		// 当前方向
 		DirectX::XMFLOAT3 direction;
@@ -147,9 +146,6 @@ private:
 		BarrelBase barrelBase;
 		// 自身对象
 		GameObject self;
-		
-		// 坦克规格信息
-		VehicleInfo tankInfo;
 	};
 
 	Tank m_tank;

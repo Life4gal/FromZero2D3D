@@ -84,7 +84,7 @@ void Transform::SetScale(const XMVECTOR& scale)
 	 XMStoreFloat3(&m_scale, scale);
 }
 
-void Transform::SetScale(float x, float y, float z)
+void Transform::SetScale(const float x, const float y, const float z)
 {
 	m_scale = XMFLOAT3(x, y, z);
 }
@@ -99,7 +99,7 @@ void Transform::SetRotation(const XMVECTOR& eulerAnglesInRadian)
 	XMStoreFloat3(&m_rotation, eulerAnglesInRadian);
 }
 
-void Transform::SetRotation(float x, float y, float z)
+void Transform::SetRotation(const float x, const float y, const float z)
 {
 	m_rotation = XMFLOAT3(x, y, z);
 }
@@ -114,7 +114,7 @@ void Transform::SetPosition(const XMVECTOR& position)
 	XMStoreFloat3(&m_position, position);
 }
 
-void Transform::SetPosition(float x, float y, float z)
+void Transform::SetPosition(const float x, const float y, const float z)
 {
 	m_position = XMFLOAT3(x, y, z);
 }
@@ -126,20 +126,20 @@ void Transform::Rotate(const XMVECTOR& eulerAnglesInRadian)
 	XMStoreFloat3(&m_rotation, newRotationVec);
 }
 
-void Transform::RotateAxis(const XMVECTOR& axis, float radian)
+void Transform::RotateAxis(const XMVECTOR& axis, const float radian)
 {
 	// 绕轴旋转，先根据当前欧拉角得到旋转矩阵，然后更新，最后还原欧拉角
-	XMMATRIX R = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_rotation));
+	XMMATRIX rotateTransform = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_rotation));
 	
-	R *= XMMatrixRotationAxis(axis, radian);
+	rotateTransform *= XMMatrixRotationAxis(axis, radian);
 	
 	XMFLOAT4X4 rotMatrix{};
-	XMStoreFloat4x4(&rotMatrix, R);
+	XMStoreFloat4x4(&rotMatrix, rotateTransform);
 	
 	m_rotation = GetEulerAnglesFromRotationMatrix(rotMatrix);
 }
 
-void Transform::RotateAround(const XMVECTOR& point, const XMVECTOR& axis, float radian) const
+void Transform::RotateAround(const XMVECTOR& point, const XMVECTOR& axis, const float radian)
 {
 	// 基于某一点为旋转中心进行绕轴旋转的实现过程稍微有点复杂。
 	// 首先根据已有变换算出旋转矩阵*平移矩阵，然后将旋转中心平移到原点（这两步平移可以合并），再进行旋转，最后再平移回旋转中心
@@ -147,16 +147,19 @@ void Transform::RotateAround(const XMVECTOR& point, const XMVECTOR& axis, float 
 	const XMVECTOR position = XMLoadFloat3(&m_position);
 
 	// 以point作为原点进行旋转
-	XMMATRIX RT = XMMatrixRotationRollPitchYawFromVector(rotation) * XMMatrixTranslationFromVector(position - point);
+	XMMATRIX rotateTransform = XMMatrixRotationRollPitchYawFromVector(rotation) * XMMatrixTranslationFromVector(position - point);
 	
-	RT *= XMMatrixRotationAxis(axis, radian);
-	RT *= XMMatrixTranslationFromVector(point);
+	rotateTransform *= XMMatrixRotationAxis(axis, radian);
+	rotateTransform *= XMMatrixTranslationFromVector(point);
 	
 	XMFLOAT4X4 rotMatrix{};
-	XMStoreFloat4x4(&rotMatrix, RT);
+	XMStoreFloat4x4(&rotMatrix, rotateTransform);
+
+	m_rotation = GetEulerAnglesFromRotationMatrix(rotMatrix);
+	XMStoreFloat3(&m_position, rotateTransform.r[3]);
 }
 
-void Transform::Translate(const XMVECTOR& direction, float magnitude)
+void Transform::Translate(const XMVECTOR& direction, const float magnitude)
 {
 	const XMVECTOR directionVec = XMVector3Normalize(direction);
 	const XMVECTOR newPosition = XMVectorMultiplyAdd(XMVectorReplicate(magnitude), directionVec, XMLoadFloat3(&m_position));
@@ -192,28 +195,28 @@ void Transform::LookAt(const XMFLOAT3& target, const XMFLOAT3& up)
 			FLOAT NearZ,                       // 近平面距离
 			FLOAT FarZ);                       // 远平面距离
 	 */
-	const XMMATRIX View = XMMatrixLookAtLH(
+	const XMMATRIX view = XMMatrixLookAtLH(
 		XMLoadFloat3(&m_position), 
 		XMLoadFloat3(&target), 
 		XMLoadFloat3(&up)
 	);
 
 	XMFLOAT4X4 rotMatrix{};
-	XMStoreFloat4x4(&rotMatrix, XMMatrixInverse(nullptr, View));
+	XMStoreFloat4x4(&rotMatrix, XMMatrixInverse(nullptr, view));
 	
 	m_rotation = GetEulerAnglesFromRotationMatrix(rotMatrix);
 }
 
 void Transform::LookTo(const XMFLOAT3& direction, const XMFLOAT3& up)
 {
-	const XMMATRIX View = XMMatrixLookToLH(
+	const XMMATRIX view = XMMatrixLookToLH(
 		XMLoadFloat3(&m_position), 
 		XMLoadFloat3(&direction), 
 		XMLoadFloat3(&up)
 	);
 	
 	XMFLOAT4X4 rotMatrix{};
-	XMStoreFloat4x4(&rotMatrix, XMMatrixInverse(nullptr, View));
+	XMStoreFloat4x4(&rotMatrix, XMMatrixInverse(nullptr, view));
 	
 	m_rotation = GetEulerAnglesFromRotationMatrix(rotMatrix);
 }

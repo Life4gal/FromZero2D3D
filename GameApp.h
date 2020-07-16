@@ -33,7 +33,6 @@ public:
 
 private:
 	bool InitResource();
-	void CreateRandomTrees();
 	
 	ComPtr<ID2D1SolidColorBrush> m_pColorBrush;				    // 单色笔刷
 	ComPtr<IDWriteFont> m_pFont;								// 字体
@@ -41,15 +40,20 @@ private:
 
 	Player m_player;
 	std::array<GameObject, 4> m_walls;							// 墙壁
-	GameObject m_Trees;										    // 树
 	GameObject m_ground;										// 地面
-	std::vector<Transform> m_InstancedData;						// 树的实例数据
+
+	GameObject m_sphere;										// 球
+	GameObject m_cube;										    // 立方体
+	GameObject m_cylinder;									    // 圆柱体
+	GameObject m_house;										    // 房屋
+
+	DirectX::BoundingSphere m_boundingSphere;				    // 球的包围盒
+	Geometry::MeshData<> m_triangleMesh;						// 三角形网格模型
+	std::wstring m_pickedObjStr;								// 已经拾取的对象名
 	
 	ImguiPanel m_imguiPanel;
 
 	BasicEffect m_basicEffect;								    // 对象渲染特效管理
-	bool m_EnableFrustumCulling;								// 视锥体裁剪开启
-	bool m_EnableInstancing;									// 硬件实例化开启
 	
 	std::shared_ptr<Camera> m_pCamera;						    // 摄像机
 	CameraMode m_cameraMode;									// 摄像机模式

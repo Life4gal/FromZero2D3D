@@ -19,4 +19,3 @@ int WINAPI WinMain(_In_ const HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInsta
 
 	return theApp.Run();
 }
-

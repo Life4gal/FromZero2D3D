@@ -246,40 +246,40 @@ namespace Geometry
 		meshData.vertexVec.resize(24);
 
 		Internal::VertexData vertexDataArr[24];
-		const float l2 = length / 2;
-		const float h2 = height / 2;
 		const float w2 = width / 2;
+		const float h2 = height / 2;
+		const float l2 = length / 2;
 
 		// 右面(+X面)
-		vertexDataArr[0].pos = XMFLOAT3(l2, -h2, -w2);
-		vertexDataArr[1].pos = XMFLOAT3(l2, h2, -w2);
-		vertexDataArr[2].pos = XMFLOAT3(l2, h2, w2);
-		vertexDataArr[3].pos = XMFLOAT3(l2, -h2, w2);
+		vertexDataArr[0].pos = XMFLOAT3(w2, -h2, -l2);
+		vertexDataArr[1].pos = XMFLOAT3(w2, h2, -l2);
+		vertexDataArr[2].pos = XMFLOAT3(w2, h2, l2);
+		vertexDataArr[3].pos = XMFLOAT3(w2, -h2, l2);
 		// 左面(-X面)
-		vertexDataArr[4].pos = XMFLOAT3(-l2, -h2, w2);
-		vertexDataArr[5].pos = XMFLOAT3(-l2, h2, w2);
-		vertexDataArr[6].pos = XMFLOAT3(-l2, h2, -w2);
-		vertexDataArr[7].pos = XMFLOAT3(-l2, -h2, -w2);
+		vertexDataArr[4].pos = XMFLOAT3(-w2, -h2, l2);
+		vertexDataArr[5].pos = XMFLOAT3(-w2, h2, l2);
+		vertexDataArr[6].pos = XMFLOAT3(-w2, h2, -l2);
+		vertexDataArr[7].pos = XMFLOAT3(-w2, -h2, -l2);
 		// 顶面(+Y面)
-		vertexDataArr[8].pos = XMFLOAT3(-l2, h2, -w2);
-		vertexDataArr[9].pos = XMFLOAT3(-l2, h2, w2);
-		vertexDataArr[10].pos = XMFLOAT3(l2, h2, w2);
-		vertexDataArr[11].pos = XMFLOAT3(l2, h2, -w2);
+		vertexDataArr[8].pos = XMFLOAT3(-w2, h2, -l2);
+		vertexDataArr[9].pos = XMFLOAT3(-w2, h2, l2);
+		vertexDataArr[10].pos = XMFLOAT3(w2, h2, l2);
+		vertexDataArr[11].pos = XMFLOAT3(w2, h2, -l2);
 		// 底面(-Y面)
-		vertexDataArr[12].pos = XMFLOAT3(l2, -h2, -w2);
-		vertexDataArr[13].pos = XMFLOAT3(l2, -h2, w2);
-		vertexDataArr[14].pos = XMFLOAT3(-l2, -h2, w2);
-		vertexDataArr[15].pos = XMFLOAT3(-l2, -h2, -w2);
+		vertexDataArr[12].pos = XMFLOAT3(w2, -h2, -l2);
+		vertexDataArr[13].pos = XMFLOAT3(w2, -h2, l2);
+		vertexDataArr[14].pos = XMFLOAT3(-w2, -h2, l2);
+		vertexDataArr[15].pos = XMFLOAT3(-w2, -h2, -l2);
 		// 背面(+Z面)
-		vertexDataArr[16].pos = XMFLOAT3(l2, -h2, w2);
-		vertexDataArr[17].pos = XMFLOAT3(l2, h2, w2);
-		vertexDataArr[18].pos = XMFLOAT3(-l2, h2, w2);
-		vertexDataArr[19].pos = XMFLOAT3(-l2, -h2, w2);
+		vertexDataArr[16].pos = XMFLOAT3(w2, -h2, l2);
+		vertexDataArr[17].pos = XMFLOAT3(w2, h2, l2);
+		vertexDataArr[18].pos = XMFLOAT3(-w2, h2, l2);
+		vertexDataArr[19].pos = XMFLOAT3(-w2, -h2, l2);
 		// 正面(-Z面)
-		vertexDataArr[20].pos = XMFLOAT3(-l2, -h2, -w2);
-		vertexDataArr[21].pos = XMFLOAT3(-l2, h2, -w2);
-		vertexDataArr[22].pos = XMFLOAT3(l2, h2, -w2);
-		vertexDataArr[23].pos = XMFLOAT3(l2, -h2, -w2);
+		vertexDataArr[20].pos = XMFLOAT3(-w2, -h2, -l2);
+		vertexDataArr[21].pos = XMFLOAT3(-w2, h2, -l2);
+		vertexDataArr[22].pos = XMFLOAT3(w2, h2, -l2);
+		vertexDataArr[23].pos = XMFLOAT3(w2, -h2, -l2);
 
 		for (UINT i = 0; i < 4; ++i)
 		{

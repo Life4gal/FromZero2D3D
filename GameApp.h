@@ -38,7 +38,8 @@ private:
 	ComPtr<IDWriteFont> m_pFont;								// 字体
 	ComPtr<IDWriteTextFormat> m_pTextFormat;					// 文本格式
 
-	Player m_player;
+	//Player m_player;
+	Tank m_player;
 	std::array<GameObject, 4> m_walls;							// 墙壁
 	GameObject m_ground;										// 地面
 

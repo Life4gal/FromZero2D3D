@@ -13,6 +13,8 @@
 #include "Model.h"
 #include "Transform.h"
 
+#include <set>
+
 class GameObject
 {
 public:
@@ -20,6 +22,9 @@ public:
 	template <typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
+	// 添加子对象
+	void AddChild(GameObject* child);
+	
 	// 获取物体变换
 	Transform& GetTransform();
 	// 获取物体变换
@@ -67,11 +72,16 @@ public:
 	void SetDebugObjectName(const std::string& name);
 
 private:
+	void XM_CALLCONV Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, DirectX::FXMMATRIX scale, DirectX::CXMMATRIX toRoot);
+	
 	struct InstancedData
 	{
 		DirectX::XMMATRIX world;
 		DirectX::XMMATRIX worldInvTranspose;
 	};
+
+	// 子对象
+	std::set<GameObject*> m_children;
 	
 	Model m_model{};							// 模型
 	Transform m_transform{};

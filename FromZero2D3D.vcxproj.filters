@@ -152,6 +152,9 @@
     <ClInclude Include="Collision.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Tank.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -233,6 +236,9 @@
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
     <ClCompile Include="Collision.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Tank.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

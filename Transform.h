@@ -7,6 +7,19 @@
 // Provide 1st person(free view) and 3rd person cameras.
 //***************************************************************************************
 
+/*
+ * 对于 XMVECTOR 类型的 常引用 参数
+ * 前三个用 FXMVECTOR
+ * 第四个用 GXMVECTOR
+ * 第五和六个用 HXMVECTOR
+ * 其余用 CXMVECTOR
+ *
+ * 注意: 只算 XMVECTOR 类型的 常引用 参数,其它类型参数不计数
+ *	
+ * 回调使用 XM_CALLCONV
+ * 
+ */
+
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 

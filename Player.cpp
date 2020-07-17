@@ -212,7 +212,13 @@ void Player::Tank::Walk(const float d)
 	// 车身移动
 	tankTransform.Translate(XMLoadFloat3(&direction), d);
 	// 车身顺着移动方向旋转
-	//tankTransform.RotateAxis(tankTransform.GetUpAxisXM(), XMConvertToRadians(-d));
+	XMFLOAT3 up{};
+	XMStoreFloat3(&up, tankTransform.GetUpAxisXM());
+	XMFLOAT3 look{};
+	// 车身是经过了90度旋转的
+	XMStoreFloat3(&look, XMVector3Cross(XMLoadFloat3(&direction), tankTransform.GetUpAxisXM()));
+	// @TODO 现在是车身直接朝向移动方向,应该缓慢改变才对
+	//tankTransform.LookTo(look, up);
 	
 	// 轮子移动
 	for(auto& wheel : wheels)
@@ -243,10 +249,21 @@ Ray Player::Tank::Shoot()
 
 void Player::Tank::Turn(const float d)
 {
-	Transform& transform = barrelBase.self.GetTransform();
-	transform.Rotate(XMVectorSet(0.0f, d, 0.0f, 0.0f));
+	Transform& barrelBaseTransform = barrelBase.self.GetTransform();
+	// 转底座
+	barrelBaseTransform.Rotate(XMVectorSet(0.0f, d, 0.0f, 0.0f));
+	
+	Transform& barrelTransform = barrelBase.barrel.self.GetTransform();
+	// 炮管伴随底座一起转
+	barrelTransform.RotateAround(barrelBaseTransform.GetPositionXM(), barrelBaseTransform.GetUpAxisXM(), d);
 
-	barrelBase.barrel.self.GetTransform().RotateAround(transform.GetPositionXM(), transform.GetUpAxisXM(), d);
+	XMFLOAT3 direction{};
+	XMStoreFloat3(&direction, barrelTransform.GetRightAxisXM());
+	XMFLOAT3 look{};
+	XMStoreFloat3(&look, barrelBaseTransform.GetRightAxisXM());
+	// 炮管朝向适应底座朝向
+	// @TODO 炮管现在会自身不断旋转(绕Z轴)
+	barrelTransform.LookTo(direction, look);
 }
 
 Player::Wheel::Wheel(const WheelPos wheelPos)
@@ -290,14 +307,18 @@ void Player::Wheel::Strafe(const float d, XMFLOAT3& direction)
 
 void Player::Wheel::AdjustPosition(const Tank& body, const VehicleInfo& tankInfo)
 {
-	const XMFLOAT3 tankCenter = body.self.GetTransform().GetPosition();
-	const float tankWidth = tankInfo.bodyWidth;
-	const float tankLength = tankInfo.bodyLength;
-	
-	const float offW = (wheelPos == WheelPos::LeftFront || wheelPos == WheelPos::LeftBack) ? -tankWidth / 2 : tankWidth / 2;
-	const float offL = (wheelPos == WheelPos::LeftBack || wheelPos == WheelPos::RightBack) ? -tankLength / 2 : tankLength / 2;
+	const Transform& tankTransform = body.self.GetTransform();
+	// 车身当前方向
+	XMFLOAT3 look{};
+	XMStoreFloat3(&look, tankTransform.GetRightAxisXM());
+	// 车身中心距轮子中心的距离
+	const float length = sqrtf(powf(tankInfo.bodyWidth / 2, tankInfo.bodyLength / 2));
+	const float offX =  (wheelPos == WheelPos::LeftFront || wheelPos == WheelPos::LeftBack) ? -length * look.x : length * look.x;
+	const float offZ = (wheelPos == WheelPos::LeftFront || wheelPos == WheelPos::RightFront) ?  length * look.z : -length * look.z;
 
-	self.GetTransform().SetPosition(tankCenter.x + offW, -0.35f, tankCenter.z + offL);
+	const XMFLOAT3 tankCenterPoint = tankTransform.GetPosition();
+	// TODO 方向不对
+	self.GetTransform().SetPosition(tankCenterPoint.x + offX, tankCenterPoint.y - tankInfo.bodyHeight / 2, tankCenterPoint.z + offZ);
 }
 
 void Player::BarrelBase::AdjustPosition(const Tank& body, const VehicleInfo& tankInfo)
@@ -313,17 +334,14 @@ void Player::BarrelBase::AdjustPosition(const Tank& body, const VehicleInfo& tan
 void Player::BarrelBase::Barrel::AdjustPosition(const BarrelBase& body, const VehicleInfo& tankInfo)
 {
 	const Transform& barrelBaseTransform = body.self.GetTransform();
+	// 底座当前角度
 	XMFLOAT3 look{};
 	XMStoreFloat3(&look, barrelBaseTransform.GetRightAxisXM());
+	// 底座中心距炮管中心的距离
 	const float length = tankInfo.barrelBaseLength / 2 + tankInfo.barrelLength / 2;
 	const XMFLOAT3 barrelBaseCenterPoint = barrelBaseTransform.GetPosition();
 
 	Transform& barrelTransform = self.GetTransform();
-	// 位置
+	// 炮管适应底座位置位置
 	barrelTransform.SetPosition(barrelBaseCenterPoint.x + length * look.x, barrelBaseCenterPoint.y, barrelBaseCenterPoint.z + length * look.z);
-
-	XMFLOAT3 direction{};
-	// 方向
-	XMStoreFloat3(&direction, barrelTransform.GetRightAxisXM());
-	self.GetTransform().LookTo(direction, look);
 }

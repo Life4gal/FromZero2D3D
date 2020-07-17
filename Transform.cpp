@@ -129,12 +129,12 @@ void Transform::Rotate(const XMVECTOR& eulerAnglesInRadian)
 void Transform::RotateAxis(const XMVECTOR& axis, const float radian)
 {
 	// 绕轴旋转，先根据当前欧拉角得到旋转矩阵，然后更新，最后还原欧拉角
-	XMMATRIX rotateTransform = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_rotation));
+	XMMATRIX rotationTranslation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_rotation));
 	
-	rotateTransform *= XMMatrixRotationAxis(axis, radian);
+	rotationTranslation *= XMMatrixRotationAxis(axis, radian);
 	
 	XMFLOAT4X4 rotMatrix{};
-	XMStoreFloat4x4(&rotMatrix, rotateTransform);
+	XMStoreFloat4x4(&rotMatrix, rotationTranslation);
 	
 	m_rotation = GetEulerAnglesFromRotationMatrix(rotMatrix);
 }
@@ -147,16 +147,16 @@ void Transform::RotateAround(const XMVECTOR& point, const XMVECTOR& axis, const 
 	const XMVECTOR position = XMLoadFloat3(&m_position);
 
 	// 以point作为原点进行旋转
-	XMMATRIX rotateTransform = XMMatrixRotationRollPitchYawFromVector(rotation) * XMMatrixTranslationFromVector(position - point);
+	XMMATRIX rotationTranslation = XMMatrixRotationRollPitchYawFromVector(rotation) * XMMatrixTranslationFromVector(position - point);
 	
-	rotateTransform *= XMMatrixRotationAxis(axis, radian);
-	rotateTransform *= XMMatrixTranslationFromVector(point);
+	rotationTranslation *= XMMatrixRotationAxis(axis, radian);
+	rotationTranslation *= XMMatrixTranslationFromVector(point);
 	
 	XMFLOAT4X4 rotMatrix{};
-	XMStoreFloat4x4(&rotMatrix, rotateTransform);
+	XMStoreFloat4x4(&rotMatrix, rotationTranslation);
 
 	m_rotation = GetEulerAnglesFromRotationMatrix(rotMatrix);
-	XMStoreFloat3(&m_position, rotateTransform.r[3]);
+	XMStoreFloat3(&m_position, rotationTranslation.r[3]);
 }
 
 void Transform::Translate(const XMVECTOR& direction, const float magnitude)

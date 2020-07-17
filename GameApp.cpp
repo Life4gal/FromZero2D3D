@@ -227,7 +227,7 @@ void GameApp::UpdateScene(const float dt)
 		auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
 		
 		// 第一人称摄像机距物体中心偏一点
-		const XMFLOAT3 position = m_player.GetTransform().GetPosition();
+		const XMFLOAT3 position = m_player.GetPosition();
 		firstPersonCamera->SetPosition(position.x, position.y + 1.5f, position.z + 1.5f);
 
 		// 在鼠标没进入窗口前仍为ABSOLUTE模式
@@ -255,7 +255,7 @@ void GameApp::UpdateScene(const float dt)
 		auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
 		
 		// 设置目标
-		thirdPersonCamera->SetTarget(m_player.GetTransform().GetPosition());
+		thirdPersonCamera->SetTarget(m_player.GetPosition());
 		// 绕物体旋转
 		thirdPersonCamera->RotateX(static_cast<float>(mouseState.y) * dt * 2.5f);
 		thirdPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
@@ -284,7 +284,7 @@ void GameApp::UpdateScene(const float dt)
 		}
 
 		firstPersonCamera->LookTo(
-			m_player.GetTransform().GetPosition(),
+			m_player.GetPosition(),
 			look,
 			up
 		);
@@ -304,7 +304,7 @@ void GameApp::UpdateScene(const float dt)
 			m_pCamera = thirdPersonCamera;
 		}
 		
-		thirdPersonCamera->SetTarget(m_player.GetTransform().GetPosition(), true, look, up);
+		thirdPersonCamera->SetTarget(m_player.GetPosition(), true, look, up);
 		thirdPersonCamera->SetDistance(8.0f);
 		thirdPersonCamera->SetDistanceMinMax(3.0f, 20.0f);
 
@@ -331,7 +331,7 @@ void GameApp::DrawScene()
 	// 绘制Direct3D部分
 	//
 	
-	m_pd3dImmediateContext->ClearRenderTargetView(m_pRenderTargetView.Get(), reinterpret_cast<const float*>(&Colors::Black));
+	m_pd3dImmediateContext->ClearRenderTargetView(m_pRenderTargetView.Get(), Colors::Black);
 	/*
 		void ID3D11DeviceContext::ClearDepthStencilView(
 		    ID3D11DepthStencilView *pDepthStencilView,  // [In]深度模板视图

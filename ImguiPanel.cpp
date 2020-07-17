@@ -1,5 +1,7 @@
 #include "ImguiPanel.h"
 
+using namespace DirectX;
+
 // ReSharper disable once CppParameterMayBeConst
 bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
@@ -27,13 +29,13 @@ bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* devi
 	return true;
 }
 
-void ImguiPanel::LoadData(const Player& player)
+void ImguiPanel::LoadData(const Tank& player)
 {
-	m_direction = player.m_tank.direction;
-	m_position = player.m_tank.self.GetTransform().GetPosition();
-	XMStoreFloat3(&m_barrelDirection, player.m_tank.barrelBase.barrel.self.GetTransform().GetUpAxisXM());
-	XMStoreFloat3(&m_barrelBaseDirection, player.m_tank.barrelBase.self.GetTransform().GetRightAxisXM());
-	m_barrelBaseRotation =  player.m_tank.barrelBase.self.GetTransform().GetRotation();
+	XMStoreFloat3(&m_direction, player.m_tankRoot.GetTransform().GetForwardAxisXM());
+	m_position = player.GetPosition();
+	
+	XMStoreFloat3(&m_barrelDirection, player.m_battery.GetTransform().GetForwardAxisXM());
+	m_barrelPosition = player.GetBarrelWorldPosition();
 }
 
 void ImguiPanel::Draw() const
@@ -48,16 +50,15 @@ void ImguiPanel::Draw() const
 	static bool showDemoWindow = false;
 
 	ImGui::Begin(u8"控制窗口");
-	ImGui::Text(u8"当前方向为: ");
+	ImGui::Text(u8"车身方向为: ");
 	ImGui::Text(u8"\t(vX = %.3f, vY = %.3f, vZ = %.3f)", m_direction.x, m_direction.y, m_direction.z);
-	ImGui::Text(u8"当前位置为: ");
+	ImGui::Text(u8"车身位置为: ");
 	ImGui::Text(u8"\t(X = %.3f, Y = %.3f, Z = %.3f)", m_position.x, m_position.y, m_position.z);
-	ImGui::Text(u8"攻击朝向为: ");
+	
+	ImGui::Text(u8"炮管方向为: ");
 	ImGui::Text(u8"\t(X = %.3f, Y = %.3f, Z = %.3f)", m_barrelDirection.x, m_barrelDirection.y, m_barrelDirection.z);
-	ImGui::Text(u8"底座Direction为: ");
-	ImGui::Text(u8"\t(X = %.3f, Y = %.3f, Z = %.3f)", m_barrelBaseDirection.x, m_barrelBaseDirection.y, m_barrelBaseDirection.z);
-	ImGui::Text(u8"底座Rotation为: ");
-	ImGui::Text(u8"\t(X = %.3f, Y = %.3f, Z = %.3f)", m_barrelBaseRotation.x, m_barrelBaseRotation.y, m_barrelBaseRotation.z);
+	ImGui::Text(u8"炮管位置为: ");
+	ImGui::Text(u8"\t(X = %.3f, Y = %.3f, Z = %.3f)", m_barrelPosition.x, m_barrelPosition.y, m_barrelPosition.z);
 
 	ImGui::Checkbox(u8"显示演示窗口", &showDemoWindow);
 

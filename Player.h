@@ -1,10 +1,9 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <array>
-
 #include "GameObject.h"
 #include "Collision.h"
+#include "Tank.h"
 
 class Player
 {
@@ -14,9 +13,7 @@ class Player
 public:
 	struct VehicleInfo;
 
-	explicit Player(
-		VehicleInfo tankInfo = NormalTank,
-		DirectX::XMFLOAT3 direction = {0.0f, 0.0f, 1.0f});
+	explicit Player();
 
 	void Init(ID3D11Device* device);
 	
@@ -24,129 +21,18 @@ public:
 	
 	void Walk(float d);
 	void Strafe(float d);
-	Ray Shoot();
+	Ray Shoot() const;
 	// 转动炮管,大于0向右转
 	void Turn(float d);
 
+	DirectX::XMFLOAT3 GetPosition() const;
+	
 	void AdjustPosition();
-
-	// 获取物体变换
-	Transform& GetTransform();
-	// 获取物体变换
-	const Transform& GetTransform() const;
 
 	// 绘制
 	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
 
-	// 坦克相关信息的结果可以公开
-	struct VehicleInfo
-	{
-		// ******************
-		// 不可变信息
-		
-		// 载具规格(立方体)
-		const float bodyWidth;				// 载具俯视角(车头朝上下)宽度
-		const float bodyLength;			// 载具俯视角(车头朝上下)长度
-		const float bodyHeight;			// 载具高度
-		// 炮台底座规格(立方体)
-		const float barrelBaseWidth;		// 底座俯视角宽度
-		const float barrelBaseLength;		// 底座俯视角长度
-		const float barrelBaseHeight;		// 底座俯视角高度
-		// 炮管规格(圆柱)
-		const float barrelCaliber;			// 炮管的口径
-		const float barrelLength;			// 炮管的长度
-		// 轮子规格(圆柱)
-		const float wheelRadius;			// 轮子的半径
-		const float wheelLength;			// 轮子的长度
-
-		// ******************
-		// 可变信息
-	};
-
-	static const VehicleInfo NormalTank;
-
 private:
-	// *************************
-	// 以下结构定义为struct没有什么大问题,因为他们都是Player的私有结构,而且可以省去很多不必要操作
-	
-	struct Tank;
-	// 轮子
-	struct Wheel
-	{
-		enum class WheelPos
-		{
-			LeftFront,
-			RightFront,
-			LeftBack,
-			RightBack
-		};
-
-		Wheel(WheelPos wheelPos);
-
-		// 轮子限制在车上
-		void AdjustPosition(const Tank& body, const VehicleInfo& tankInfo);
-
-		// 前后移动
-		void Walk(float d, const DirectX::XMFLOAT3& direction);
-		// 左右转向,会改变方向
-		void Strafe(float d, DirectX::XMFLOAT3& direction);
-
-		// 自身对象
-		GameObject self;
-
-		// 轮子的相对车身位置,不可变
-		const WheelPos wheelPos;
-	};
-	
-	// 炮管底座
-	struct BarrelBase
-	{
-		// 炮管底座限制在车上
-		void AdjustPosition(const Tank& body, const VehicleInfo& tankInfo);
-
-		struct Barrel
-		{
-			// 炮管限制在底座上
-			void AdjustPosition(const BarrelBase& body, const VehicleInfo& tankInfo);
-			
-			// 自身对象
-			GameObject self;
-		};
-
-		// 炮管
-		Barrel barrel;
-		// 自身对象
-		GameObject self;
-	};
-
-	// 车身
-	struct Tank
-	{
-		Tank(DirectX::XMFLOAT3 direction, VehicleInfo tankInfo);
-
-		// 前后移动
-		void Walk(float d);
-		// 左右转向,会改变方向
-		void Strafe(float d);
-		Ray Shoot();
-		// 转动炮管,大于0向右转
-		void Turn(float d);
-		
-		// 限制车身移动范围
-		void AdjustPosition();
-
-		// 坦克规格信息
-		VehicleInfo tankInfo;
-		
-		// 当前方向
-		DirectX::XMFLOAT3 direction;
-		// 四个轮子
-		std::array<Wheel, 4> wheels;
-		// 一个炮台
-		BarrelBase barrelBase;
-		// 自身对象
-		GameObject self;
-	};
 
 	Tank m_tank;
 };

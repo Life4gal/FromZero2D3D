@@ -10,10 +10,20 @@ const Tank::VehicleInfo Tank::NormalTank =
 	2.0f,
 	2.0f,
 	1.2f,
+	{0.0f, 0.0f, 0.0f},
+	{0.0f, 0.85f + 0.6f/* bodyHeight / 2 + batteryHeight / 2 */, 0.0f},
 	0.25f,
 	4.5f,
+	{XM_PIDIV2, 0.0f, 0.0f},
+	{0.0f, 0.0f, 1.0f + 2.25f/* batteryLength / 2 + barrelLength / 2 */},
 	0.75f,
 	0.5f,
+	{0.0f, 0.0f, -XM_PIDIV2},
+	{0.0f, 0.0f, XM_PIDIV2},
+	{-1.75f/* -bodyWidth / 2 */, -0.85f/* -bodyHeight / 2 */, 3.0f/* bodyLength / 2 */},
+	{1.75f/* bodyWidth / 2 */, -0.85f/* -bodyHeight / 2 */, 3.0f/* bodyLength / 2 */},
+	{-1.75f/* -bodyWidth / 2 */, -0.85f/* -bodyHeight / 2 */, -3.0f/* -bodyLength / 2 */},
+	{1.75f/* bodyWidth / 2 */, -0.85f/* -bodyHeight / 2 */, -3.0f/* -bodyLength / 2 */}
 };
 
 Tank::Tank(const VehicleInfo tankInfo)
@@ -22,7 +32,7 @@ Tank::Tank(const VehicleInfo tankInfo)
 {
 }
 
-void Tank::Init(ID3D11Device* device, Transform transform)
+void Tank::Init(ID3D11Device* device, Transform&& transform)
 {
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texture;
 	// 车身
@@ -30,22 +40,21 @@ void Tank::Init(ID3D11Device* device, Transform transform)
 	Model tankModel{ device, Geometry::CreateBox(m_tankInfo.bodyWidth, m_tankInfo.bodyLength, m_tankInfo.bodyHeight) };
 	tankModel.modelParts.front().texDiffuse = texture;
 
-	GameObject& tank = m_tankRoot;
-	tank.SetModel(tankModel);
-	tank.GetTransform() = transform;;
-	
+	GameObject& tank = m_tankMainBody;
+	tank.SetModel(std::move(tankModel));
+	tank.GetTransform() = transform;
 	{
 		// 炮管底座
 		HR(CreateDDSTextureFromFile(device, L"Texture\\WoodCrate.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-		Model barrelBaseModel{ device, Geometry::CreateBox(m_tankInfo.barrelBaseWidth, m_tankInfo.barrelBaseLength, m_tankInfo.barrelBaseHeight) };
+		Model barrelBaseModel{ device, Geometry::CreateBox(m_tankInfo.batteryWidth, m_tankInfo.batteryLength, m_tankInfo.batteryHeight) };
 		barrelBaseModel.modelParts.front().texDiffuse = texture;
 
-		GameObject& barrelBase = m_battery;
-		tank.AddChild(&barrelBase);
+		GameObject& battery = m_battery;
+		tank.AddChild(&battery);
 		
-		barrelBase.SetModel(barrelBaseModel);
-		barrelBase.GetTransform().SetRotation(0.0f, 0.0f, 0.0f);
-		barrelBase.GetTransform().SetPosition(0.0f, m_tankInfo.bodyHeight / 2 + m_tankInfo.barrelBaseHeight / 2, 0.0f);
+		battery.SetModel(std::move(barrelBaseModel));
+		battery.GetTransform().SetRotation(m_tankInfo.batteryRotation);
+		battery.GetTransform().SetPosition(m_tankInfo.batteryPosition);
 		
 		// 炮管
 		HR(CreateDDSTextureFromFile(device, L"Texture\\flare.dds", nullptr, texture.ReleaseAndGetAddressOf()));
@@ -53,52 +62,52 @@ void Tank::Init(ID3D11Device* device, Transform transform)
 		barrelModel.modelParts.front().texDiffuse = texture;
 
 		GameObject& barrel = m_barrel;
-		//tank.AddChild(&barrel);
-		barrelBase.AddChild(&barrel);
+		battery.AddChild(&barrel);
 		
-		barrel.SetModel(barrelModel);
-		barrel.GetTransform().SetRotation(XM_PIDIV2, 0.0f, 0.0f);
-		barrel.GetTransform().SetPosition(0.0f, 0.0f, m_tankInfo.barrelBaseLength / 2 + m_tankInfo.barrelLength / 2);
+		barrel.SetModel(std::move(barrelModel));
+		barrel.GetTransform().SetRotation(m_tankInfo.barrelRotation);
+		barrel.GetTransform().SetPosition(m_tankInfo.barrelPosition);
 	}
 	{
-		const float w2 = m_tankInfo.bodyWidth / 2;
-		const float l2 = m_tankInfo.bodyLength / 2;
-		
 		// 轮子
 		HR(CreateDDSTextureFromFile(device, L"Texture\\WoodCrate.dds", nullptr, texture.ReleaseAndGetAddressOf()));
 		Model wheelModel{ device, Geometry::CreateCylinder(m_tankInfo.wheelRadius, m_tankInfo.wheelLength, 20) };
 		wheelModel.modelParts.front().texDiffuse = texture;
-
-		// 左前轮
-		GameObject& wheel0 = m_wheels[0];
-		tank.AddChild(&wheel0);
-		wheel0.SetModel(wheelModel);
-		wheel0.GetTransform().SetRotation(0.0f, 0.0f, -XM_PIDIV2);
-		wheel0.GetTransform().SetPosition(-w2, -m_tankInfo.bodyHeight / 2, l2);
-
-		// 右前轮
-		GameObject& wheel1 = m_wheels[1];
-		tank.AddChild(&wheel1);
-		wheel1.SetModel(wheelModel);
-		wheel1.GetTransform().SetRotation(0.0f, 0.0f, XM_PIDIV2);
-		wheel1.GetTransform().SetPosition(w2, -m_tankInfo.bodyHeight / 2, l2);
-
-		// 左后轮
-		GameObject& wheel2 = m_wheels[2];
-		tank.AddChild(&wheel2);
-		wheel2.SetModel(wheelModel);
-		wheel2.GetTransform().SetRotation(0.0f, 0.0f, -XM_PIDIV2);
-		wheel2.GetTransform().SetPosition(-w2, -m_tankInfo.bodyHeight / 2, -l2);
-
-		// 右后轮
-		GameObject& wheel3 = m_wheels[3];
-		tank.AddChild(&wheel3);
-		wheel3.SetModel(wheelModel);
-		wheel3.GetTransform().SetRotation(0.0f, 0.0f, XM_PIDIV2);
-		wheel3.GetTransform().SetPosition(w2, -m_tankInfo.bodyHeight / 2, -l2);
+		{
+			// 左前轮
+			GameObject& wheel0 = m_wheels[0];
+			tank.AddChild(&wheel0);
+			wheel0.SetModel(wheelModel);
+			wheel0.GetTransform().SetRotation(m_tankInfo.wheelLeftRotation);
+			wheel0.GetTransform().SetPosition(m_tankInfo.wheelLeftFrontPosition);
+		}
+		{
+			// 右前轮
+			GameObject& wheel1 = m_wheels[1];
+			tank.AddChild(&wheel1);
+			wheel1.SetModel(wheelModel);
+			wheel1.GetTransform().SetRotation(m_tankInfo.wheelRightRotation);
+			wheel1.GetTransform().SetPosition(m_tankInfo.wheelRightFrontPosition);
+		}
+		{
+			// 左后轮
+			GameObject& wheel2 = m_wheels[2];
+			tank.AddChild(&wheel2);
+			wheel2.SetModel(wheelModel);
+			wheel2.GetTransform().SetRotation(m_tankInfo.wheelLeftRotation);
+			wheel2.GetTransform().SetPosition(m_tankInfo.wheelLeftBackPosition);
+		}
+		{
+			// 右后轮
+			GameObject& wheel3 = m_wheels[3];
+			tank.AddChild(&wheel3);
+			wheel3.SetModel(wheelModel);
+			wheel3.GetTransform().SetRotation(m_tankInfo.wheelRightRotation);
+			wheel3.GetTransform().SetPosition(m_tankInfo.wheelRightBackPosition);
+		}
 	}
 
-	m_tankRoot.SetDebugObjectName("Tank");
+	m_tankMainBody.SetDebugObjectName("Tank");
 	m_battery.SetDebugObjectName("BarrelBase");
 	m_barrel.SetDebugObjectName("Barrel");
 	m_wheels[0].SetDebugObjectName("Wheel[0]");
@@ -109,7 +118,7 @@ void Tank::Init(ID3D11Device* device, Transform transform)
 
 void Tank::Walk(const float d)
 {
-	Transform& tankTransform = m_tankRoot.GetTransform();
+	Transform& tankTransform = m_tankMainBody.GetTransform();
 
 	tankTransform.Translate(tankTransform.GetForwardAxisXM(), d);
 
@@ -122,52 +131,45 @@ void Tank::Walk(const float d)
 
 void Tank::Strafe(const float d)
 {
-	XMFLOAT3 direction{};
-	XMStoreFloat3(&direction, m_tankRoot.GetTransform().GetForwardAxisXM());
-	// X轴方向分量变化
-	float& x = direction.x;
-	x += d;
-	// 限制旋转范围
-	if (x > 0.45f)
-	{
-		x = 0.45f;
-	}
-	if (x < -0.45f)
-	{
-		x = -0.45f;
-	}
+	Transform& tankTransform = m_tankMainBody.GetTransform();
+	// 转车身
+	// @TODO 找一个比较合理的旋转速度
+	tankTransform.Rotate(XMVectorSet(0.0f, 0.1f * d, 0.0f, 0.0f));
+	const XMVECTOR upAxis = tankTransform.GetUpAxisXM();
 	// 后轮不转
-	for(int i = 0; i <= 1; ++i)
-	{
-		// 轮胎绕Y轴旋转
-		m_wheels[i].GetTransform().Rotate(XMVectorSet(0.0f, x, 0.0f, 0.0f));
-	}
+	// 轮胎绕Y轴旋转
+	// @TODO 限制旋转范围
+	m_wheels[0].GetTransform().RotateAround(XMLoadFloat3(&m_tankInfo.wheelLeftFrontPosition), upAxis, d);
+	m_wheels[1].GetTransform().RotateAround(XMLoadFloat3(&m_tankInfo.wheelRightFrontPosition), upAxis, d);
 }
 
-Ray Tank::Shoot()
+Ray Tank::Shoot() const
 {
+	XMMATRIX barrelLocalToWorldMatrix = GetBarrelLocalToWorldMatrixXM();
+	
 	XMFLOAT3 look{};
-	XMStoreFloat3(&look, m_battery.GetTransform().GetForwardAxisXM());
-	return { GetBarrelWorldPosition(),  look };
+	XMStoreFloat3(&look, barrelLocalToWorldMatrix.r[1]);
+	XMFLOAT3 position{};
+	XMStoreFloat3(&position, barrelLocalToWorldMatrix.r[3]);
+	return { position,  look };
 }
 
 void Tank::Turn(const float d)
 {
 	Transform& batteryTransform = m_battery.GetTransform();
 	// 转底座
-	batteryTransform.Rotate(XMVectorSet(0.0f, d, 0.0f, 0.0f));
-
-	//m_barrel.GetTransform().RotateAround(batteryTransform.GetPositionXM(), batteryTransform.GetUpAxisXM(), d);
+	// @TODO 找一个比较合理的旋转速度
+	batteryTransform.Rotate(XMVectorSet(0.0f, 0.25f * d, 0.0f, 0.0f));
 }
 
 XMFLOAT3 Tank::GetPosition() const
 {
-	return m_tankRoot.GetTransform().GetPosition();
+	return m_tankMainBody.GetTransform().GetPosition();
 }
 
 void Tank::AdjustPosition(FXMVECTOR minCoordinate, FXMVECTOR maxCoordinate)
 {
-	Transform& tankTransform = m_tankRoot.GetTransform();
+	Transform& tankTransform = m_tankMainBody.GetTransform();
 
 	XMFLOAT3 adjustedPos{};
 	XMStoreFloat3(&adjustedPos, XMVectorClamp(tankTransform.GetPositionXM(), minCoordinate, maxCoordinate));
@@ -176,27 +178,29 @@ void Tank::AdjustPosition(FXMVECTOR minCoordinate, FXMVECTOR maxCoordinate)
 
 void Tank::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
 {
-	m_tankRoot.Draw(deviceContext, effect);
+	m_tankMainBody.Draw(deviceContext, effect);
 }
 
-XMFLOAT3 Tank::GetBarrelWorldPosition() const
+XMMATRIX Tank::GetBarrelLocalToWorldMatrixXM() const
 {
 	const Transform& barrelTransform = m_barrel.GetTransform();
 	const Transform& batteryTransform = m_battery.GetTransform();
-	const Transform& tankTransform = m_tankRoot.GetTransform();
+	const Transform& tankTransform = m_tankMainBody.GetTransform();
 
 	// 从最顶层子对象到最底层父对象运算: SSSSSSSS * R子T子 * RT * RT * RT * RT * RT * RT * R父T父
 	
-	const XMMATRIX transform = 
+	return 
+		XMMatrixScalingFromVector(barrelTransform.GetScaleXM()) *
+		XMMatrixScalingFromVector(batteryTransform.GetScaleXM()) *
+		XMMatrixScalingFromVector(tankTransform.GetScaleXM()) *
+
 		XMMatrixRotationRollPitchYawFromVector(barrelTransform.GetRotationXM()) *
 		XMMatrixTranslationFromVector(barrelTransform.GetPositionXM()) *
+
 		XMMatrixRotationRollPitchYawFromVector(batteryTransform.GetRotationXM()) *
 		XMMatrixTranslationFromVector(batteryTransform.GetPositionXM()) *
+
 		XMMatrixRotationRollPitchYawFromVector(tankTransform.GetRotationXM()) *
-		XMMatrixTranslationFromVector(tankTransform.GetPositionXM());
-
-	XMFLOAT3 position{};
-	XMStoreFloat3(&position, transform.r[3]);
-
-	return position;
+		XMMatrixTranslationFromVector(tankTransform.GetPositionXM())
+	;
 }

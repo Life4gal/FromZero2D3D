@@ -29,13 +29,15 @@ bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* devi
 	return true;
 }
 
-void ImguiPanel::LoadData(const Tank& player)
+void ImguiPanel::LoadData(const Player& player)
 {
-	XMStoreFloat3(&m_direction, player.m_tankRoot.GetTransform().GetForwardAxisXM());
-	m_position = player.GetPosition();
-	
-	XMStoreFloat3(&m_barrelDirection, player.m_battery.GetTransform().GetForwardAxisXM());
-	m_barrelPosition = player.GetBarrelWorldPosition();
+	XMStoreFloat3(&m_direction, player.m_tank.m_tankMainBody.GetTransform().GetForwardAxisXM());
+	m_position = player.m_tank.GetPosition();
+
+	XMMATRIX barrelLocalToWorldMatrix = player.m_tank.GetBarrelLocalToWorldMatrixXM();
+
+	XMStoreFloat3(&m_barrelDirection, barrelLocalToWorldMatrix.r[1]);
+	XMStoreFloat3(&m_barrelPosition, barrelLocalToWorldMatrix.r[3]);
 }
 
 void ImguiPanel::Draw() const

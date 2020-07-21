@@ -313,7 +313,7 @@ void BasicEffect::SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) co
 	m_pImpl->m_pTextureDiffuse = textureDiffuse;
 }
 
-void XM_CALLCONV BasicEffect::SetEyePos(const FXMVECTOR& eyePos) const
+void XM_CALLCONV BasicEffect::SetEyePos(FXMVECTOR eyePos) const
 {
 	auto& cBuffer = m_pImpl->m_cbFrame;
 	cBuffer.data.eyePos = eyePos;

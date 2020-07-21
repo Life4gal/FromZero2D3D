@@ -89,7 +89,7 @@ public:
 	
 	void SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const;
 
-	void XM_CALLCONV SetEyePos(const DirectX::FXMVECTOR& eyePos) const;
+	void XM_CALLCONV SetEyePos(DirectX::FXMVECTOR eyePos) const;
 	
 	// 应用常量缓冲区和纹理资源的变更
 	void Apply(ID3D11DeviceContext* deviceContext) override;

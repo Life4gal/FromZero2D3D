@@ -142,7 +142,7 @@ void GameApp::OnResize()
 	{
 		m_pCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
 		m_pCamera->SetViewPort(0.0f, 0.0f, static_cast<float>(m_clientWidth), static_cast<float>(m_clientHeight));
-		m_basicEffect.SetProjMatrix(m_pCamera->GetProjXM());
+		m_basicEffect.SetProjMatrix(m_pCamera->GetProjMatrix());
 	}
 }
 
@@ -263,8 +263,8 @@ void GameApp::UpdateScene(const float dt)
 	}
 
 	// 更新观察矩阵
-	m_basicEffect.SetViewMatrix(m_pCamera->GetViewXM());
-	m_basicEffect.SetEyePos(m_pCamera->GetPositionXM());
+	m_basicEffect.SetViewMatrix(m_pCamera->GetViewMatrix());
+	m_basicEffect.SetEyePos(m_pCamera->GetPositionVector());
 
 	// 重置滚轮值
 	m_pMouse->ResetScrollWheelValue();
@@ -273,8 +273,10 @@ void GameApp::UpdateScene(const float dt)
 	if (m_keyboardTracker.IsKeyPressed(Keyboard::D1) && m_cameraMode != CameraMode::FirstPerson)
 	{
 		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
-		const XMFLOAT3 look = m_pCamera->GetLookAxis();
-		const XMFLOAT3 up = m_pCamera->GetUpAxis();
+		XMFLOAT3 look{};
+		XMStoreFloat3(&look, m_pCamera->GetForwardAxisVector());
+		XMFLOAT3 up{};
+		XMStoreFloat3(&up, m_pCamera->GetUpAxisVector());
 		auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
 		if (!firstPersonCamera)
 		{
@@ -294,8 +296,10 @@ void GameApp::UpdateScene(const float dt)
 	else if (m_keyboardTracker.IsKeyPressed(Keyboard::D2) && m_cameraMode != CameraMode::ThirdPerson)
 	{
 		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
-		const XMFLOAT3 look = m_pCamera->GetLookAxis();
-		const XMFLOAT3 up = m_pCamera->GetUpAxis();
+		XMFLOAT3 look{};
+		XMStoreFloat3(&look, m_pCamera->GetForwardAxisVector());
+		XMFLOAT3 up{};
+		XMStoreFloat3(&up, m_pCamera->GetUpAxisVector());
 		auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
 		if (!thirdPersonCamera)
 		{
@@ -304,7 +308,8 @@ void GameApp::UpdateScene(const float dt)
 			m_pCamera = thirdPersonCamera;
 		}
 		
-		thirdPersonCamera->SetTarget(m_player.GetPosition(), true, look, up);
+		thirdPersonCamera->SetTarget(m_player.GetPosition());
+		thirdPersonCamera->LookTo(look, up);
 		thirdPersonCamera->SetDistance(8.0f);
 		thirdPersonCamera->SetDistanceMinMax(3.0f, 20.0f);
 
@@ -481,9 +486,9 @@ bool GameApp::InitResource()
 	camera->SetFrustum(XM_PI / 3, AspectRatio(), 1.0f, 1000.0f);
 
 	m_basicEffect.SetWorldMatrix(XMMatrixIdentity());
-	m_basicEffect.SetViewMatrix(camera->GetViewXM());
-	m_basicEffect.SetProjMatrix(camera->GetProjXM());
-	m_basicEffect.SetEyePos(camera->GetPositionXM());
+	m_basicEffect.SetViewMatrix(camera->GetViewMatrix());
+	m_basicEffect.SetProjMatrix(camera->GetProjMatrix());
+	m_basicEffect.SetEyePos(camera->GetPositionVector());
 	
 	// ******************
 	// 初始化不会变化的值

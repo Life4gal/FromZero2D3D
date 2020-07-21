@@ -87,7 +87,7 @@ Ray Ray::ScreenToRay(const Camera& camera, const float screenX, const float scre
 	// 投影逆变换和观察逆变换: 从NDC坐标系变换回世界坐标系
 
 	// Proj^-1 * View^-1 = (View * Proj)^-1
-	XMMATRIX transform = XMMatrixMultiply(camera.GetViewXM(), camera.GetProjXM());
+	XMMATRIX transform = XMMatrixMultiply(camera.GetViewMatrix(), camera.GetProjMatrix());
 	transform = XMMatrixInverse(nullptr, transform);
 	// Vworld = Vndc * Proj^-1 * View^-1
 	// 把向量转为矩阵然后乘上矩阵再返回向量
@@ -95,8 +95,8 @@ Ray Ray::ScreenToRay(const Camera& camera, const float screenX, const float scre
 
 	// 求出射线
 	XMFLOAT3 direction{};
-	XMStoreFloat3(&direction, XMVector3Normalize(target - camera.GetPositionXM()));
-	return { camera.GetPosition(), direction };
+	XMStoreFloat3(&direction, XMVector3Normalize(target - camera.GetPositionVector()));
+	return { camera.GetPositionFloat3(), direction };
 }
 
 bool Ray::Hit(const BoundingBox& box, float* pOutDist, const float maxDist) const

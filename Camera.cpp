@@ -2,9 +2,9 @@
 
 using namespace DirectX;
 
-Camera::Camera()
+Camera::Camera(const XMFLOAT3 scale, const XMFLOAT3 rotation, const XMFLOAT3 position)
 	:
-	BasicTransform(),
+	BasicTransform(scale, rotation, position),
 	m_nearZ(),
 	m_farZ(),
 	m_aspect(),

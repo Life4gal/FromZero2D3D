@@ -21,7 +21,7 @@
 class Camera : public BasicTransform
 {
 public:
-	Camera();
+	explicit Camera(DirectX::XMFLOAT3 scale = { 1.0f, 1.0f, 1.0f }, DirectX::XMFLOAT3 rotation = {}, DirectX::XMFLOAT3 position = {});
 	virtual ~Camera() = default;
 
 	Camera(const Camera& other) = default;

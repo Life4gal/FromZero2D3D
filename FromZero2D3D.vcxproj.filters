@@ -146,13 +146,16 @@
     <ClInclude Include="GameObject.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Collision.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Tank.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="BasicTransform.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RelatedTransform.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -232,13 +235,16 @@
     <ClCompile Include="GameObject.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Collision.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Tank.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="BasicTransform.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RelatedTransform.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
   </ItemGroup>

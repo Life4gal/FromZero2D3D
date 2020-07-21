@@ -230,6 +230,7 @@
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="ObjReader.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="RelatedTransform.h" />
     <ClInclude Include="RenderStates.h" />
     <ClInclude Include="Tank.h" />
     <ClInclude Include="BasicTransform.h" />
@@ -260,6 +261,7 @@
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="ObjReader.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="RelatedTransform.cpp" />
     <ClCompile Include="RenderStates.cpp" />
     <ClCompile Include="Tank.cpp" />
     <ClCompile Include="BasicTransform.cpp" />

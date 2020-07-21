@@ -84,7 +84,7 @@ private:
 	std::set<GameObject*> m_children;
 	
 	Model m_model{};							// 模型
-	BasicTransform m_transform{};
+	BasicTransform m_transform{ {1.0f, 1.0f, 1.0f}, {}, {} };
 
 	ComPtr<ID3D11Buffer> m_pInstancedBuffer = nullptr;				// 实例缓冲区
 	size_t m_capacity = 0;

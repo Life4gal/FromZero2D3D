@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-BasicTransform::BasicTransform(const XMFLOAT3 scale, const XMFLOAT3 rotation, const XMFLOAT3 position)
+BasicTransform::BasicTransform(const XMFLOAT3& scale, const XMFLOAT3& rotation, const XMFLOAT3& position)
 	:
 	m_scale(scale),
 	m_rotation(rotation),
@@ -167,7 +167,7 @@ void XM_CALLCONV BasicTransform::Translate(FXMVECTOR direction, const float magn
 	XMStoreFloat3(&m_position, XMVectorMultiplyAdd(XMVectorReplicate(magnitude), XMVector3Normalize(direction), GetPositionVector()));
 }
 
-void BasicTransform::LookAt(const XMFLOAT3& target, const XMFLOAT3& up)
+void XM_CALLCONV BasicTransform::LookAt(FXMVECTOR target, FXMVECTOR up)
 {
 	/*
 		若已知Q为摄像机的位置，T为摄像机对准的观察目标点，j为世界空间“向上”方向的单位向量。
@@ -204,8 +204,8 @@ void BasicTransform::LookAt(const XMFLOAT3& target, const XMFLOAT3& up)
 			nullptr,
 			XMMatrixLookAtLH(
 				GetPositionVector(),
-				XMLoadFloat3(&target),
-				XMLoadFloat3(&up)
+				target,
+				up
 			)
 		)
 	);
@@ -213,7 +213,7 @@ void BasicTransform::LookAt(const XMFLOAT3& target, const XMFLOAT3& up)
 	m_rotation = GetEulerAnglesFromRotationTranslationFloat4X4(rotationTranslationFloat4X4);
 }
 
-void BasicTransform::LookTo(const XMFLOAT3& direction, const XMFLOAT3& up)
+void XM_CALLCONV BasicTransform::LookTo(FXMVECTOR direction, FXMVECTOR up)
 {
 	XMFLOAT4X4 rotationTranslationFloat4X4{};
 	// 获取逆观察矩阵
@@ -222,8 +222,8 @@ void BasicTransform::LookTo(const XMFLOAT3& direction, const XMFLOAT3& up)
 			nullptr,
 			XMMatrixLookToLH(
 				GetPositionVector(),
-				XMLoadFloat3(&direction),
-				XMLoadFloat3(&up)
+				direction,
+				up
 			)
 		)
 	);

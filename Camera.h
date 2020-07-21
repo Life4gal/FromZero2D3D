@@ -79,8 +79,8 @@ public:
 	FirstPersonCamera& operator=(FirstPersonCamera&& other) noexcept = default;
 	
 	// 设置第一人称摄像机的朝向
-	void LookAt(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up);
-	void LookTo(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& to, const DirectX::XMFLOAT3& up);
+	void XM_CALLCONV LookAt(DirectX::FXMVECTOR position, DirectX::FXMVECTOR target, DirectX::FXMVECTOR up);
+	void XM_CALLCONV LookTo(DirectX::FXMVECTOR position, DirectX::FXMVECTOR to, DirectX::FXMVECTOR up);
 	
 	// 平移
 	void Strafe(float d);

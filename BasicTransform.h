@@ -30,7 +30,7 @@
 class BasicTransform
 {
 public:
-	explicit BasicTransform(DirectX::XMFLOAT3 scale, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 position);
+	explicit BasicTransform(const DirectX::XMFLOAT3& scale, const DirectX::XMFLOAT3& rotation, const DirectX::XMFLOAT3& position);
 
 	virtual ~BasicTransform() = default;
 
@@ -96,9 +96,9 @@ public:
 	void XM_CALLCONV Translate(DirectX::FXMVECTOR direction, float magnitude);
 
 	// 观察某一点
-	void LookAt(const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& up = { 0.0f, 1.0f, 0.0f });
+	void XM_CALLCONV LookAt(DirectX::FXMVECTOR target, DirectX::FXMVECTOR up = { {0.0f, 1.0f, 0.0f, 0.0f } });
 	// 沿着某一方向观察
-	void LookTo(const DirectX::XMFLOAT3& direction, const DirectX::XMFLOAT3& up = { 0.0f, 1.0f, 0.0f });
+	void XM_CALLCONV LookTo(DirectX::FXMVECTOR direction, DirectX::FXMVECTOR up = { {0.0f, 1.0f, 0.0f, 0.0f } });
 
 protected:
 	// 从旋转平移矩阵获取旋转欧拉角

@@ -273,10 +273,8 @@ void GameApp::UpdateScene(const float dt)
 	if (m_keyboardTracker.IsKeyPressed(Keyboard::D1) && m_cameraMode != CameraMode::FirstPerson)
 	{
 		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
-		XMFLOAT3 look{};
-		XMStoreFloat3(&look, m_pCamera->GetForwardAxisVector());
-		XMFLOAT3 up{};
-		XMStoreFloat3(&up, m_pCamera->GetUpAxisVector());
+		const XMVECTOR look = m_pCamera->GetForwardAxisVector();
+		const XMVECTOR up = m_pCamera->GetUpAxisVector();
 		auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
 		if (!firstPersonCamera)
 		{
@@ -285,8 +283,9 @@ void GameApp::UpdateScene(const float dt)
 			m_pCamera = firstPersonCamera;
 		}
 
+		const XMFLOAT3 position = m_player.GetPosition();
 		firstPersonCamera->LookTo(
-			m_player.GetPosition(),
+			XMLoadFloat3(&position),
 			look,
 			up
 		);
@@ -296,10 +295,8 @@ void GameApp::UpdateScene(const float dt)
 	else if (m_keyboardTracker.IsKeyPressed(Keyboard::D2) && m_cameraMode != CameraMode::ThirdPerson)
 	{
 		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
-		XMFLOAT3 look{};
-		XMStoreFloat3(&look, m_pCamera->GetForwardAxisVector());
-		XMFLOAT3 up{};
-		XMStoreFloat3(&up, m_pCamera->GetUpAxisVector());
+		const XMVECTOR look = m_pCamera->GetForwardAxisVector();
+		const XMVECTOR up = m_pCamera->GetUpAxisVector();
 		auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
 		if (!thirdPersonCamera)
 		{

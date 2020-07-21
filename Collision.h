@@ -18,8 +18,7 @@
 
 struct Ray
 {
-	Ray();
-	Ray(const DirectX::XMFLOAT3& origin, const DirectX::XMFLOAT3& direction);
+	Ray(DirectX::XMFLOAT3 origin, DirectX::FXMVECTOR direction);
 
 	static Ray ScreenToRay(const Camera& camera, float screenX, float screenY);
 
@@ -27,7 +26,7 @@ struct Ray
 	bool Hit(const DirectX::BoundingOrientedBox& box, float* pOutDist = nullptr, float maxDist = FLT_MAX) const;
 	bool Hit(const DirectX::BoundingSphere& sphere, float* pOutDist = nullptr, float maxDist = FLT_MAX) const;
 	// 三角形检测
-	bool XM_CALLCONV Hit(DirectX::FXMVECTOR v0, DirectX::FXMVECTOR v1, DirectX::FXMVECTOR v2, float* pOutDist = nullptr, float maxDist = FLT_MAX) const;
+	bool XM_CALLCONV Hit(DirectX::FXMVECTOR vertex0, DirectX::FXMVECTOR vertex1, DirectX::FXMVECTOR vertex2, float* pOutDist = nullptr, float maxDist = FLT_MAX) const;
 
 	DirectX::XMFLOAT3 origin;		// 射线原点
 	DirectX::XMFLOAT3 direction;	// 单位方向向量
@@ -81,13 +80,8 @@ public:
 	static std::vector<BasicTransform> XM_CALLCONV FrustumCulling3(
 		const std::vector<BasicTransform>& transforms, const DirectX::BoundingBox& localBox, DirectX::FXMMATRIX view, DirectX::CXMMATRIX proj);
 
-
 private:
 	static WireFrameData CreateFromCorners(const DirectX::XMFLOAT3 (&corners)[8], const DirectX::XMFLOAT4& color);
 };
-
-
-
-
 
 #endif

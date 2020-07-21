@@ -152,7 +152,3 @@ void Model::SetDebugObjectName(const std::string& name)
 	UNREFERENCED_PARAMETER(name);
 #endif
 }
-
-
-
-

@@ -133,11 +133,10 @@ void GameObject::SetDebugObjectName(const std::string& name)
 #endif
 }
 
-void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, FXMMATRIX scale, CXMMATRIX toRoot)
+void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, FXMMATRIX parentScale, CXMMATRIX parentRotTraMatrix)
 {
-	const XMMATRIX parentScale = XMMatrixScalingFromVector(m_transform.GetScaleVector());
-	const XMMATRIX parentRotation = XMMatrixRotationRollPitchYawFromVector(m_transform.GetRotationVector());
-	const XMMATRIX parentTranslation = XMMatrixTranslationFromVector(m_transform.GetPositionVector());
+	const XMMATRIX scale = XMMatrixScalingFromVector(m_transform.GetScaleVector());
+	const XMMATRIX rotationTranslation = XMMatrixRotationRollPitchYawFromVector(m_transform.GetRotationVector()) * XMMatrixTranslationFromVector(m_transform.GetPositionVector());
 
 	UINT strides = m_model.vertexStride;
 	UINT offsets = 0;
@@ -149,7 +148,7 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, F
 		deviceContext->IASetIndexBuffer(part.indexBuffer.Get(), part.indexFormat, 0);
 
 		// Rotation*Translation矩阵可以让物体从物体自身的局部坐标系变换到世界坐标系
-		effect.SetWorldMatrix(scale * parentScale * parentRotation * parentTranslation * toRoot);
+		effect.SetWorldMatrix(scale * parentScale * rotationTranslation * parentRotTraMatrix);
 		effect.SetTextureDiffuse(part.texDiffuse.Get());
 		effect.SetMaterial(part.material);
 
@@ -159,9 +158,9 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, F
 	}
 
 	// 子物体绘制
-	for(const GameObject* child : m_children)
+	for(GameObject* child : m_children)
 	{
 		// 子物体的RT矩阵可以让子物体从子物体自身的局部坐标系变换到父物体的局部坐标系,然后再乘上父物体的Rotation*Translation矩阵变换到世界坐标系
-		const_cast<GameObject*>(child)->Draw(deviceContext, effect, scale * parentScale, parentRotation * parentTranslation * toRoot);
+		child->Draw(deviceContext, effect, scale * scale, rotationTranslation * parentRotTraMatrix);
 	}
 }

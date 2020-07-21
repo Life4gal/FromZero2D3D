@@ -72,7 +72,7 @@ public:
 	void SetDebugObjectName(const std::string& name);
 
 private:
-	void XM_CALLCONV Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, DirectX::FXMMATRIX scale, DirectX::CXMMATRIX toRoot);
+	void XM_CALLCONV Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, DirectX::FXMMATRIX parentScale, DirectX::CXMMATRIX parentRotTraMatrix);
 	
 	struct InstancedData
 	{

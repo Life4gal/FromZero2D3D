@@ -57,6 +57,9 @@
     <Filter Include="ImGui\源文件">
       <UniqueIdentifier>{75e7f959-edd6-4f6e-ac77-1372845f9be8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="废弃的">
+      <UniqueIdentifier>{f82d66d1-c51a-4721-b77c-1a91067c9455}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dApp.h">
@@ -156,7 +159,7 @@
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
     <ClInclude Include="RelatedTransform.h">
-      <Filter>模块文件\头文件</Filter>
+      <Filter>废弃的</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -245,7 +248,7 @@
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
     <ClCompile Include="RelatedTransform.cpp">
-      <Filter>模块文件\源文件</Filter>
+      <Filter>废弃的</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

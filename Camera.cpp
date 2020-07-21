@@ -71,13 +71,13 @@ void Camera::SetViewPort(const float topLeftX, const float topLeftY, const float
 // 第一人称
 //
 
-void FirstPersonCamera::LookAt(const XMFLOAT3& position, const XMFLOAT3& target, const XMFLOAT3& up)
+void XM_CALLCONV FirstPersonCamera::LookAt(FXMVECTOR position, FXMVECTOR target, FXMVECTOR up)
 {
 	SetPosition(position);
 	Camera::LookAt(target, up);
 }
 
-void FirstPersonCamera::LookTo(const XMFLOAT3& position, const XMFLOAT3& to, const XMFLOAT3& up)
+void XM_CALLCONV FirstPersonCamera::LookTo(FXMVECTOR position, FXMVECTOR to, FXMVECTOR up)
 {
 	SetPosition(position);
 	Camera::LookTo(to, up);

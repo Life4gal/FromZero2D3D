@@ -2,25 +2,17 @@
 
 using namespace DirectX;
 
-Ray::Ray()
-	:
-	origin(),
-	direction(0.0f, 0.0f, 1.0f)
-{
-}
-
-Ray::Ray(const XMFLOAT3& origin, const XMFLOAT3& direction)
+Ray::Ray(const XMFLOAT3 origin, FXMVECTOR direction)
 	:
 	origin(origin),
-	direction(0.0f, 0.0f, 1.0f)
+	direction()
 {
 	// 射线的direction长度必须为1.0f，误差在1e-5f内
-	const XMVECTOR dirLength = XMVector3Length(XMLoadFloat3(&direction));
-	const XMVECTOR error = XMVectorAbs(dirLength - XMVectorSplatOne());
+	const XMVECTOR error = XMVectorAbs(XMVector3Length(direction) - XMVectorSplatOne());
 
 	assert(XMVector3Less(error, XMVectorReplicate(1e-5f)));
 
-	XMStoreFloat3(&this->direction, XMVector3Normalize(XMLoadFloat3(&direction)));
+	XMStoreFloat3(&this->direction, XMVector3Normalize(direction));
 }
 
 /*
@@ -94,9 +86,7 @@ Ray Ray::ScreenToRay(const Camera& camera, const float screenX, const float scre
 	target = XMVector3TransformCoord(target, transform);
 
 	// 求出射线
-	XMFLOAT3 direction{};
-	XMStoreFloat3(&direction, XMVector3Normalize(target - camera.GetPositionVector()));
-	return { camera.GetPositionFloat3(), direction };
+	return { camera.GetPositionFloat3(), XMVector3Normalize(target - camera.GetPositionVector()) };
 }
 
 bool Ray::Hit(const BoundingBox& box, float* pOutDist, const float maxDist) const
@@ -127,10 +117,10 @@ bool Ray::Hit(const BoundingSphere& sphere, float* pOutDist, const float maxDist
 	return dist > maxDist ? false : res;
 }
 
-bool XM_CALLCONV Ray::Hit(FXMVECTOR v0, FXMVECTOR v1, FXMVECTOR v2, float* pOutDist, const float maxDist) const
+bool XM_CALLCONV Ray::Hit(FXMVECTOR vertex0, FXMVECTOR vertex1, FXMVECTOR vertex2, float* pOutDist, const float maxDist) const
 {
 	float dist;
-	const bool res = TriangleTests::Intersects(XMLoadFloat3(&origin), XMLoadFloat3(&direction), v0, v1, v2, dist);
+	const bool res = TriangleTests::Intersects(XMLoadFloat3(&origin), XMLoadFloat3(&direction), vertex0, vertex1, vertex2, dist);
 	if (pOutDist)
 		*pOutDist = dist;
 	return dist > maxDist ? false : res;
@@ -196,23 +186,23 @@ Collision::WireFrameData Collision::CreateBoundingFrustum(const BoundingFrustum&
 std::vector<XMMATRIX> XM_CALLCONV Collision::FrustumCulling(
 	const std::vector<XMMATRIX>& matrices,const BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<XMMATRIX> acceptedData;
-
 	BoundingFrustum frustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
-	const XMMATRIX invView = XMMatrixInverse(nullptr, view);
 	// 将视锥体从局部坐标系变换到世界坐标系中
-	frustum.Transform(frustum, invView);
+	frustum.Transform(frustum, XMMatrixInverse(nullptr, view));
 
-	BoundingOrientedBox localOrientedBox, orientedBox;
+	BoundingOrientedBox localOrientedBox;
+	BoundingOrientedBox orientedBox;
 	BoundingOrientedBox::CreateFromBoundingBox(localOrientedBox, localBox);
-	for (auto& mat : matrices)
+
+	std::vector<XMMATRIX> acceptedData;
+	for (const XMMATRIX& matrix : matrices)
 	{
 		// 将有向包围盒从局部坐标系变换到世界坐标系中
-		localOrientedBox.Transform(orientedBox, mat);
+		localOrientedBox.Transform(orientedBox, matrix);
 		// 相交检测
 		if (frustum.Intersects(orientedBox))
-			acceptedData.push_back(mat);
+			acceptedData.push_back(matrix);
 	}
 
 	return acceptedData;
@@ -221,20 +211,19 @@ std::vector<XMMATRIX> XM_CALLCONV Collision::FrustumCulling(
 std::vector<XMMATRIX> XM_CALLCONV Collision::FrustumCulling2(
 	const std::vector<XMMATRIX>& matrices,const BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<XMMATRIX> acceptedData;
-
-	BoundingFrustum frustum, localFrustum;
+	BoundingFrustum frustum;
+	BoundingFrustum localFrustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
 	const XMMATRIX invView = XMMatrixInverse(nullptr, view);
-	for (auto& mat : matrices)
-	{
-		const XMMATRIX invWorld = XMMatrixInverse(nullptr, mat);
 
+	std::vector<XMMATRIX> acceptedData;
+	for (const XMMATRIX& matrix : matrices)
+	{
 		// 将视锥体从观察坐标系(或局部坐标系)变换到物体所在的局部坐标系中
-		frustum.Transform(localFrustum, invView * invWorld);
+		frustum.Transform(localFrustum, invView * XMMatrixInverse(nullptr, matrix));
 		// 相交检测
 		if (localFrustum.Intersects(localBox))
-			acceptedData.push_back(mat);
+			acceptedData.push_back(matrix);
 	}
 
 	return acceptedData;
@@ -243,20 +232,21 @@ std::vector<XMMATRIX> XM_CALLCONV Collision::FrustumCulling2(
 std::vector<XMMATRIX> XM_CALLCONV Collision::FrustumCulling3(
 	const std::vector<XMMATRIX>& matrices,const BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<XMMATRIX> acceptedData;
-
 	BoundingFrustum frustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
 
-	BoundingOrientedBox localOrientedBox, orientedBox;
+	BoundingOrientedBox localOrientedBox;
+	BoundingOrientedBox orientedBox;
 	BoundingOrientedBox::CreateFromBoundingBox(localOrientedBox, localBox);
-	for (auto& mat : matrices)
+
+	std::vector<XMMATRIX> acceptedData;
+	for (const XMMATRIX& matrix : matrices)
 	{
 		// 将有向包围盒从局部坐标系变换到视锥体所在的局部坐标系(观察坐标系)中
-		localOrientedBox.Transform(orientedBox, mat * view);
+		localOrientedBox.Transform(orientedBox, matrix * view);
 		// 相交检测
 		if (frustum.Intersects(orientedBox))
-			acceptedData.push_back(mat);
+			acceptedData.push_back(matrix);
 	}
 
 	return acceptedData;
@@ -271,18 +261,18 @@ std::vector<XMMATRIX> XM_CALLCONV Collision::FrustumCulling3(
 std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling(
 	const std::vector<BasicTransform>& transforms, const BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<BasicTransform> acceptedData;
-
 	BoundingFrustum frustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
 
-	BoundingOrientedBox localOrientedBox, orientedBox;
+	BoundingOrientedBox localOrientedBox;
+	BoundingOrientedBox orientedBox;
 	BoundingOrientedBox::CreateFromBoundingBox(localOrientedBox, localBox);
-	for (auto& transform : transforms)
+
+	std::vector<BasicTransform> acceptedData;
+	for (const BasicTransform& transform : transforms)
 	{
-		XMMATRIX world = transform.GetLocalToWorldMatrix();
 		// 将有向包围盒从局部坐标系变换到视锥体所在的局部坐标系(观察坐标系)中
-		localOrientedBox.Transform(orientedBox, world * view);
+		localOrientedBox.Transform(orientedBox, transform.GetLocalToWorldMatrix() * view);
 		// 相交检测
 		if (frustum.Intersects(orientedBox))
 			acceptedData.push_back(transform);
@@ -297,23 +287,21 @@ std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling(
 	再使用世界变换的逆矩阵将其从世界坐标系搬移到物体自身坐标系来与物体进行碰撞检测
  */
 std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling2(
-	const std::vector<BasicTransform>& transforms, const DirectX::BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
+	const std::vector<BasicTransform>& transforms, const BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<BasicTransform> acceptedData;
-
-	BoundingFrustum frustum, localFrustum;
+	BoundingFrustum frustum;
+	BoundingFrustum localFrustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
 	const XMMATRIX invView = XMMatrixInverse(nullptr, view);
-	for (auto& t : transforms)
-	{
-		const XMMATRIX world = t.GetLocalToWorldMatrix();
-		const XMMATRIX invWorld = XMMatrixInverse(nullptr, world);
 
+	std::vector<BasicTransform> acceptedData;
+	for (const BasicTransform& transform : transforms)
+	{
 		// 将视锥体从观察坐标系(或局部坐标系)变换到物体所在的局部坐标系中
-		frustum.Transform(localFrustum, invView * invWorld);
+		frustum.Transform(localFrustum, invView * XMMatrixInverse(nullptr, transform.GetLocalToWorldMatrix()));
 		// 相交检测
 		if (localFrustum.Intersects(localBox))
-			acceptedData.push_back(t);
+			acceptedData.push_back(transform);
 	}
 
 	return acceptedData;
@@ -324,20 +312,20 @@ std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling2(
 	然后再用观察矩阵将其搬移到视锥体自身的局部坐标系来与视锥体进行碰撞检测
  */
 std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling3(
-	const std::vector<BasicTransform>& transforms, const DirectX::BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
+	const std::vector<BasicTransform>& transforms, const BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<BasicTransform> acceptedData;
-
 	BoundingFrustum frustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
 
-	BoundingOrientedBox localOrientedBox, orientedBox;
+	BoundingOrientedBox localOrientedBox;
+	BoundingOrientedBox orientedBox;
 	BoundingOrientedBox::CreateFromBoundingBox(localOrientedBox, localBox);
-	for (auto& transform : transforms)
+
+	std::vector<BasicTransform> acceptedData;
+	for (const BasicTransform& transform : transforms)
 	{
-		XMMATRIX world = transform.GetLocalToWorldMatrix();
 		// 将有向包围盒从局部坐标系变换到视锥体所在的局部坐标系(观察坐标系)中
-		localOrientedBox.Transform(orientedBox, world * view);
+		localOrientedBox.Transform(orientedBox, transform.GetLocalToWorldMatrix() * view);
 		// 相交检测
 		if (frustum.Intersects(orientedBox))
 			acceptedData.push_back(transform);
@@ -346,7 +334,7 @@ std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling3(
 	return acceptedData;
 }
 
-Collision::WireFrameData Collision::CreateFromCorners(const DirectX::XMFLOAT3(&corners)[8], const DirectX::XMFLOAT4& color)
+Collision::WireFrameData Collision::CreateFromCorners(const XMFLOAT3(&corners)[8], const XMFLOAT4& color)
 {
 	WireFrameData data;
 	// AABB/OBB顶点索引如下    视锥体顶点索引如下

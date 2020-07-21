@@ -57,18 +57,21 @@ public:
 		const float batteryWidth;		// 底座俯视角宽度
 		const float batteryLength;		// 底座俯视角长度
 		const float batteryHeight;		// 底座俯视角高度
+		const DirectX::XMFLOAT3 batteryScale;		// 底座相对车身的缩放
 		const DirectX::XMFLOAT3 batteryRotation;	// 底座相对车身的旋转
 		const DirectX::XMFLOAT3 batteryPosition;	// 底座相对车身的位置
 		
 		// 炮管规格(圆柱)
 		const float barrelCaliber;			// 炮管的口径
 		const float barrelLength;			// 炮管的长度
-		const DirectX::XMFLOAT3 barrelRotation;	// 炮管相对底座旋转
-		const DirectX::XMFLOAT3 barrelPosition;	// 炮管相对底座位置
+		const DirectX::XMFLOAT3 barrelScale;	// 炮管相对底座的缩放
+		const DirectX::XMFLOAT3 barrelRotation;	// 炮管相对底座的旋转
+		const DirectX::XMFLOAT3 barrelPosition;	// 炮管相对底座的位置
 		
 		// 轮子规格(圆柱)
 		const float wheelRadius;			// 轮子的半径
 		const float wheelLength;			// 轮子的长度
+		const DirectX::XMFLOAT3 wheelScale;			// 轮子相对车身的缩放,我们暂时认为轮子的缩放是一样的
 		const DirectX::XMFLOAT3 wheelLeftRotation;	// 轮子相对车身的旋转,我们暂时认为同一边的轮子的旋转是一样的
 		const DirectX::XMFLOAT3 wheelRightRotation;	// 分两边是为了可以使用同一个贴图
 		const DirectX::XMFLOAT3 wheelLeftFrontPosition;		// 左前轮相对车身的位置
@@ -85,7 +88,7 @@ public:
 private:
 	// 采用相对位置需要自己算绝对位置
 	// 炮管
-	DirectX::XMMATRIX GetBarrelLocalToWorldMatrixXM() const;
+	DirectX::XMMATRIX GetBarrelLocalToWorldMatrix() const;
 	// 底座和轮子只需要知道车身位置就很容易算出
 	
 	GameObject m_tankMainBody;

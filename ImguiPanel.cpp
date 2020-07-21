@@ -34,7 +34,7 @@ void ImguiPanel::LoadData(const Player& player)
 	XMStoreFloat3(&m_direction, player.m_tank.m_tankMainBody.GetTransform().GetForwardAxisVector());
 	m_position = player.m_tank.GetPosition();
 
-	XMMATRIX barrelLocalToWorldMatrix = player.m_tank.GetBarrelLocalToWorldMatrixXM();
+	XMMATRIX barrelLocalToWorldMatrix = player.m_tank.GetBarrelLocalToWorldMatrix();
 
 	XMStoreFloat3(&m_barrelDirection, barrelLocalToWorldMatrix.r[1]);
 	XMStoreFloat3(&m_barrelPosition, barrelLocalToWorldMatrix.r[3]);

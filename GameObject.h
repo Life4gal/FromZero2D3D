@@ -11,7 +11,7 @@
 #define GAMEOBJECT_H
 
 #include "Model.h"
-#include "Transform.h"
+#include "BasicTransform.h"
 
 #include <set>
 
@@ -26,9 +26,9 @@ public:
 	void AddChild(GameObject* child);
 	
 	// 获取物体变换
-	Transform& GetTransform();
+	BasicTransform& GetTransform();
 	// 获取物体变换
-	const Transform& GetTransform() const;
+	const BasicTransform& GetTransform() const;
 
 	//
 	// 获取包围盒
@@ -61,7 +61,7 @@ public:
 	// 绘制对象
 	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
 	// 绘制实例
-	void DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const std::vector<Transform>& data);
+	void DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const std::vector<BasicTransform>& data);
 
 	//
 	// 调试 
@@ -84,7 +84,7 @@ private:
 	std::set<GameObject*> m_children;
 	
 	Model m_model{};							// 模型
-	Transform m_transform{};
+	BasicTransform m_transform{};
 
 	ComPtr<ID3D11Buffer> m_pInstancedBuffer = nullptr;				// 实例缓冲区
 	size_t m_capacity = 0;

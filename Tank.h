@@ -20,7 +20,7 @@ public:
 	
 	void Init(
 		ID3D11Device* device,
-		Transform&& transform =
+		BasicTransform&& transform = BasicTransform
 		{
 			{1.0f, 1.0f, 1.0f},
 			{0.0f, 0.0f, 0.0f},

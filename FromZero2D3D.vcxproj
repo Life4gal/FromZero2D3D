@@ -232,7 +232,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="RenderStates.h" />
     <ClInclude Include="Tank.h" />
-    <ClInclude Include="Transform.h" />
+    <ClInclude Include="BasicTransform.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="WICTextureLoader.h" />
     <ClInclude Include="GameObject.h" />
@@ -262,7 +262,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="RenderStates.cpp" />
     <ClCompile Include="Tank.cpp" />
-    <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="BasicTransform.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="WICTextureLoader.cpp" />
     <ClCompile Include="GameObject.cpp" />

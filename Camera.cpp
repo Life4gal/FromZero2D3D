@@ -6,58 +6,58 @@ Camera::~Camera() = default;
 
 XMFLOAT3 Camera::GetPosition() const
 {
-	return m_transform.GetPosition();
+	return m_transform.GetPositionFloat3();
 }
 
 XMVECTOR Camera::GetPositionXM() const
 {
-	return m_transform.GetPositionXM();
+	return m_transform.GetPositionVector();
 }
 
 float Camera::GetRotationX() const
 {
-	return m_transform.GetRotation().x;
+	return m_transform.GetRotationFloat3().x;
 }
 
 float Camera::GetRotationY() const
 {
-	return m_transform.GetRotation().y;
+	return m_transform.GetRotationFloat3().y;
 }
 
 XMFLOAT3 Camera::GetRightAxis() const
 {
 	XMFLOAT3 right{};
-	XMStoreFloat3(&right, m_transform.GetRightAxisXM());
+	XMStoreFloat3(&right, m_transform.GetRightAxisVector());
 	return right;
 }
 
 XMVECTOR Camera::GetRightAxisXM() const
 {
-	return m_transform.GetRightAxisXM();
+	return m_transform.GetRightAxisVector();
 }
 
 XMFLOAT3 Camera::GetUpAxis() const
 {
 	XMFLOAT3 up{};
-	XMStoreFloat3(&up, m_transform.GetUpAxisXM());
+	XMStoreFloat3(&up, m_transform.GetUpAxisVector());
 	return up;
 }
 
 XMVECTOR Camera::GetUpAxisXM() const
 {
-	return m_transform.GetUpAxisXM();
+	return m_transform.GetUpAxisVector();
 }
 
 XMFLOAT3 Camera::GetLookAxis() const
 {
 	XMFLOAT3 look{};
-	XMStoreFloat3(&look, m_transform.GetForwardAxisXM());
+	XMStoreFloat3(&look, m_transform.GetForwardAxisVector());
 	return look;
 }
 
 XMVECTOR Camera::GetLookAxisXM() const
 {
-	return m_transform.GetForwardAxisXM();
+	return m_transform.GetForwardAxisVector();
 }
 
 void Camera::SetPosition(const XMFLOAT3& pos)
@@ -77,7 +77,7 @@ void Camera::SetPosition(float x, float y, float z)
 
 XMMATRIX Camera::GetViewXM() const
 {
-	return m_transform.GetWorldToLocalMatrixXM();
+	return m_transform.GetWorldToLocalMatrix();
 }
 
 XMMATRIX Camera::GetProjXM() const
@@ -151,23 +151,23 @@ void FirstPersonCamera::LookTo(const XMVECTOR& pos, const XMFLOAT3& to, const XM
 
 void FirstPersonCamera::Strafe(float d)
 {
-	m_transform.Translate(m_transform.GetRightAxisXM(), d);
+	m_transform.Translate(m_transform.GetRightAxisVector(), d);
 }
 
 void FirstPersonCamera::Walk(float d)
 {
 	// 右轴叉积上轴并单位向量化得到前轴(Z轴)
-	m_transform.Translate(XMVector3Normalize(XMVector3Cross(m_transform.GetRightAxisXM(), g_XMIdentityR1)), d);
+	m_transform.Translate(XMVector3Normalize(XMVector3Cross(m_transform.GetRightAxisVector(), g_XMIdentityR1)), d);
 }
 
 void FirstPersonCamera::MoveForward(float d)
 {
-	m_transform.Translate(m_transform.GetForwardAxisXM(), d);
+	m_transform.Translate(m_transform.GetForwardAxisVector(), d);
 }
 
 void FirstPersonCamera::Pitch(float rad)
 {
-	XMFLOAT3 rotation = m_transform.GetRotation();
+	XMFLOAT3 rotation = m_transform.GetRotationFloat3();
 	// 将绕x轴旋转弧度限制在[-7pi/18, 7pi/18]之间
 	rotation.x += rad;
 	if (rotation.x > XM_PI * 7 / 18)
@@ -180,7 +180,7 @@ void FirstPersonCamera::Pitch(float rad)
 
 void FirstPersonCamera::RotateY(float rad)
 {
-	XMFLOAT3 rotation = m_transform.GetRotation();
+	XMFLOAT3 rotation = m_transform.GetRotationFloat3();
 	rotation.y = XMScalarModAngle(rotation.y + rad);
 	m_transform.SetRotation(rotation);
 }
@@ -204,7 +204,7 @@ float ThirdPersonCamera::GetDistance() const
 
 void ThirdPersonCamera::RotateX(float rad)
 {
-	XMFLOAT3 rotation = m_transform.GetRotation();
+	XMFLOAT3 rotation = m_transform.GetRotationFloat3();
 	// 将绕x轴旋转弧度限制在[0, pi/3]之间
 	rotation.x += rad;
 	if (rotation.x < 0.0f)
@@ -214,17 +214,17 @@ void ThirdPersonCamera::RotateX(float rad)
 
 	m_transform.SetRotation(rotation);
 	m_transform.SetPosition(m_Target);
-	m_transform.Translate(m_transform.GetForwardAxisXM(), -m_distance);
+	m_transform.Translate(m_transform.GetForwardAxisVector(), -m_distance);
 }
 
 void ThirdPersonCamera::RotateY(float rad)
 {
-	XMFLOAT3 rotation = m_transform.GetRotation();
+	XMFLOAT3 rotation = m_transform.GetRotationFloat3();
 	rotation.y = XMScalarModAngle(rotation.y + rad);
 
 	m_transform.SetRotation(rotation);
 	m_transform.SetPosition(m_Target);
-	m_transform.Translate(m_transform.GetForwardAxisXM(), -m_distance);
+	m_transform.Translate(m_transform.GetForwardAxisVector(), -m_distance);
 }
 
 void ThirdPersonCamera::Approach(float dist)
@@ -237,12 +237,12 @@ void ThirdPersonCamera::Approach(float dist)
 		m_distance = m_maxDist;
 
 	m_transform.SetPosition(m_Target);
-	m_transform.Translate(m_transform.GetForwardAxisXM(), -m_distance);
+	m_transform.Translate(m_transform.GetForwardAxisVector(), -m_distance);
 }
 
 void ThirdPersonCamera::SetRotationX(float rad)
 {
-	XMFLOAT3 rotation = m_transform.GetRotation();
+	XMFLOAT3 rotation = m_transform.GetRotationFloat3();
 	// 将绕x轴旋转弧度限制在[0, pi/3]之间
 	rotation.x = rad;
 	if (rotation.x < 0.0f)
@@ -252,16 +252,16 @@ void ThirdPersonCamera::SetRotationX(float rad)
 
 	m_transform.SetRotation(rotation);
 	m_transform.SetPosition(m_Target);
-	m_transform.Translate(m_transform.GetForwardAxisXM(), -m_distance);
+	m_transform.Translate(m_transform.GetForwardAxisVector(), -m_distance);
 }
 
 void ThirdPersonCamera::SetRotationY(float rad)
 {
-	XMFLOAT3 rotation = m_transform.GetRotation();
+	XMFLOAT3 rotation = m_transform.GetRotationFloat3();
 	rotation.y = XMScalarModAngle(rad);
 	m_transform.SetRotation(rotation);
 	m_transform.SetPosition(m_Target);
-	m_transform.Translate(m_transform.GetForwardAxisXM(), -m_distance);
+	m_transform.Translate(m_transform.GetForwardAxisVector(), -m_distance);
 }
 
 void ThirdPersonCamera::SetTarget(const XMFLOAT3& target, bool lookTo, const XMFLOAT3& to, const XMFLOAT3& up)

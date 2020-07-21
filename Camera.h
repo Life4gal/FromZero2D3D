@@ -12,7 +12,7 @@
 
 #include <d3d11_1.h>
 #include <DirectXMath.h>
-#include "Transform.h"
+#include "BasicTransform.h"
 
 class Camera
 {
@@ -78,7 +78,7 @@ public:
 protected:
 
 	// 摄像机的变换
-	Transform m_transform;
+	BasicTransform m_transform;
 	
 	// 视锥体属性
 	float m_nearZ;

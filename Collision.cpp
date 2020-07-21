@@ -268,10 +268,10 @@ std::vector<XMMATRIX> XM_CALLCONV Collision::FrustumCulling3(
 	因此，我们可以使用观察矩阵的逆矩阵，将视锥体包围盒也变换到世界空间中。
 	这样就好似物体与视锥体都位于世界空间中，可以进行碰撞检测了
  */
-std::vector<Transform> XM_CALLCONV Collision::FrustumCulling(
-	const std::vector<Transform>& transforms, const BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
+std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling(
+	const std::vector<BasicTransform>& transforms, const BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<Transform> acceptedData;
+	std::vector<BasicTransform> acceptedData;
 
 	BoundingFrustum frustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
@@ -280,7 +280,7 @@ std::vector<Transform> XM_CALLCONV Collision::FrustumCulling(
 	BoundingOrientedBox::CreateFromBoundingBox(localOrientedBox, localBox);
 	for (auto& transform : transforms)
 	{
-		XMMATRIX world = transform.GetLocalToWorldMatrixXM();
+		XMMATRIX world = transform.GetLocalToWorldMatrix();
 		// 将有向包围盒从局部坐标系变换到视锥体所在的局部坐标系(观察坐标系)中
 		localOrientedBox.Transform(orientedBox, world * view);
 		// 相交检测
@@ -296,17 +296,17 @@ std::vector<Transform> XM_CALLCONV Collision::FrustumCulling(
 	然后使用观察逆矩阵将视锥体从自身坐标系搬移到世界坐标系，
 	再使用世界变换的逆矩阵将其从世界坐标系搬移到物体自身坐标系来与物体进行碰撞检测
  */
-std::vector<Transform> XM_CALLCONV Collision::FrustumCulling2(
-	const std::vector<Transform>& transforms, const DirectX::BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
+std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling2(
+	const std::vector<BasicTransform>& transforms, const DirectX::BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<Transform> acceptedData;
+	std::vector<BasicTransform> acceptedData;
 
 	BoundingFrustum frustum, localFrustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
 	const XMMATRIX invView = XMMatrixInverse(nullptr, view);
 	for (auto& t : transforms)
 	{
-		const XMMATRIX world = t.GetLocalToWorldMatrixXM();
+		const XMMATRIX world = t.GetLocalToWorldMatrix();
 		const XMMATRIX invWorld = XMMatrixInverse(nullptr, world);
 
 		// 将视锥体从观察坐标系(或局部坐标系)变换到物体所在的局部坐标系中
@@ -323,10 +323,10 @@ std::vector<Transform> XM_CALLCONV Collision::FrustumCulling2(
 	先将物体从局部坐标系搬移到世界坐标系，
 	然后再用观察矩阵将其搬移到视锥体自身的局部坐标系来与视锥体进行碰撞检测
  */
-std::vector<Transform> XM_CALLCONV Collision::FrustumCulling3(
-	const std::vector<Transform>& transforms, const DirectX::BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
+std::vector<BasicTransform> XM_CALLCONV Collision::FrustumCulling3(
+	const std::vector<BasicTransform>& transforms, const DirectX::BoundingBox& localBox, FXMMATRIX view, CXMMATRIX proj)
 {
-	std::vector<Transform> acceptedData;
+	std::vector<BasicTransform> acceptedData;
 
 	BoundingFrustum frustum;
 	BoundingFrustum::CreateFromMatrix(frustum, proj);
@@ -335,7 +335,7 @@ std::vector<Transform> XM_CALLCONV Collision::FrustumCulling3(
 	BoundingOrientedBox::CreateFromBoundingBox(localOrientedBox, localBox);
 	for (auto& transform : transforms)
 	{
-		XMMATRIX world = transform.GetLocalToWorldMatrixXM();
+		XMMATRIX world = transform.GetLocalToWorldMatrix();
 		// 将有向包围盒从局部坐标系变换到视锥体所在的局部坐标系(观察坐标系)中
 		localOrientedBox.Transform(orientedBox, world * view);
 		// 相交检测

@@ -122,9 +122,6 @@
     <ClInclude Include="RenderStates.h">
       <Filter>特效文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>模块文件\头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Geometry.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
@@ -154,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="Tank.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicTransform.h">
+      <Filter>模块文件\头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -214,9 +214,6 @@
     <ClCompile Include="RenderStates.cpp">
       <Filter>特效文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>模块文件\源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
@@ -240,6 +237,9 @@
     </ClCompile>
     <ClCompile Include="Tank.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicTransform.cpp">
+      <Filter>模块文件\源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -32,7 +32,7 @@ Tank::Tank(const VehicleInfo tankInfo)
 {
 }
 
-void Tank::Init(ID3D11Device* device, Transform&& transform)
+void Tank::Init(ID3D11Device* device, BasicTransform&& transform)
 {
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texture;
 	// 车身
@@ -118,9 +118,9 @@ void Tank::Init(ID3D11Device* device, Transform&& transform)
 
 void Tank::Walk(const float d)
 {
-	Transform& tankTransform = m_tankMainBody.GetTransform();
+	BasicTransform& tankTransform = m_tankMainBody.GetTransform();
 
-	tankTransform.Translate(tankTransform.GetForwardAxisXM(), d);
+	tankTransform.Translate(tankTransform.GetForwardAxisVector(), d);
 
 	// 转轮子
 	for(GameObject& wheel : m_wheels)
@@ -131,11 +131,11 @@ void Tank::Walk(const float d)
 
 void Tank::Strafe(const float d)
 {
-	Transform& tankTransform = m_tankMainBody.GetTransform();
+	BasicTransform& tankTransform = m_tankMainBody.GetTransform();
 	// 转车身
 	// @TODO 找一个比较合理的旋转速度
 	tankTransform.Rotate(XMVectorSet(0.0f, 0.1f * d, 0.0f, 0.0f));
-	const XMVECTOR upAxis = tankTransform.GetUpAxisXM();
+	const XMVECTOR upAxis = tankTransform.GetUpAxisVector();
 	// 后轮不转
 	// 轮胎绕Y轴旋转
 	// @TODO 限制旋转范围
@@ -156,7 +156,7 @@ Ray Tank::Shoot() const
 
 void Tank::Turn(const float d)
 {
-	Transform& batteryTransform = m_battery.GetTransform();
+	BasicTransform& batteryTransform = m_battery.GetTransform();
 	// 转底座
 	// @TODO 找一个比较合理的旋转速度
 	batteryTransform.Rotate(XMVectorSet(0.0f, 0.25f * d, 0.0f, 0.0f));
@@ -164,15 +164,15 @@ void Tank::Turn(const float d)
 
 XMFLOAT3 Tank::GetPosition() const
 {
-	return m_tankMainBody.GetTransform().GetPosition();
+	return m_tankMainBody.GetTransform().GetPositionFloat3();
 }
 
 void Tank::AdjustPosition(FXMVECTOR minCoordinate, FXMVECTOR maxCoordinate)
 {
-	Transform& tankTransform = m_tankMainBody.GetTransform();
+	BasicTransform& tankTransform = m_tankMainBody.GetTransform();
 
 	XMFLOAT3 adjustedPos{};
-	XMStoreFloat3(&adjustedPos, XMVectorClamp(tankTransform.GetPositionXM(), minCoordinate, maxCoordinate));
+	XMStoreFloat3(&adjustedPos, XMVectorClamp(tankTransform.GetPositionVector(), minCoordinate, maxCoordinate));
 	tankTransform.SetPosition(adjustedPos);
 }
 
@@ -183,24 +183,24 @@ void Tank::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
 
 XMMATRIX Tank::GetBarrelLocalToWorldMatrixXM() const
 {
-	const Transform& barrelTransform = m_barrel.GetTransform();
-	const Transform& batteryTransform = m_battery.GetTransform();
-	const Transform& tankTransform = m_tankMainBody.GetTransform();
+	const BasicTransform& barrelTransform = m_barrel.GetTransform();
+	const BasicTransform& batteryTransform = m_battery.GetTransform();
+	const BasicTransform& tankTransform = m_tankMainBody.GetTransform();
 
 	// 从最顶层子对象到最底层父对象运算: SSSSSSSS * R子T子 * RT * RT * RT * RT * RT * RT * R父T父
 	
 	return 
-		XMMatrixScalingFromVector(barrelTransform.GetScaleXM()) *
-		XMMatrixScalingFromVector(batteryTransform.GetScaleXM()) *
-		XMMatrixScalingFromVector(tankTransform.GetScaleXM()) *
+		XMMatrixScalingFromVector(barrelTransform.GetScaleVector()) *
+		XMMatrixScalingFromVector(batteryTransform.GetScaleVector()) *
+		XMMatrixScalingFromVector(tankTransform.GetScaleVector()) *
 
-		XMMatrixRotationRollPitchYawFromVector(barrelTransform.GetRotationXM()) *
-		XMMatrixTranslationFromVector(barrelTransform.GetPositionXM()) *
+		XMMatrixRotationRollPitchYawFromVector(barrelTransform.GetRotationVector()) *
+		XMMatrixTranslationFromVector(barrelTransform.GetPositionVector()) *
 
-		XMMatrixRotationRollPitchYawFromVector(batteryTransform.GetRotationXM()) *
-		XMMatrixTranslationFromVector(batteryTransform.GetPositionXM()) *
+		XMMatrixRotationRollPitchYawFromVector(batteryTransform.GetRotationVector()) *
+		XMMatrixTranslationFromVector(batteryTransform.GetPositionVector()) *
 
-		XMMatrixRotationRollPitchYawFromVector(tankTransform.GetRotationXM()) *
-		XMMatrixTranslationFromVector(tankTransform.GetPositionXM())
+		XMMatrixRotationRollPitchYawFromVector(tankTransform.GetRotationVector()) *
+		XMMatrixTranslationFromVector(tankTransform.GetPositionVector())
 	;
 }

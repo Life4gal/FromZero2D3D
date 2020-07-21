@@ -7,12 +7,12 @@ void GameObject::AddChild(GameObject* child)
 	m_children.insert(child);
 }
 
-Transform& GameObject::GetTransform()
+BasicTransform& GameObject::GetTransform()
 {
 	return m_transform;
 }
 
-const Transform& GameObject::GetTransform() const
+const BasicTransform& GameObject::GetTransform() const
 {
 	return m_transform;
 }
@@ -25,7 +25,7 @@ BoundingBox GameObject::GetLocalBoundingBox() const
 BoundingBox GameObject::GetBoundingBox() const
 {
 	BoundingBox box;
-	m_model.boundingBox.Transform(box, m_transform.GetLocalToWorldMatrixXM());
+	m_model.boundingBox.Transform(box, m_transform.GetLocalToWorldMatrix());
 	return box;
 }
 
@@ -33,7 +33,7 @@ BoundingOrientedBox GameObject::GetBoundingOrientedBox() const
 {
 	BoundingOrientedBox box;
 	BoundingOrientedBox::CreateFromBoundingBox(box, m_model.boundingBox);
-	box.Transform(box, m_transform.GetLocalToWorldMatrixXM());
+	box.Transform(box, m_transform.GetLocalToWorldMatrix());
 	return box;
 }
 
@@ -75,7 +75,7 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
 	Draw(deviceContext, effect, XMMatrixIdentity(), XMMatrixIdentity());
 }
 
-void GameObject::DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const std::vector<Transform>& data)
+void GameObject::DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const std::vector<BasicTransform>& data)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedData;
 	const UINT numInstances = static_cast<UINT>(data.size());
@@ -92,7 +92,7 @@ void GameObject::DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& 
 	auto iter = reinterpret_cast<InstancedData*>(mappedData.pData);
 	for (auto& transform : data)
 	{
-		const XMMATRIX world = transform.GetLocalToWorldMatrixXM();
+		const XMMATRIX world = transform.GetLocalToWorldMatrix();
 		iter->world = XMMatrixTranspose(world);
 		iter->worldInvTranspose = XMMatrixInverse(nullptr, world);	// 两次转置抵消
 		++iter;
@@ -135,9 +135,9 @@ void GameObject::SetDebugObjectName(const std::string& name)
 
 void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, FXMMATRIX scale, CXMMATRIX toRoot)
 {
-	const XMMATRIX parentScale = XMMatrixScalingFromVector(m_transform.GetScaleXM());
-	const XMMATRIX parentRotation = XMMatrixRotationRollPitchYawFromVector(m_transform.GetRotationXM());
-	const XMMATRIX parentTranslation = XMMatrixTranslationFromVector(m_transform.GetPositionXM());
+	const XMMATRIX parentScale = XMMatrixScalingFromVector(m_transform.GetScaleVector());
+	const XMMATRIX parentRotation = XMMatrixRotationRollPitchYawFromVector(m_transform.GetRotationVector());
+	const XMMATRIX parentTranslation = XMMatrixTranslationFromVector(m_transform.GetPositionVector());
 
 	UINT strides = m_model.vertexStride;
 	UINT offsets = 0;

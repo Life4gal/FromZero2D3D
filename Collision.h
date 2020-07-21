@@ -72,14 +72,14 @@ public:
 		const std::vector<DirectX::XMMATRIX>& matrices, const DirectX::BoundingBox& localBox, DirectX::FXMMATRIX view, DirectX::CXMMATRIX proj);
 
 	// 视锥体裁剪
-	static std::vector<Transform> XM_CALLCONV FrustumCulling(
-		const std::vector<Transform>& transforms, const DirectX::BoundingBox& localBox, DirectX::FXMMATRIX view, DirectX::CXMMATRIX proj);
+	static std::vector<BasicTransform> XM_CALLCONV FrustumCulling(
+		const std::vector<BasicTransform>& transforms, const DirectX::BoundingBox& localBox, DirectX::FXMMATRIX view, DirectX::CXMMATRIX proj);
 	// 视锥体裁剪2
-	static std::vector<Transform> XM_CALLCONV FrustumCulling2(
-		const std::vector<Transform>& transforms, const DirectX::BoundingBox& localBox, DirectX::FXMMATRIX view, DirectX::CXMMATRIX proj);
+	static std::vector<BasicTransform> XM_CALLCONV FrustumCulling2(
+		const std::vector<BasicTransform>& transforms, const DirectX::BoundingBox& localBox, DirectX::FXMMATRIX view, DirectX::CXMMATRIX proj);
 	// 视锥体裁剪3
-	static std::vector<Transform> XM_CALLCONV FrustumCulling3(
-		const std::vector<Transform>& transforms, const DirectX::BoundingBox& localBox, DirectX::FXMMATRIX view, DirectX::CXMMATRIX proj);
+	static std::vector<BasicTransform> XM_CALLCONV FrustumCulling3(
+		const std::vector<BasicTransform>& transforms, const DirectX::BoundingBox& localBox, DirectX::FXMMATRIX view, DirectX::CXMMATRIX proj);
 
 
 private:

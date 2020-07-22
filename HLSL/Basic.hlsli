@@ -2,6 +2,8 @@
 
 // Texture2D类型保存了2D纹理的信息，在这是全局变量。而register(t0)对应起始槽索引0.
 Texture2D g_DiffuseMap : register(t0);
+TextureCube g_TexCube : register(t1);
+
 // SamplerState类型确定采样器应如何进行采样，同样也是全局变量，register(s0)对应起始槽索引0.
 SamplerState g_Sam : register(s0);
 
@@ -19,7 +21,8 @@ cbuffer CBChangesEveryObjectDrawing : register(b1)
 cbuffer CBDrawingStates : register(b2)
 {
     int g_TextureUsed;
-    float3 g_Pad;
+    int g_ReflectionEnabled;
+    float2 g_Pad;
 }
 
 cbuffer CBChangesEveryFrame : register(b3)

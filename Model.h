@@ -12,9 +12,9 @@
 #include <DirectXCollision.h>
 #include "d3dUtil.h"
 #include "DXTrace.h"
-#include "Effects.h"
 #include "ObjReader.h"
 #include "Geometry.h"
+#include <wrl/client.h>
 
 struct ModelPart
 {

@@ -1,8 +1,4 @@
-#include "Effects.h"
-#include "d3dUtil.h"
-#include "EffectHelper.h"	// 必须晚于Effects.h和d3dUtil.h包含
-#include "DXTrace.h"
-#include "Vertex.h"
+#include "BasicEffect.h"
 
 #include <array>
 
@@ -34,7 +30,8 @@ public:
 	struct CBDrawingStates
 	{
 		int textureUsed;
-		XMFLOAT3 pad;
+		int reflectionEnabled;
+		XMFLOAT2 pad;
 	};
 	
 	struct CBChangesEveryFrame
@@ -83,6 +80,7 @@ public:
 	ComPtr<ID3D11InputLayout> m_pVertexPosNormalTexLayout;
 
 	ComPtr<ID3D11ShaderResourceView> m_pTextureDiffuse;		    // 用于绘制的纹理
+	ComPtr<ID3D11ShaderResourceView> m_pTextureCube;			// 天空盒纹理
 };
 
 //
@@ -251,7 +249,7 @@ void BasicEffect::SetRenderDefault(ID3D11DeviceContext* deviceContext, RenderTyp
 	deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 }
 
-void XM_CALLCONV BasicEffect::SetWorldMatrix(const FXMMATRIX& world) const
+void XM_CALLCONV BasicEffect::SetWorldMatrix(FXMMATRIX world) const
 {
 	auto& cBuffer = m_pImpl->m_cbInstDrawing;
 	cBuffer.data.world = XMMatrixTranspose(world);
@@ -259,38 +257,38 @@ void XM_CALLCONV BasicEffect::SetWorldMatrix(const FXMMATRIX& world) const
 	m_pImpl->m_isDirty = cBuffer.isDirty = true;
 }
 
-void XM_CALLCONV BasicEffect::SetViewMatrix(const FXMMATRIX& view) const
+void XM_CALLCONV BasicEffect::SetViewMatrix(FXMMATRIX view) const
 {
 	auto& cBuffer = m_pImpl->m_cbFrame;
 	cBuffer.data.view = XMMatrixTranspose(view);
 	m_pImpl->m_isDirty = cBuffer.isDirty = true;
 }
 
-void XM_CALLCONV BasicEffect::SetProjMatrix(const FXMMATRIX& proj) const
+void XM_CALLCONV BasicEffect::SetProjMatrix(FXMMATRIX proj) const
 {
 	auto& cBuffer = m_pImpl->m_cbOnResize;
 	cBuffer.data.proj = XMMatrixTranspose(proj);
 	m_pImpl->m_isDirty = cBuffer.isDirty = true;
 }
 
-void BasicEffect::SetDirLight(const size_t pos, const DirectionalLight& dirLight) const
+void BasicEffect::SetDirLight(const size_t position, const DirectionalLight& dirLight) const
 {
 	auto& cBuffer = m_pImpl->m_cbRarely;
-	cBuffer.data.dirLight[pos] = dirLight;
+	cBuffer.data.dirLight[position] = dirLight;
 	m_pImpl->m_isDirty = cBuffer.isDirty = true;
 }
 
-void BasicEffect::SetPointLight(const size_t pos, const PointLight& pointLight) const
+void BasicEffect::SetPointLight(const size_t position, const PointLight& pointLight) const
 {
 	auto& cBuffer = m_pImpl->m_cbRarely;
-	cBuffer.data.pointLight[pos] = pointLight;
+	cBuffer.data.pointLight[position] = pointLight;
 	m_pImpl->m_isDirty = cBuffer.isDirty = true;
 }
 
-void BasicEffect::SetSpotLight(const size_t pos, const SpotLight& spotLight) const
+void BasicEffect::SetSpotLight(const size_t position, const SpotLight& spotLight) const
 {
 	auto& cBuffer = m_pImpl->m_cbRarely;
-	cBuffer.data.spotLight[pos] = spotLight;
+	cBuffer.data.spotLight[position] = spotLight;
 	m_pImpl->m_isDirty = cBuffer.isDirty = true;
 }
 
@@ -313,10 +311,22 @@ void BasicEffect::SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) co
 	m_pImpl->m_pTextureDiffuse = textureDiffuse;
 }
 
+void BasicEffect::SetTextureCube(ID3D11ShaderResourceView* textureCube) const
+{
+	m_pImpl->m_pTextureCube = textureCube;
+}
+
 void XM_CALLCONV BasicEffect::SetEyePos(FXMVECTOR eyePos) const
 {
 	auto& cBuffer = m_pImpl->m_cbFrame;
 	cBuffer.data.eyePos = eyePos;
+	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+}
+
+void BasicEffect::SetReflectionEnabled(const bool isEnable) const
+{
+	auto& cBuffer = m_pImpl->m_cbStates;
+	cBuffer.data.reflectionEnabled = isEnable;
 	m_pImpl->m_isDirty = cBuffer.isDirty = true;
 }
 
@@ -334,10 +344,8 @@ void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
 	pCBuffers[5]->BindPS(deviceContext);
 
 	// 设置纹理
-	if (m_pImpl->m_cbStates.data.textureUsed)
-	{
-		deviceContext->PSSetShaderResources(0, 1, m_pImpl->m_pTextureDiffuse.GetAddressOf());
-	}
+	deviceContext->PSSetShaderResources(0, 1, m_pImpl->m_pTextureDiffuse.GetAddressOf());
+	deviceContext->PSSetShaderResources(1, 1, m_pImpl->m_pTextureCube.GetAddressOf());
 	
 	if (m_pImpl->m_isDirty)
 	{

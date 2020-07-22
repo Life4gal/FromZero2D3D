@@ -219,18 +219,10 @@ XMMATRIX Tank::GetBarrelLocalToWorldMatrix() const
 
 	// 从最顶层子对象到最底层父对象运算: SSSSSSSS * R子T子 * RT * RT * RT * RT * RT * RT * R父T父
 	
-	return 
-		XMMatrixScalingFromVector(barrelTransform.GetScaleVector()) *
-		XMMatrixScalingFromVector(batteryTransform.GetScaleVector()) *
-		XMMatrixScalingFromVector(tankTransform.GetScaleVector()) *
+	return
+		XMMatrixScalingFromVector(barrelTransform.GetScaleVector() * batteryTransform.GetScaleVector() * tankTransform.GetScaleVector()) *
 
-		XMMatrixRotationRollPitchYawFromVector(barrelTransform.GetRotationVector()) *
-		XMMatrixTranslationFromVector(barrelTransform.GetPositionVector()) *
-
-		XMMatrixRotationRollPitchYawFromVector(batteryTransform.GetRotationVector()) *
-		XMMatrixTranslationFromVector(batteryTransform.GetPositionVector()) *
-
-		XMMatrixRotationRollPitchYawFromVector(tankTransform.GetRotationVector()) *
-		XMMatrixTranslationFromVector(tankTransform.GetPositionVector())
-	;
+		barrelTransform.GetRotationTranslationMatrix() *
+		batteryTransform.GetRotationTranslationMatrix() *
+		tankTransform.GetRotationTranslationMatrix();
 }

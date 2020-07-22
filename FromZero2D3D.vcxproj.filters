@@ -161,6 +161,15 @@
     <ClInclude Include="RelatedTransform.h">
       <Filter>废弃的</Filter>
     </ClInclude>
+    <ClInclude Include="SkyRender.h">
+      <Filter>特效文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicEffect.h">
+      <Filter>特效文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyEffect.h">
+      <Filter>特效文件\头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -250,6 +259,12 @@
     <ClCompile Include="RelatedTransform.cpp">
       <Filter>废弃的</Filter>
     </ClCompile>
+    <ClCompile Include="SkyRender.cpp">
+      <Filter>特效文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyEffect.cpp">
+      <Filter>特效文件\源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="HLSL\Basic_PS.hlsl">
@@ -261,12 +276,21 @@
     <FxCompile Include="HLSL\BasicObject_VS.hlsl">
       <Filter>着色器</Filter>
     </FxCompile>
+    <FxCompile Include="HLSL\Sky_PS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\Sky_VS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="HLSL\LightHelper.hlsli">
       <Filter>着色器</Filter>
     </None>
     <None Include="HLSL\Basic.hlsli">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="HLSL\Sky.hlsli">
       <Filter>着色器</Filter>
     </None>
   </ItemGroup>

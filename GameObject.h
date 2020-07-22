@@ -12,6 +12,7 @@
 
 #include "Model.h"
 #include "BasicTransform.h"
+#include "BasicEffect.h"
 
 #include <set>
 

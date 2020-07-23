@@ -20,6 +20,11 @@ XMVECTOR BasicTransform::GetScaleVector() const
 	return XMLoadFloat3(&m_scale);
 }
 
+XMMATRIX BasicTransform::GetScaleMatrix() const
+{
+	return XMMatrixScalingFromVector(XMLoadFloat3(&m_scale));
+}
+
 XMFLOAT3 BasicTransform::GetRotationFloat3() const
 {
 	return m_rotation;

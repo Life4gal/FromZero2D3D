@@ -3,6 +3,11 @@
 
 #include "BasicTransform.h"
 
+/*
+ * 我们保存子物体到世界的变换属性并不能为我们减少每次绘制的代价,甚至正好相反
+ * 这个类存在的意义应该只是方便那些需要频繁访问相对于世界的一些信息的类
+ * 对于不需要这些数据的类来说这是一个很大的负担,毕竟我们的大小是原来三倍
+ */
 class RelatedTransform final : public BasicTransform
 {
 public:
@@ -19,9 +24,13 @@ private:
 
 	// 在更换父物体时对子物体世界矩阵的更新
 	// 对于一个父物体而言,初始的子物体容器为空,所以只要我们每次添加子物体时适时地更新子物体世界矩阵,就不需要额外的更新操作了
-	static void UpdateChildMatrix(RelatedTransform* child, RelatedTransform* currParent, RelatedTransform* oldParent = nullptr);
+	static void ChangeChildParent(RelatedTransform* child, RelatedTransform* currParent, RelatedTransform* lastParent = nullptr);
 
 public:
+	// 更新属性
+	// TODO 我们没有对 RelatedTransform 实现父子关联链,实现在使用RelatedTransform上层对象,所以这个函数无法使用
+	// void UpdateChildData(RelatedTransform* parent);
+	
 	//***********************************
 	// 相对于世界,绝对属性
 	// 继承自 BasicTransform 的接口都是相对属性

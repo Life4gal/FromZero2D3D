@@ -42,6 +42,7 @@ public:
 	// 获取对象缩放比例
 	DirectX::XMFLOAT3 GetScaleFloat3() const;
 	DirectX::XMVECTOR GetScaleVector() const;
+	DirectX::XMMATRIX GetScaleMatrix() const;
 	
 	// 获取对象欧拉角(弧度制)
 	// 对象以Z-X-Y轴顺序旋转

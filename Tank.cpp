@@ -167,12 +167,13 @@ void Tank::Strafe(const float d)
 	// 转车身
 	// @TODO 找一个比较合理的旋转速度
 	tankTransform.Rotate(XMVectorSet(0.0f, 0.1f * d, 0.0f, 0.0f));
-	const XMVECTOR upAxis = tankTransform.GetUpAxisVector();
+	
 	// 后轮不转
 	// 轮胎绕Y轴旋转
+	// const XMVECTOR upAxis = tankTransform.GetUpAxisVector();
 	// @TODO 限制旋转范围
-	m_wheels[0].GetTransform().RotateAround(XMLoadFloat3(&m_tankInfo.wheelLeftFrontPosition), upAxis, d);
-	m_wheels[1].GetTransform().RotateAround(XMLoadFloat3(&m_tankInfo.wheelRightFrontPosition), upAxis, d);
+	// m_wheels[0].GetTransform().RotateAround(XMLoadFloat3(&m_tankInfo.wheelLeftFrontPosition), upAxis, d);
+	// m_wheels[1].GetTransform().RotateAround(XMLoadFloat3(&m_tankInfo.wheelRightFrontPosition), upAxis, d);
 }
 
 Ray Tank::Shoot() const
@@ -220,7 +221,9 @@ XMMATRIX Tank::GetBarrelLocalToWorldMatrix() const
 	// 从最顶层子对象到最底层父对象运算: SSSSSSSS * R子T子 * RT * RT * RT * RT * RT * RT * R父T父
 	
 	return
-		XMMatrixScalingFromVector(barrelTransform.GetScaleVector() * batteryTransform.GetScaleVector() * tankTransform.GetScaleVector()) *
+		barrelTransform.GetScaleMatrix() *
+		batteryTransform.GetScaleMatrix() *
+		tankTransform.GetScaleMatrix() *
 
 		barrelTransform.GetRotationTranslationMatrix() *
 		batteryTransform.GetRotationTranslationMatrix() *

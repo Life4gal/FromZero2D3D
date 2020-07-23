@@ -13,7 +13,7 @@ RelatedTransform::RelatedTransform(const XMFLOAT3 scale, const XMFLOAT3 rotation
 	XMStoreFloat4x4(&m_absRotationTranslation, GetRotationTranslationMatrix());
 }
 
-void RelatedTransform::UpdateChildMatrix(RelatedTransform* child, RelatedTransform* currParent, RelatedTransform* oldParent)
+void RelatedTransform::ChangeChildParent(RelatedTransform* child, RelatedTransform* currParent, RelatedTransform* lastParent)
 {
 	// 乘上原父物体的世界缩放向量的倒数再乘上当前父物体的世界缩放向量
 	// 我们之所以直接乘上世界缩放向量是因为父级物体可能依然有父级物体
@@ -23,10 +23,10 @@ void RelatedTransform::UpdateChildMatrix(RelatedTransform* child, RelatedTransfo
 	// 缩放对顺序没有先后要求
 	XMStoreFloat3(
 		&child->m_absScale,
-		// 当前的世界缩放向量
-		child->GetAbsScaleVector()
+		// 当前的相对缩放向量
+		child->GetScaleVector()
 		// 乘上原父物体的世界缩放向量的倒数,如果没有原父物体乘上单位向量
-		* (oldParent == nullptr ? XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f) : XMVectorReciprocal(oldParent->GetAbsScaleVector()))
+		* (lastParent == nullptr ? XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f) : XMVectorReciprocal(lastParent->GetAbsScaleVector()))
 		// 再乘上现父物体的世界缩放向量
 		* currParent->GetAbsScaleVector()
 	);
@@ -39,14 +39,37 @@ void RelatedTransform::UpdateChildMatrix(RelatedTransform* child, RelatedTransfo
 	// 旋转平移不满足交换律,顺序必须正确
 	XMStoreFloat4x4(
 		&child->m_absRotationTranslation,
-		// 当前的世界旋转平移矩阵
-		child->GetAbsRotationTranslationMatrix()
+		// 当前的相对旋转平移矩阵
+		child->GetRotationTranslationMatrix()
 		// 乘上原父物体的世界旋转平移矩阵的逆矩阵,如果没有原父物体乘上单位矩阵
-		* (oldParent == nullptr ? XMMatrixIdentity() : XMMatrixInverse(nullptr, oldParent->GetAbsRotationTranslationMatrix()))
+		* (lastParent == nullptr ? XMMatrixIdentity() : XMMatrixInverse(nullptr, lastParent->GetAbsRotationTranslationMatrix()))
 		// 再乘上现父物体的世界旋转平移矩阵
 		* currParent->GetAbsRotationTranslationMatrix()
 	);
 }
+
+/*
+void RelatedTransform::UpdateChildData(RelatedTransform* parent)
+{
+	// 我们应该先更新最底层的父物体信息然后再更新子物体以保证数据正确
+	// 在每次绘制前我们都应该先更新这些信息
+	
+	// 最底层的父物体
+	if(parent == nullptr)
+	{
+		// 更新保存的变换
+		m_absScale = m_scale;
+		XMStoreFloat4x4(&m_absRotationTranslation, GetRotationTranslationMatrix());
+	}
+	else
+	{
+		// 我们从子物体一路递归更新
+		parent.UpdateChildData(parent->m_parent);
+		// 然后再储存更新后的数据
+		XMStoreFloat3(&m_absScale, GetScaleVector() * parent->GetAbsScaleVector());
+	}
+}
+*/
 
 //***********************************
 // 相对于世界,绝对属性

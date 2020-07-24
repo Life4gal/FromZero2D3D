@@ -113,9 +113,6 @@
     <ClInclude Include="ImGui\imstb_rectpack.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Effects.h">
-      <Filter>特效文件\头文件</Filter>
-    </ClInclude>
     <ClInclude Include="EffectHelper.h">
       <Filter>特效文件\头文件</Filter>
     </ClInclude>
@@ -168,6 +165,24 @@
       <Filter>特效文件\头文件</Filter>
     </ClInclude>
     <ClInclude Include="SkyEffect.h">
+      <Filter>特效文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenFadeEffect.h">
+      <Filter>废弃的</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureRender.h">
+      <Filter>废弃的</Filter>
+    </ClInclude>
+    <ClInclude Include="MinimapEffect.h">
+      <Filter>废弃的</Filter>
+    </ClInclude>
+    <ClInclude Include="Effect.h">
+      <Filter>特效文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenGrab.h">
+      <Filter>模块文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Render.h">
       <Filter>特效文件\头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -265,6 +280,18 @@
     <ClCompile Include="SkyEffect.cpp">
       <Filter>特效文件\源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ScreenFadeEffect.cpp">
+      <Filter>废弃的</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureRender.cpp">
+      <Filter>废弃的</Filter>
+    </ClCompile>
+    <ClCompile Include="MinimapEffect.cpp">
+      <Filter>废弃的</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenGrab.cpp">
+      <Filter>模块文件\源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="HLSL\Basic_PS.hlsl">
@@ -280,6 +307,15 @@
       <Filter>着色器</Filter>
     </FxCompile>
     <FxCompile Include="HLSL\Sky_VS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\NormalMap_PS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\NormalMapInstance_VS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\NormalMapObject_VS.hlsl">
       <Filter>着色器</Filter>
     </FxCompile>
   </ItemGroup>

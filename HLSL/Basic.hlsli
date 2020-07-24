@@ -2,7 +2,8 @@
 
 // Texture2D类型保存了2D纹理的信息，在这是全局变量。而register(t0)对应起始槽索引0.
 Texture2D g_DiffuseMap : register(t0);
-TextureCube g_TexCube : register(t1);
+Texture2D g_NormalMap : register(t1);
+TextureCube g_TexCube : register(t2);
 
 // SamplerState类型确定采样器应如何进行采样，同样也是全局变量，register(s0)对应起始槽索引0.
 SamplerState g_Sam : register(s0);
@@ -21,15 +22,16 @@ cbuffer CBChangesEveryObjectDrawing : register(b1)
 cbuffer CBDrawingStates : register(b2)
 {
     int g_TextureUsed;
-    int g_ReflectionEnabled;
-    float2 g_Pad;
+    int g_ReflectionEnabled;    // 反射
+    int g_RefractionEnabled;    // 折射
+    float g_Eta; // 空气/介质折射比
 }
 
 cbuffer CBChangesEveryFrame : register(b3)
 {
     matrix g_View;
     float3 g_EyePosW;
-    float g_Pad2;
+    float g_Pad;
 }
 
 cbuffer CBChangesOnResize : register(b4)
@@ -51,12 +53,12 @@ struct VertexPosNormalTex
 	float2 Tex : TEXCOORD;
 };
 
-struct VertexPosHWNormalTex
+struct VertexPosNormalTangentTex
 {
-	float4 PosH : SV_POSITION;
-    float3 PosW : POSITION;     // 在世界中的位置
-    float3 NormalW : NORMAL;    // 法向量在世界中的方向
-	float2 Tex : TEXCOORD;
+    float3 PosL : POSITION;
+    float3 NormalL : NORMAL;
+    float4 TangentL : TANGENT;
+    float2 Tex : TEXCOORD;
 };
 
 struct InstancePosNormalTex
@@ -66,6 +68,33 @@ struct InstancePosNormalTex
     float2 Tex : TEXCOORD;
     matrix World : World;
     matrix WorldInvTranspose : WorldInvTranspose;
+};
+
+struct InstancePosNormalTangentTex
+{
+    float3 PosL : POSITION;
+    float3 NormalL : NORMAL;
+    float4 TangentL : TANGENT;
+    float2 Tex : TEXCOORD;
+    matrix World : World;
+    matrix WorldInvTranspose : WorldInvTranspose;
+};
+
+struct VertexPosHWNormalTex
+{
+	float4 PosH : SV_POSITION;
+    float3 PosW : POSITION;     // 在世界中的位置
+    float3 NormalW : NORMAL;    // 法向量在世界中的方向
+	float2 Tex : TEXCOORD;
+};
+
+struct VertexPosHWNormalTangentTex
+{
+    float4 PosH : SV_POSITION;
+    float3 PosW : POSITION; // 在世界中的位置
+    float3 NormalW : NORMAL; // 法向量在世界中的方向
+    float4 TangentW : TANGENT; // 切线在世界中的方向
+    float2 Tex : TEXCOORD;
 };
 
 

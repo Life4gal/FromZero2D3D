@@ -11,11 +11,10 @@
 
 #include <vector>
 #include <string>
+#include "Camera.h"
 #include "Geometry.h"
 #include "d3dUtil.h"
-#include "Camera.h"
-
-#include "SkyEffect.h"
+#include "Effect.h"
 
 class SkyRender
 {
@@ -42,7 +41,7 @@ public:
 	// 需要提供天空盒的六张正方形贴图
 	HRESULT InitResource(ID3D11Device* device,
 		ID3D11DeviceContext* deviceContext,
-		const std::vector<std::wstring>& cubeMapFilename,
+		const std::vector<std::wstring>& cubeMapFilenames,
 		float skySphereRadius,		// 天空球半径
 		bool generateMips = false
 	);	// 默认不为静态天空盒生成mipmaps
@@ -63,6 +62,67 @@ private:
 	UINT m_indexCount = 0;
 
 	ComPtr<ID3D11ShaderResourceView> m_pTextureCubeSRV;
+};
+
+class DynamicSkyRender : public SkyRender
+{
+public:
+	DynamicSkyRender() = default;
+	~DynamicSkyRender() = default;
+	// 不允许拷贝，允许移动
+	DynamicSkyRender(const DynamicSkyRender&) = delete;
+	DynamicSkyRender& operator=(const DynamicSkyRender&) = delete;
+	DynamicSkyRender(DynamicSkyRender&&) = default;
+	DynamicSkyRender& operator=(DynamicSkyRender&&) = default;
+
+	HRESULT InitResource(ID3D11Device* device,
+		ID3D11DeviceContext* deviceContext,
+		const std::wstring& cubeMapFilename,
+		float skySphereRadius,		// 天空球半径
+		int dynamicCubeSize,		// 立方体棱长
+		bool generateMips = false);	// 默认不为静态天空盒生成mipmaps
+									// 动态天空盒必然生成mipmaps
+
+	HRESULT InitResource(ID3D11Device* device,
+		ID3D11DeviceContext* deviceContext,
+		const std::vector<std::wstring>& cubeMapFilenames,
+		float skySphereRadius,		// 天空球半径
+		int dynamicCubeSize,		// 立方体棱长
+		bool generateMips = false);	// 默认不为静态天空盒生成mipmaps
+									// 动态天空盒必然生成mipmaps
+
+
+	// 缓存当前渲染目标视图
+	void Cache(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
+
+	// 指定天空盒某一面开始绘制，需要先调用Cache方法
+	void BeginCapture(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const DirectX::XMFLOAT3& pos,
+		D3D11_TEXTURECUBE_FACE face, float nearZ = 1e-3f, float farZ = 1e3f);
+
+	// 恢复渲染目标视图及摄像机，并绑定当前动态天空盒
+	void Restore(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const Camera& camera);
+
+	// 获取动态天空盒
+	// 注意：该方法只能在Restore后再调用
+	ID3D11ShaderResourceView* GetDynamicTextureCube() const;
+
+	// 获取当前用于捕获的天空盒
+	const Camera& GetCamera() const;
+
+	// 设置调试对象名
+	void SetDebugObjectName(const std::string& name) const;
+
+private:
+	HRESULT InitResource(ID3D11Device* device, int dynamicCubeSize);
+
+	ComPtr<ID3D11RenderTargetView>		m_pCacheRTV;		        // 临时缓存的后备缓冲区
+	ComPtr<ID3D11DepthStencilView>		m_pCacheDSV;		        // 临时缓存的深度/模板缓冲区
+
+	FirstPersonCamera					m_pCamera;				    // 捕获当前天空盒其中一面的摄像机
+	ComPtr<ID3D11DepthStencilView>		m_pDynamicCubeMapDSV;		// 动态天空盒渲染对应的深度/模板视图
+	ComPtr<ID3D11ShaderResourceView>	m_pDynamicCubeMapSRV;		// 动态天空盒对应的着色器资源视图
+	ComPtr<ID3D11RenderTargetView>		m_pDynamicCubeMapRTVs[6];	// 动态天空盒每个面对应的渲染目标视图
+
 };
 
 #endif

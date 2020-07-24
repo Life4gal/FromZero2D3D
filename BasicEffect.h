@@ -1,11 +1,12 @@
 #ifndef BASICEFFECT_H
 #define BASICEFFECT_H
 
-#include "Effects.h"
 #include "d3dUtil.h"
-#include "EffectHelper.h"	// 必须晚于Effects.h和d3dUtil.h包含
+#include "EffectHelper.h"
 #include "DXTrace.h"
 #include "Vertex.h"
+
+#include <array>
 
 class BasicEffect final : public IEffect
 {
@@ -35,6 +36,8 @@ public:
 
 	// 默认状态来绘制
 	void SetRenderDefault(ID3D11DeviceContext* deviceContext, RenderType type) const;
+	// 带法线贴图的绘制
+	void SetRenderWithNormalMap(ID3D11DeviceContext* deviceContext, RenderType type) const;
 
 	//
 	// 矩阵设置
@@ -60,16 +63,19 @@ public:
 	void SetTextureUsed(bool isUsed) const;
 
 	void SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const;
+	void SetTextureNormalMap(ID3D11ShaderResourceView* textureNormalMap) const;
 	void SetTextureCube(ID3D11ShaderResourceView* textureCube) const;
 
 	void XM_CALLCONV SetEyePos(DirectX::FXMVECTOR eyePos) const;
 
 	//
-	// 状态开关设置
+	// 状态开关设置，反射与折射不会共存
 	//
 
 	void SetReflectionEnabled(bool isEnable) const;
-
+	void SetRefractionEnabled(bool isEnable) const;
+	void SetRefractionEta(float eta) const;	// 空气/介质折射比
+	
 	// 应用常量缓冲区和纹理资源的变更
 	void Apply(ID3D11DeviceContext* deviceContext) override;
 

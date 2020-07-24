@@ -1,9 +1,8 @@
 #ifndef SKYEFFECT_H
 #define SKYEFFECT_H
 
-#include "Effects.h"
 #include "d3dUtil.h"
-#include "EffectHelper.h"	// 必须晚于Effects.h和d3dUtil.h包含
+#include "EffectHelper.h"
 #include "DXTrace.h"
 #include "Vertex.h"
 

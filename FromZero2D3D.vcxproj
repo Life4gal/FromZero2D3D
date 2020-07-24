@@ -211,8 +211,8 @@
     <ClInclude Include="d3dUtil.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DXTrace.h" />
+    <ClInclude Include="Effect.h" />
     <ClInclude Include="EffectHelper.h" />
-    <ClInclude Include="Effects.h" />
     <ClInclude Include="GameApp.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="Geometry.h" />
@@ -227,16 +227,21 @@
     <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="LightHelper.h" />
+    <ClInclude Include="MinimapEffect.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="ObjReader.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="RelatedTransform.h" />
+    <ClInclude Include="Render.h" />
     <ClInclude Include="RenderStates.h" />
+    <ClInclude Include="ScreenFadeEffect.h" />
+    <ClInclude Include="ScreenGrab.h" />
     <ClInclude Include="SkyEffect.h" />
     <ClInclude Include="SkyRender.h" />
     <ClInclude Include="Tank.h" />
     <ClInclude Include="BasicTransform.h" />
+    <ClInclude Include="TextureRender.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="WICTextureLoader.h" />
     <ClInclude Include="GameObject.h" />
@@ -260,16 +265,20 @@
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MinimapEffect.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="ObjReader.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="RelatedTransform.cpp" />
     <ClCompile Include="RenderStates.cpp" />
+    <ClCompile Include="ScreenFadeEffect.cpp" />
+    <ClCompile Include="ScreenGrab.cpp" />
     <ClCompile Include="SkyEffect.cpp" />
     <ClCompile Include="SkyRender.cpp" />
     <ClCompile Include="Tank.cpp" />
     <ClCompile Include="BasicTransform.cpp" />
+    <ClCompile Include="TextureRender.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="WICTextureLoader.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -282,6 +291,14 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="HLSL\NormalMapInstance_VS.hlsl" />
+    <FxCompile Include="HLSL\NormalMapObject_VS.hlsl" />
+    <FxCompile Include="HLSL\NormalMap_PS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>

@@ -31,7 +31,7 @@ bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* devi
 
 void ImguiPanel::LoadData(const Player& player)
 {
-	XMStoreFloat3(&m_direction, player.m_tank.m_tankMainBody.GetTransform().GetForwardAxisVector());
+	XMStoreFloat3(&m_direction, player.m_tank.GetTankTransform().GetForwardAxisVector());
 	m_position = player.m_tank.GetPosition();
 
 	XMMATRIX barrelLocalToWorldMatrix = player.m_tank.GetBarrelLocalToWorldMatrix();

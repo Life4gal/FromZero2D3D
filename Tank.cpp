@@ -171,7 +171,7 @@ void Tank::Strafe(const float d)
 	// 后轮不转
 	// 轮胎绕Y轴旋转
 	// const XMVECTOR upAxis = tankTransform.GetUpAxisVector();
-	// @TODO 限制旋转范围
+	// TODO 限制旋转范围
 	// m_wheels[0].GetTransform().RotateAround(XMLoadFloat3(&m_tankInfo.wheelLeftFrontPosition), upAxis, d);
 	// m_wheels[1].GetTransform().RotateAround(XMLoadFloat3(&m_tankInfo.wheelRightFrontPosition), upAxis, d);
 }
@@ -189,7 +189,7 @@ void Tank::Turn(const float d)
 {
 	BasicTransform& batteryTransform = m_battery.GetTransform();
 	// 转底座
-	// @TODO 找一个比较合理的旋转速度
+	// TODO 找一个比较合理的旋转速度
 	batteryTransform.Rotate(XMVectorSet(0.0f, 0.25f * d, 0.0f, 0.0f));
 }
 

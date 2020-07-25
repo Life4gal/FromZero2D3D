@@ -189,7 +189,7 @@ void GameApp::UpdateScene(const float dt)
 	}
 
 	// 调整位置
-	m_player.AdjustPosition();
+	m_player.AdjustPosition({ { -25.0f, 0.5f, -25.0f, 0.0f } }, { { 25.0f, 0.5f , 25.0f, 0.0f } });
 
 	if (m_cameraMode == CameraMode::FirstPerson)
 	{
@@ -402,6 +402,7 @@ bool GameApp::InitResource()
 
 	// 玩家
 	m_player.Init(m_pd3dDevice.Get());
+	m_player.SetPosition({ 0.0f, 0.6f, -20.0f });
 
 	 // 地面
 	{

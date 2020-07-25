@@ -205,6 +205,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BasicEffect.h" />
+    <ClInclude Include="NormalTank.h" />
+    <ClInclude Include="TankStructureHelper.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="d3dApp.h" />
@@ -268,6 +270,7 @@
     <ClCompile Include="MinimapEffect.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Mouse.cpp" />
+    <ClCompile Include="NormalTank.cpp" />
     <ClCompile Include="ObjReader.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="RelatedTransform.cpp" />

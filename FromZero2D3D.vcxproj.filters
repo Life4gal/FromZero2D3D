@@ -60,6 +60,9 @@
     <Filter Include="废弃的">
       <UniqueIdentifier>{f82d66d1-c51a-4721-b77c-1a91067c9455}</UniqueIdentifier>
     </Filter>
+    <Filter Include="玩家">
+      <UniqueIdentifier>{e6796f91-323d-420d-84f5-a0518fbed02f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dApp.h">
@@ -134,9 +137,6 @@
     <ClInclude Include="ImguiPanel.h">
       <Filter>ImGui\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Model.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
@@ -145,9 +145,6 @@
     </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>模块文件\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Tank.h">
-      <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="BasicTransform.h">
       <Filter>模块文件\头文件</Filter>
@@ -184,6 +181,18 @@
     </ClInclude>
     <ClInclude Include="Render.h">
       <Filter>特效文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Tank.h">
+      <Filter>废弃的</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>玩家</Filter>
+    </ClInclude>
+    <ClInclude Include="TankStructureHelper.h">
+      <Filter>玩家</Filter>
+    </ClInclude>
+    <ClInclude Include="NormalTank.h">
+      <Filter>玩家</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -250,9 +259,6 @@
     <ClCompile Include="ImguiPanel.cpp">
       <Filter>ImGui\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="ObjReader.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
@@ -261,9 +267,6 @@
     </ClCompile>
     <ClCompile Include="GameObject.cpp">
       <Filter>模块文件\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Tank.cpp">
-      <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="BasicTransform.cpp">
       <Filter>模块文件\源文件</Filter>
@@ -291,6 +294,15 @@
     </ClCompile>
     <ClCompile Include="ScreenGrab.cpp">
       <Filter>模块文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Tank.cpp">
+      <Filter>废弃的</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>玩家</Filter>
+    </ClCompile>
+    <ClCompile Include="NormalTank.cpp">
+      <Filter>玩家</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

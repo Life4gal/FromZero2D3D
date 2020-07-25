@@ -48,14 +48,19 @@ void Player::Turn(const float d)
 	m_tank.Turn(d);
 }
 
-void Player::AdjustPosition()
+void XM_CALLCONV Player::AdjustPosition(FXMVECTOR minCoordinate, FXMVECTOR maxCoordinate)
 {
-	m_tank.AdjustPosition();
+	m_tank.AdjustPosition(minCoordinate, maxCoordinate);
 }
 
 XMFLOAT3 Player::GetPosition() const
 {
 	return m_tank.GetPosition();
+}
+
+void Player::SetPosition(const XMFLOAT3& position)
+{
+	m_tank.SetPosition(position);
 }
 
 void Player::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)

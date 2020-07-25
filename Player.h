@@ -3,7 +3,7 @@
 
 #include "GameObject.h"
 #include "Collision.h"
-#include "Tank.h"
+#include "NormalTank.h"
 
 class Player
 {
@@ -26,15 +26,16 @@ public:
 	void Turn(float d);
 
 	DirectX::XMFLOAT3 GetPosition() const;
+	void SetPosition(const DirectX::XMFLOAT3& position);
 	
-	void AdjustPosition();
+	void XM_CALLCONV AdjustPosition(DirectX::FXMVECTOR minCoordinate, DirectX::FXMVECTOR maxCoordinate);
 
 	// 绘制
 	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
 
 private:
 
-	Tank m_tank;
+	NormalTank m_tank;
 };
 
 #endif

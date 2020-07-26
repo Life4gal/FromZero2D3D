@@ -5,14 +5,14 @@ using namespace DirectX;
 void NormalTank::Init(ID3D11Device* device)
 {
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texture;
-
-	GameObject& body = m_tankMainBody[0];
+	HR(CreateWICTextureFromFile(device, L"Texture\\Tank\\pic.jpg", nullptr, texture.GetAddressOf()));
 	
+	GameObject& body = m_tankMainBody[0];
+
 	// 车身
 	{
 		// 上面为主体
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\body_top.dds", nullptr, texture.GetAddressOf()));
 			Model model{ device, Geometry::CreatePlane(XMFLOAT2(3.5f, 6.0f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -26,7 +26,6 @@ void NormalTank::Init(ID3D11Device* device)
 		}
 		// 下面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\body_bottom.dds", nullptr, texture.ReleaseAndGetAddressOf()));
 			Model model{ device, Geometry::CreatePlane(XMFLOAT2(3.5f, 6.0f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -47,7 +46,6 @@ void NormalTank::Init(ID3D11Device* device)
 		}
 		// 前面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\body_front.dds", nullptr, texture.ReleaseAndGetAddressOf()));
 			Model model{ device, Geometry::CreatePlane(XMFLOAT2(3.5f, 1.7f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -61,14 +59,13 @@ void NormalTank::Init(ID3D11Device* device)
 			front.SetModel(std::move(model));
 
 			BasicTransform& transform = front.GetTransform();
-			// 绕X轴转90度
-			transform.SetRotation(XM_PIDIV2, 0.0f, 0.0f);
+			// 绕X轴转-90度,绕Z轴180度
+			transform.SetRotation(-XM_PIDIV2, 0.0f, XM_PI);
 			// 矮半个车身的高度,偏半个车的长度
 			transform.SetPosition(0.0f, -0.85f, 3.0f);
 		}
 		// 后面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\body_back.dds", nullptr, texture.ReleaseAndGetAddressOf()));
 			Model model{ device, Geometry::CreatePlane(XMFLOAT2(3.5f, 1.7f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -89,8 +86,7 @@ void NormalTank::Init(ID3D11Device* device)
 		}
 		// 左面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\body_left.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-			Model model{ device, Geometry::CreatePlane(XMFLOAT2(1.7f, 6.0f), XMFLOAT2(1.0f, 1.0f)) };
+			Model model{ device, Geometry::CreatePlane(XMFLOAT2(6.0f, 1.7f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
 			modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
@@ -103,15 +99,14 @@ void NormalTank::Init(ID3D11Device* device)
 			left.SetModel(std::move(model));
 
 			BasicTransform& transform = left.GetTransform();
-			// 绕Z轴转90度
-			transform.SetRotation(0.0f, 0.0f, XM_PIDIV2);
+			// 绕Z轴转90度,绕X轴转-90度
+			transform.SetRotation(-XM_PIDIV2, 0.0f, XM_PIDIV2);
 			// 矮半个车身的高度,偏半个车的宽度
 			transform.SetPosition(-1.75f, -0.85f, 0.0f);
 		}
 		// 右面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\body_right.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-			Model model{ device, Geometry::CreatePlane(XMFLOAT2(1.7f, 6.0f), XMFLOAT2(1.0f, 1.0f)) };
+			Model model{ device, Geometry::CreatePlane(XMFLOAT2(6.0f, 1.7f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
 			modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
@@ -124,106 +119,285 @@ void NormalTank::Init(ID3D11Device* device)
 			right.SetModel(std::move(model));
 
 			BasicTransform& transform = right.GetTransform();
-			// 绕Z轴转-90度
-			transform.SetRotation(0.0f, 0.0f, -XM_PIDIV2);
+			// 绕Z轴转-90度,绕X轴转-90度
+			transform.SetRotation(-XM_PIDIV2, 0.0f, -XM_PIDIV2);
 			// 矮半个车身的高度,偏半个车的宽度
 			transform.SetPosition(1.75f, -0.85f, 0.0f);
 		}
 	}
 	// 轮子
 	{
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> wheelTex;
+		HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\wheel.dds", nullptr, wheelTex.GetAddressOf()));
 		// 左前
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\wheel_leftfront.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-			Model model{ device, Geometry::CreateCylinder(0.75f, 0.5f, 20) };
-			ModelPart& modelPart = model.modelParts.front();
-			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-			modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-			modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
-			modelPart.material.reflect = XMFLOAT4();
-			modelPart.texDiffuse = texture;
-
 			GameObject& wheel = m_wheels[0];
 			body.AddChild(&wheel);
-			wheel.SetModel(std::move(model));
+			// 车胎
+			{
+				Model model{ device, Geometry::CreateCylinderNoCap(0.75f, 0.5f, 20) };
+				ModelPart& modelPart = model.modelParts.front();
+				modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+				modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+				modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+				modelPart.material.reflect = XMFLOAT4();
+				modelPart.texDiffuse = wheelTex;
+				wheel.SetModel(std::move(model));
+				
+				BasicTransform& transform = wheel.GetTransform();
+				// 绕Z轴转90度
+				transform.SetRotation(0.0f, 0.0f, XM_PIDIV2);
+				// 矮车身的高度,偏半个车的宽度,偏半个车的长度
+				transform.SetPosition(-1.75f, -1.7f, 3.0f);
+			}
+			// 车轮侧面
+			{
+				//左前外
+				{
+					Model model{ device, Geometry::CreateCircle(0.75f, 20) };
+					ModelPart& modelPart = model.modelParts.front();
+					modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+					modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+					modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+					modelPart.material.reflect = XMFLOAT4();
+					modelPart.texDiffuse = texture;
 
-			BasicTransform& transform = wheel.GetTransform();
-			// 绕Z轴转-90度
-			transform.SetRotation(0.0f, 0.0f, -XM_PIDIV2);
-			// 矮车身的高度,偏半个车的宽度,偏半个车的长度
-			transform.SetPosition(-1.75f, -1.7f, 3.0f);
+					GameObject& wheelSide = m_wheelsSide[0];
+					wheel.AddChild(&wheelSide);
+					wheelSide.SetModel(std::move(model));
+					
+					BasicTransform& transform = wheelSide.GetTransform();
+					// 偏半个轮子宽度
+					transform.SetPosition(0.0f, 0.25f, 0.0f);
+					// 绕Y轴转90度
+					transform.SetRotation(0.0f, XM_PIDIV2, 0.0f);
+				}
+				// 左前内
+				{
+					Model model{ device, Geometry::CreateCircle(0.75f, 20) };
+					ModelPart& modelPart = model.modelParts.front();
+					modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+					modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+					modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+					modelPart.material.reflect = XMFLOAT4();
+					modelPart.texDiffuse = texture;
+
+					GameObject& wheelSide = m_wheelsSide[1];
+					wheel.AddChild(&wheelSide);
+					wheelSide.SetModel(std::move(model));
+					
+					BasicTransform& transform = wheelSide.GetTransform();
+					// 偏半个轮子宽度
+					transform.SetPosition(0.0f, -0.25f, 0.0f);
+					// 绕Z轴转180度,绕Y轴转-90度
+					transform.SetRotation(0.0f, XM_PIDIV2, XM_PI);
+				}
+			}
 		}
 		// 右前
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\wheel_rightfront.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-			Model model{ device, Geometry::CreateCylinder(0.75f, 0.5f, 20) };
-			ModelPart& modelPart = model.modelParts.front();
-			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-			modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-			modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
-			modelPart.material.reflect = XMFLOAT4();
-			modelPart.texDiffuse = texture;
-
 			GameObject& wheel = m_wheels[1];
 			body.AddChild(&wheel);
-			wheel.SetModel(std::move(model));
+			// 车胎
+			{
+				Model model{ device, Geometry::CreateCylinderNoCap(0.75f, 0.5f, 20) };
+				ModelPart& modelPart = model.modelParts.front();
+				modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+				modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+				modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+				modelPart.material.reflect = XMFLOAT4();
+				modelPart.texDiffuse = wheelTex;
 
-			BasicTransform& transform = wheel.GetTransform();
-			// 绕Z轴转90度
-			transform.SetRotation(0.0f, 0.0f, XM_PIDIV2);
-			// 矮车身的高度,偏半个车的宽度,偏半个车的长度
-			transform.SetPosition(1.75f, -1.7f, 3.0f);
+				wheel.SetModel(std::move(model));
+
+				BasicTransform& transform = wheel.GetTransform();
+				// 绕Z轴转-90度
+				transform.SetRotation(0.0f, 0.0f, -XM_PIDIV2);
+				// 矮车身的高度,偏半个车的宽度,偏半个车的长度
+				transform.SetPosition(1.75f, -1.7f, 3.0f);
+			}
+			// 车轮侧面
+			{
+				//右前外
+				{
+					Model model{ device, Geometry::CreateCircle(0.75f, 20) };
+					ModelPart& modelPart = model.modelParts.front();
+					modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+					modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+					modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+					modelPart.material.reflect = XMFLOAT4();
+					modelPart.texDiffuse = texture;
+
+					GameObject& wheelSide = m_wheelsSide[2];
+					wheel.AddChild(&wheelSide);
+					wheelSide.SetModel(std::move(model));
+
+					BasicTransform& transform = wheelSide.GetTransform();
+					// 偏半个轮子宽度
+					transform.SetPosition(0.0f, 0.25f, 0.0f);
+					// 绕Y轴转-90度
+					transform.SetRotation(0.0f, -XM_PIDIV2, 0.0f);
+				}
+				// 右前内
+				{
+					Model model{ device, Geometry::CreateCircle(0.75f, 20) };
+					ModelPart& modelPart = model.modelParts.front();
+					modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+					modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+					modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+					modelPart.material.reflect = XMFLOAT4();
+					modelPart.texDiffuse = texture;
+
+					GameObject& wheelSide = m_wheelsSide[3];
+					wheel.AddChild(&wheelSide);
+					wheelSide.SetModel(std::move(model));
+
+					BasicTransform& transform = wheelSide.GetTransform();
+					// 偏半个轮子宽度
+					transform.SetPosition(0.0f, -0.25f, 0.0f);
+					// 绕Z轴转180度,绕Y轴转-90度
+					transform.SetRotation(0.0f, -XM_PIDIV2, XM_PI);
+				}
+			}
 		}
 		// 左后
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\wheel_leftback.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-			Model model{ device, Geometry::CreateCylinder(0.75f, 0.5f, 20) };
-			ModelPart& modelPart = model.modelParts.front();
-			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-			modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-			modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
-			modelPart.material.reflect = XMFLOAT4();
-			modelPart.texDiffuse = texture;
-
 			GameObject& wheel = m_wheels[2];
 			body.AddChild(&wheel);
-			wheel.SetModel(std::move(model));
+			{
+				Model model{ device, Geometry::CreateCylinderNoCap(0.75f, 0.5f, 20) };
+				ModelPart& modelPart = model.modelParts.front();
+				modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+				modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+				modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+				modelPart.material.reflect = XMFLOAT4();
+				modelPart.texDiffuse = wheelTex;
 
-			BasicTransform& transform = wheel.GetTransform();
-			// 绕Z轴转-90度
-			transform.SetRotation(0.0f, 0.0f, -XM_PIDIV2);
-			// 矮车身的高度,偏半个车的宽度,偏半个车的长度
-			transform.SetPosition(-1.75f, -1.7f, -3.0f);
+				wheel.SetModel(std::move(model));
+
+				BasicTransform& transform = wheel.GetTransform();
+				// 绕Z轴转-90度
+				transform.SetRotation(0.0f, 0.0f, XM_PIDIV2);
+				// 矮车身的高度,偏半个车的宽度,偏半个车的长度
+				transform.SetPosition(-1.75f, -1.7f, -3.0f);
+			}
+			// 车轮侧面
+			{
+				//左后外
+				{
+					Model model{ device, Geometry::CreateCircle(0.75f, 20) };
+					ModelPart& modelPart = model.modelParts.front();
+					modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+					modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+					modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+					modelPart.material.reflect = XMFLOAT4();
+					modelPart.texDiffuse = texture;
+
+					GameObject& wheelSide = m_wheelsSide[4];
+					wheel.AddChild(&wheelSide);
+					wheelSide.SetModel(std::move(model));
+
+					BasicTransform& transform = wheelSide.GetTransform();
+					// 偏半个轮子宽度
+					transform.SetPosition(0.0f, 0.25f, 0.0f);
+					// 绕Y轴转90度
+					transform.SetRotation(0.0f, XM_PIDIV2, 0.0f);
+				}
+				// 左后内
+				{
+					Model model{ device, Geometry::CreateCircle(0.75f, 20) };
+					ModelPart& modelPart = model.modelParts.front();
+					modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+					modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+					modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+					modelPart.material.reflect = XMFLOAT4();
+					modelPart.texDiffuse = texture;
+
+					GameObject& wheelSide = m_wheelsSide[5];
+					wheel.AddChild(&wheelSide);
+					wheelSide.SetModel(std::move(model));
+
+					BasicTransform& transform = wheelSide.GetTransform();
+					// 偏半个轮子宽度
+					transform.SetPosition(0.0f, -0.25f, 0.0f);
+					// 绕Z轴转180度,绕Y轴转90度
+					transform.SetRotation(0.0f, XM_PIDIV2, XM_PI);
+				}
+			}
 		}
 		// 右后
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\wheel_rightback.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-			Model model{ device, Geometry::CreateCylinder(0.75f, 0.5f, 20) };
-			ModelPart& modelPart = model.modelParts.front();
-			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-			modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-			modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
-			modelPart.material.reflect = XMFLOAT4();
-			modelPart.texDiffuse = texture;
-
 			GameObject& wheel = m_wheels[3];
 			body.AddChild(&wheel);
-			wheel.SetModel(std::move(model));
+			{
+				Model model{ device, Geometry::CreateCylinderNoCap(0.75f, 0.5f, 20) };
+				ModelPart& modelPart = model.modelParts.front();
+				modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+				modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+				modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+				modelPart.material.reflect = XMFLOAT4();
+				modelPart.texDiffuse = wheelTex;
 
-			BasicTransform& transform = wheel.GetTransform();
-			// 绕Z轴转90度
-			transform.SetRotation(0.0f, 0.0f, XM_PIDIV2);
-			// 矮车身的高度,偏半个车的宽度,偏半个车的长度
-			transform.SetPosition(1.75f, -1.7f, -3.0f);
+				wheel.SetModel(std::move(model));
+
+				BasicTransform& transform = wheel.GetTransform();
+				// 绕Z轴转90度
+				transform.SetRotation(0.0f, 0.0f, -XM_PIDIV2);
+				// 矮车身的高度,偏半个车的宽度,偏半个车的长度
+				transform.SetPosition(1.75f, -1.7f, -3.0f);
+			}
+			// 车轮侧面
+			{
+				//右后外
+				{
+					Model model{ device, Geometry::CreateCircle(0.75f, 20) };
+					ModelPart& modelPart = model.modelParts.front();
+					modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+					modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+					modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+					modelPart.material.reflect = XMFLOAT4();
+					modelPart.texDiffuse = texture;
+
+					GameObject& wheelSide = m_wheelsSide[6];
+					wheel.AddChild(&wheelSide);
+					wheelSide.SetModel(std::move(model));
+
+					BasicTransform& transform = wheelSide.GetTransform();
+					// 偏半个轮子宽度
+					transform.SetPosition(0.0f, 0.25f, 0.0f);
+					// 绕Y轴转-90度
+					transform.SetRotation(0.0f, -XM_PIDIV2, 0.0f);
+				}
+				// 右后内
+				{
+					Model model{ device, Geometry::CreateCircle(0.75f, 20) };
+					ModelPart& modelPart = model.modelParts.front();
+					modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+					modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+					modelPart.material.specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+					modelPart.material.reflect = XMFLOAT4();
+					modelPart.texDiffuse = texture;
+
+					GameObject& wheelSide = m_wheelsSide[7];
+					wheel.AddChild(&wheelSide);
+					wheelSide.SetModel(std::move(model));
+
+					BasicTransform& transform = wheelSide.GetTransform();
+					// 偏半个轮子宽度
+					transform.SetPosition(0.0f, -0.25f, 0.0f);
+					// 绕Z轴转180度,绕Y轴转-90度
+					transform.SetRotation(0.0f, -XM_PIDIV2, XM_PI);
+				}
+			}
 		}
 	}
 	// 炮台
 	{
 		GameObject& battery = m_battery[0];
 		body.AddChild(&battery);
+
 		// 上面为主体
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\battery_top.dds", nullptr, texture.GetAddressOf()));
 			Model model{ device, Geometry::CreatePlane(XMFLOAT2(2.0f, 2.0f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -238,7 +412,6 @@ void NormalTank::Init(ID3D11Device* device)
 		}
 		// 前面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\battery_front.dds", nullptr, texture.ReleaseAndGetAddressOf()));
 			Model model{ device, Geometry::CreatePlane(XMFLOAT2(2.0f, 1.2f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -252,14 +425,13 @@ void NormalTank::Init(ID3D11Device* device)
 			front.SetModel(std::move(model));
 
 			BasicTransform& transform = front.GetTransform();
-			// 绕X轴转90度
-			transform.SetRotation(XM_PIDIV2, 0.0f, 0.0f);
+			// 绕X轴转-90度,绕Z轴180度
+			transform.SetRotation(-XM_PIDIV2, 0.0f, XM_PI);
 			// 矮半个底座的高度,偏半个底座的长度
 			transform.SetPosition(0.0f, -0.6f, 1.0f);
 		}
 		// 后面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\battery_back.dds", nullptr, texture.ReleaseAndGetAddressOf()));
 			Model model{ device, Geometry::CreatePlane(XMFLOAT2(2.0f, 1.2f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -280,8 +452,7 @@ void NormalTank::Init(ID3D11Device* device)
 		}
 		// 左面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\battery_left.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-			Model model{ device, Geometry::CreatePlane(XMFLOAT2(1.2f, 2.0f), XMFLOAT2(1.0f, 1.0f)) };
+			Model model{ device, Geometry::CreatePlane(XMFLOAT2(2.0f, 1.2f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
 			modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
@@ -294,15 +465,14 @@ void NormalTank::Init(ID3D11Device* device)
 			left.SetModel(std::move(model));
 
 			BasicTransform& transform = left.GetTransform();
-			// 绕Z轴转90度
-			transform.SetRotation(0.0f, 0.0f, XM_PIDIV2);
+			// 绕Z轴转90度,绕X轴转-90度
+			transform.SetRotation(-XM_PIDIV2, 0.0f, XM_PIDIV2);
 			// 矮半个底座的高度,偏半个底座的宽度
 			transform.SetPosition(-1.0f, -0.6f, 0.0f);
 		}
 		// 右面
 		{
-			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\battery_right.dds", nullptr, texture.ReleaseAndGetAddressOf()));
-			Model model{ device, Geometry::CreatePlane(XMFLOAT2(1.2f, 2.0f), XMFLOAT2(1.0f, 1.0f)) };
+			Model model{ device, Geometry::CreatePlane(XMFLOAT2(2.0f, 1.2f), XMFLOAT2(1.0f, 1.0f)) };
 			ModelPart& modelPart = model.modelParts.front();
 			modelPart.material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
 			modelPart.material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
@@ -315,13 +485,14 @@ void NormalTank::Init(ID3D11Device* device)
 			right.SetModel(std::move(model));
 
 			BasicTransform& transform = right.GetTransform();
-			// 绕Z轴转-90度
-			transform.SetRotation(0.0f, 0.0f, -XM_PIDIV2);
+			// 绕Z轴转-90度,绕X轴转-90度
+			transform.SetRotation(-XM_PIDIV2, 0.0f, -XM_PIDIV2);
 			// 矮半个底座的高度,偏半个底座的宽度
 			transform.SetPosition(1.0f, -0.6f, 0.0f);
 		}
 		// 炮管
 		{
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texture;
 			HR(CreateDDSTextureFromFile(device, L"Texture\\Tank\\barrel.dds", nullptr, texture.ReleaseAndGetAddressOf()));
 			Model model{ device, Geometry::CreateCylinder(0.25f, 4.5f, 20) };
 			ModelPart& modelPart = model.modelParts.front();
@@ -353,6 +524,14 @@ void NormalTank::Init(ID3D11Device* device)
 	m_wheels[1].SetDebugObjectName("TankWheelRightFront");
 	m_wheels[2].SetDebugObjectName("TankWheelLeftBack");
 	m_wheels[3].SetDebugObjectName("TankWheelRightBack");
+	m_wheelsSide[0].SetDebugObjectName("TankWheelSide0");
+	m_wheelsSide[1].SetDebugObjectName("TankWheelSide1");
+	m_wheelsSide[2].SetDebugObjectName("TankWheelSide2");
+	m_wheelsSide[3].SetDebugObjectName("TankWheelSide3");
+	m_wheelsSide[4].SetDebugObjectName("TankWheelSide4");
+	m_wheelsSide[5].SetDebugObjectName("TankWheelSide5");
+	m_wheelsSide[6].SetDebugObjectName("TankWheelSide6");
+	m_wheelsSide[7].SetDebugObjectName("TankWheelSide7");
 	m_battery[0].SetDebugObjectName("TankBatteryTop");
 	m_battery[1].SetDebugObjectName("TankBatteryFront");
 	m_battery[2].SetDebugObjectName("TankBatteryBack");

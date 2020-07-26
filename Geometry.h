@@ -77,6 +77,11 @@ namespace Geometry
 	MeshData<VertexType, IndexType> CreatePlane(float width = 10.0f, float depth = 10.0f, float texU = 1.0f, float texV = 1.0f,
 		const DirectX::XMFLOAT4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
 
+	// 创建一个圆面
+	template<typename VertexType = VertexPosNormalTex, typename IndexType = DWORD>
+	MeshData<VertexType, IndexType> CreateCircle(float radius = 1.0f, UINT slices = 20,
+		const DirectX::XMFLOAT4& color = { 1.0f, 1.0f, 1.0f, 1.0f });
+
 	// 创建一个地形
 	template<typename VertexType = VertexPosNormalTex, typename IndexType = DWORD>
 	MeshData<VertexType, IndexType> CreateTerrain(const DirectX::XMFLOAT2& terrainSize,
@@ -335,7 +340,7 @@ namespace Geometry
 	}
 
 	template<typename VertexType, typename IndexType>
-	MeshData<VertexType, IndexType> CreateCylinder(float radius, float height, UINT slices, const DirectX::XMFLOAT4 & color)
+	MeshData<VertexType, IndexType> CreateCylinder(float radius, float height, UINT slices, const DirectX::XMFLOAT4& color)
 	{
 		using namespace DirectX;
 
@@ -641,6 +646,53 @@ namespace Geometry
 		meshData.indexVec = { 0, 1, 2, 2, 3, 0 };
 		return meshData;
 	}
+
+	template <typename VertexType, typename IndexType>
+	MeshData<VertexType, IndexType> CreateCircle(const float radius, const UINT slices, const DirectX::XMFLOAT4& color)
+	{
+		using namespace DirectX;
+
+		MeshData<VertexType, IndexType>  meshData;
+		// 每个圆面有 (slices + 1) + 1(圆心点) 个顶点
+		UINT vertexCount = slices + 2;
+		// 每个点连出三条线,额外的圆心点对每个点都连接一条线,即总计四倍的点数
+		UINT indexCount = 4 * slices;
+		meshData.vertexVec.resize(vertexCount);
+		meshData.indexVec.resize(indexCount);
+
+		IndexType vIndex = 0;
+		IndexType iIndex = 0;
+	
+		// 放入圆心
+		Internal::VertexData vertexData = {
+			XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.0f, 1.0f, 0.0f),
+			XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(0.5f, 0.5f)
+		};
+		Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
+
+		const float perTheta = XM_2PI / slices;
+		
+		// 放入圆上各点
+		for (UINT i = 0; i <= slices; ++i)
+		{
+			const float theta = i * perTheta;
+			vertexData = {
+				XMFLOAT3(radius * cosf(theta), 0.0f, radius * sinf(theta)), XMFLOAT3(0.0f, 1.0f, 0.0f),
+				XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), color, XMFLOAT2(cosf(theta) / 2 + 0.5f, -sinf(theta) / 2 + 0.5f) };
+			Internal::InsertVertexElement(meshData.vertexVec[vIndex++], vertexData);
+		}
+
+		// 放入三角形索引
+		for (UINT i = 1; i <= slices; ++i)
+		{
+			meshData.indexVec[iIndex++] = 0;
+			meshData.indexVec[iIndex++] = i % vertexCount + 1;
+			meshData.indexVec[iIndex++] = i;
+		}
+
+		return meshData;
+	}
+
 	template<typename VertexType, typename IndexType>
 	MeshData<VertexType, IndexType> CreateTerrain(const DirectX::XMFLOAT2& terrainSize, const DirectX::XMUINT2& slices,
 		const DirectX::XMFLOAT2& maxTexCoord, const std::function<float(float, float)>& heightFunc,

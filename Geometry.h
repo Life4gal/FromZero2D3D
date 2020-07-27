@@ -437,12 +437,6 @@ namespace Geometry
 				pos(位置):
 					对于一个平面圆, 朝右表示 x 方向, 朝上表示 z 方向, x = r * cos(theta) , z = r * sin(theta) 
 					以摄像机角度看图形, 朝上表示 y 方向, y = h / 2
-				normal(法线):
-
-				tangent(切线):
-
-				tex(纹理坐标):
-				
 			 */
 			const float theta = i * perTheta;
 			vertexData = { XMFLOAT3(radius * cosf(theta), h2, radius * sinf(theta)), XMFLOAT3(cosf(theta), 0.0f, sinf(theta)),

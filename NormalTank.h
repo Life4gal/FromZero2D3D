@@ -36,26 +36,34 @@ private:
 
 	const BasicTransform& GetBatteryTransform() const override;
 	
-	/*
-		基本信息:
-			// 载具车身(立方体)
-			const float bodyWidth = 3.5f;			// 载具俯视角(车头朝上下)宽度
-			const float bodyLength = 6.0f;			// 载具俯视角(车头朝上下)长度
-			const float bodyHeight = 1.7f;			// 载具高度
+	// 载具车身(立方体)
+	static constexpr float BodyWidth = 3.5f;		// 载具俯视角(车头朝上下)宽度
+	static constexpr float BodyLength = 6.0f;		// 载具俯视角(车头朝上下)长度
+	static constexpr float BodyHeight = 1.7f;		// 载具高度
+	// 炮台底座规格(立方体)
+	static constexpr float BatteryWidth = 2.0f;		// 底座俯视角宽度
+	static constexpr float BatteryLength = 2.0f;	// 底座俯视角长度
+	static constexpr float BatteryHeight = 1.2f;	// 底座俯视角高度
+	// 炮管规格(圆柱)
+	static constexpr float BarrelCaliber = 0.25;	// 炮管的口径
+	static constexpr float BarrelLength = 4.5f;		// 炮管的长度
+	// 轮子规格(圆柱)
+	static constexpr float WheelRadius = 0.75f;		// 轮子的半径
+	static constexpr float WheelLength = 0.5f;		// 轮子的长度
 
-			// 炮台底座规格(立方体)
-			const float batteryWidth = 2.0f;		// 底座俯视角宽度
-			const float batteryLength = 2.0f;		// 底座俯视角长度
-			const float batteryHeight = 1.2f;		// 底座俯视角高度
-			
-			// 炮管规格(圆柱)
-			const float barrelCaliber = 0.25f;		// 炮管的口径
-			const float barrelLength = 4.5f;		// 炮管的长度
-			
-			// 轮子规格(圆柱)
-			const float wheelRadius = 0.75f;		// 轮子的半径
-			const float wheelLength = 0.5f;			// 轮子的长度
-	*/
+	struct Wheel
+	{
+		// 设置父子关系,必须在拷贝后再设置
+		void SetParent()
+		{
+			wheel.AddChild(&wheelOutSide);
+			wheel.AddChild(&wheelInSide);
+		}
+		
+		GameObject wheel;							// 轮胎
+		GameObject wheelOutSide;					// 外侧
+		GameObject wheelInSide;						// 内侧
+	};
 	
 	// 主体
 	// 我们分成六个面以使用六张不同的纹理
@@ -64,11 +72,7 @@ private:
 
 	// 轮胎
 	// 按顺序分别为 左前/右前/左后/右后
-	std::array<GameObject, 4> m_wheels;
-	// 我们把车轱辘和车胎分开了
-	// 轮胎侧面
-	// 按顺序分别为 左前外/左前内/右前外/右前内/左后外/左后内/右后外/右后内
-	std::array<GameObject, 8> m_wheelsSide;
+	std::array<Wheel, 4> m_wheels;
 	
 	// 炮台
 	// 我们分成五个面以使用五张不同的纹理,因为下面总是不可见的

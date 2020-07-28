@@ -11,9 +11,10 @@ public:
 	~NormalTank() override = default;
 
 	NormalTank(const NormalTank& other) = default;
-	NormalTank(NormalTank&& other) noexcept = default;
 	NormalTank& operator=(const NormalTank& other) = default;
-	NormalTank& operator=(NormalTank&& other) noexcept = default;
+	// TODO 由于车轮的移动暂未处理,所以声明为delete
+	NormalTank(NormalTank&& other) noexcept = delete;
+	NormalTank& operator=(NormalTank&& other) noexcept = delete;
 	
 	void Init(ID3D11Device* device) override;
 
@@ -53,16 +54,42 @@ private:
 
 	struct Wheel
 	{
-		// 设置父子关系,必须在拷贝后再设置
-		void SetParent()
-		{
-			wheel.AddChild(&wheelOutSide);
-			wheel.AddChild(&wheelInSide);
-		}
+		Wheel() = default;
+		~Wheel() = default;
 		
+		Wheel(const Wheel& other)
+		{
+			Copy(other);
+		}
+
+		Wheel& operator=(const Wheel& other)
+		{
+			if(this == &other)
+			{
+				return *this;
+			}
+			
+			Copy(other);
+			return *this;
+		}
+
+		// TODO 移动待处理
+		Wheel(Wheel&& other) noexcept = delete;
+		Wheel& operator=(Wheel&& other) noexcept = delete;
+
 		GameObject wheel;							// 轮胎
 		GameObject wheelOutSide;					// 外侧
 		GameObject wheelInSide;						// 内侧
+
+	private:
+		void Copy(const Wheel& other)
+		{
+			wheel = other.wheel;
+			wheelOutSide = other.wheelOutSide;
+			wheelInSide = other.wheelInSide;
+			wheel.AddChild(&wheelOutSide);
+			wheel.AddChild(&wheelInSide);
+		}
 	};
 	
 	// 主体

@@ -38,7 +38,7 @@ void NormalTank::Init(ID3D11Device* device)
 				modelPart.material.reflect = XMFLOAT4();
 				modelPart.texDiffuse = bodyTex;
 			}
-			
+
 			GameObject& bottom = m_tankMainBody[1];
 			body.AddChild(&bottom);
 			bottom.SetModel(std::move(tankModel));

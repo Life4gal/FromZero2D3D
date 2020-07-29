@@ -60,9 +60,9 @@ public:
 	//
 
 	// 绘制对象
-	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
+	void Draw(ID3D11DeviceContext* deviceContext,IEffect* effect);
 	// 绘制实例
-	void DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const std::vector<BasicTransform>& data);
+	void DrawInstanced(ID3D11DeviceContext* deviceContext, IEffect* effect, const std::vector<BasicTransform>& data);
 
 	//
 	// 调试 
@@ -73,7 +73,7 @@ public:
 	void SetDebugObjectName(const std::string& name);
 
 private:
-	void XM_CALLCONV Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, DirectX::FXMMATRIX parentScale, DirectX::CXMMATRIX parentRotTraMatrix);
+	void XM_CALLCONV Draw(ID3D11DeviceContext* deviceContext, IEffect* effect, DirectX::FXMMATRIX parentScale, DirectX::CXMMATRIX parentRotTraMatrix);
 	
 	struct InstancedData
 	{

@@ -6,7 +6,7 @@
 #include "DXTrace.h"
 #include "Vertex.h"
 
-class SkyEffect final : public IEffect
+class SkyEffect final : public IEffect, public IEffectTransform
 {
 public:
 	SkyEffect();
@@ -24,26 +24,27 @@ public:
 	// 初始化所需资源
 	bool InitAll(ID3D11Device* device) const;
 
+	//
+	// IEffectTransform
+	//
+
+	void XM_CALLCONV SetWorldMatrix(DirectX::FXMMATRIX world) const override;
+	void XM_CALLCONV SetViewMatrix(DirectX::FXMMATRIX view) const override;
+	void XM_CALLCONV SetProjMatrix(DirectX::FXMMATRIX proj) const override;
+	
 	// 
-	// 渲染模式的变更
+	// SkyEffect
 	//
 
 	// 默认状态来绘制
 	void SetRenderDefault(ID3D11DeviceContext* deviceContext) const;
 
+	// 设置天空盒
+	void SetTextureCube(ID3D11ShaderResourceView* textureCube) const;
+
 	//
 	// 矩阵设置
 	//
-
-	void XM_CALLCONV SetWorldViewProjMatrix(DirectX::FXMMATRIX world, DirectX::CXMMATRIX view, DirectX::CXMMATRIX proj) const;
-	void XM_CALLCONV SetWorldViewProjMatrix(DirectX::FXMMATRIX worldViewProjMatrix) const;
-
-	//
-	// 纹理立方体映射设置
-	//
-
-	void SetTextureCube(ID3D11ShaderResourceView* textureCube) const;
-
 
 	// 应用常量缓冲区和纹理资源的变更
 	void Apply(ID3D11DeviceContext* deviceContext) override;

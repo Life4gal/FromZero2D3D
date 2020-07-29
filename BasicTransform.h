@@ -30,6 +30,8 @@
 class BasicTransform
 {
 public:
+	BasicTransform();
+	
 	explicit BasicTransform(const DirectX::XMFLOAT3& scale, const DirectX::XMFLOAT3& rotation, const DirectX::XMFLOAT3& position);
 
 	virtual ~BasicTransform() = default;
@@ -113,5 +115,3 @@ protected:
 };
 
 #endif
-
-

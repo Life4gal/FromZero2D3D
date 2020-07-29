@@ -6,86 +6,21 @@ using namespace DirectX;
 // BasicEffect::Impl 需要先于BasicEffect的定义
 //
 
-class BasicEffect::Impl : public AlignedType<Impl>
+class BasicEffect::Impl
 {
 public:
+	std::unique_ptr<EffectHelper> m_pEffectHelper;
 
-	//
-	// 这些结构体对应HLSL的结构体。需要按16字节对齐
-	//
-
-	struct CBChangesEveryInstanceDrawing
-	{
-		XMMATRIX world;
-		XMMATRIX worldInvTranspose;
-	};
-
-	struct CBChangesEveryObjectDrawing
-	{
-		Material material;
-	};
-
-	struct CBDrawingStates
-	{
-		int textureUsed;
-		int reflectionEnabled;
-		int refractionEnabled;
-		float eta;	// 空气/介质折射率
-	};
-	
-	struct CBChangesEveryFrame
-	{
-		XMMATRIX view;
-		XMVECTOR eyePos;
-	};
-
-	struct CBChangesOnResize
-	{
-		XMMATRIX proj;
-	};
-
-	struct CBChangesRarely
-	{
-		DirectionalLight dirLight[MaxLights];
-		PointLight pointLight[MaxLights];
-		SpotLight spotLight[MaxLights];
-	};
-
-	// 必须显式指定
-	Impl() : m_isDirty(), m_pCBuffers() {}
-	~Impl() = default;
-
-	Impl(const Impl& other) = default;
-	Impl(Impl&& other) noexcept = default;
-	Impl& operator=(const Impl& other) = default;
-	Impl& operator=(Impl&& other) noexcept = default;
-
-	// 需要16字节对齐的优先放在前面
-	CBufferObject<0, CBChangesEveryInstanceDrawing>	m_cbInstDrawing;		// 每次实例绘制的常量缓冲区
-	CBufferObject<1, CBChangesEveryObjectDrawing>	m_cbObjDrawing;		    // 每次对象绘制的常量缓冲区
-	CBufferObject<2, CBDrawingStates>				m_cbStates;			    // 每次绘制状态改变的常量缓冲区
-	CBufferObject<3, CBChangesEveryFrame>			m_cbFrame;			    // 每帧绘制的常量缓冲区
-	CBufferObject<4, CBChangesOnResize>				m_cbOnResize;			// 每次窗口大小变更的常量缓冲区
-	CBufferObject<5, CBChangesRarely>				m_cbRarely;			    // 几乎不会变更的常量缓冲区
-	BOOL m_isDirty;											    // 是否有值变更
-	std::array<CBufferBase*, 6> m_pCBuffers;					    // 统一管理上面所有的常量缓冲区// 统一管理上面所有的常量缓冲区
-
-	ComPtr<ID3D11VertexShader> m_pBasicInstanceVS;
-	ComPtr<ID3D11VertexShader> m_pBasicObjectVS;
-	ComPtr<ID3D11VertexShader> m_pNormalMapInstanceVS;
-	ComPtr<ID3D11VertexShader> m_pNormalMapObjectVS;
-
-	ComPtr<ID3D11PixelShader> m_pBasicPS;
-	ComPtr<ID3D11PixelShader> m_pNormalMapPS;
+	std::shared_ptr<IEffectPass> m_pCurrEffectPass;
 
 	ComPtr<ID3D11InputLayout> m_pInstancePosNormalTexLayout;
+	ComPtr<ID3D11InputLayout> m_pVertexPosNormalTexLayout;
 	ComPtr<ID3D11InputLayout> m_pInstancePosNormalTangentTexLayout;
 	ComPtr<ID3D11InputLayout> m_pVertexPosNormalTangentTexLayout;
-	ComPtr<ID3D11InputLayout> m_pVertexPosNormalTexLayout;
 
-	ComPtr<ID3D11ShaderResourceView> m_pTextureDiffuse;		                // 漫反射纹理
-	ComPtr<ID3D11ShaderResourceView> m_pTextureNormalMap;		            // 法线纹理
-	ComPtr<ID3D11ShaderResourceView> m_pTextureCube;			            // 天空盒纹理
+	XMFLOAT4X4 m_world{};
+	XMFLOAT4X4 m_view{};
+	XMFLOAT4X4 m_proj{};
 };
 
 //
@@ -135,6 +70,8 @@ bool BasicEffect::InitAll(ID3D11Device* device) const
 	if (!RenderStates::IsInit())
 		throw std::exception("RenderStates need to be initialized first!");
 
+	m_pImpl->m_pEffectHelper = std::make_unique<EffectHelper>();
+	
 	// 实例输入布局
 	/*
 		因为DXGI_FORMAT一次最多仅能够表达128位(16字节)数据，
@@ -176,25 +113,26 @@ bool BasicEffect::InitAll(ID3D11Device* device) const
 	//
 
 	HR(CreateShaderFromFile(L"HLSL\\BasicInstance_VS.cso", L"HLSL\\BasicInstance_VS.hlsl", "VS", "vs_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pBasicInstanceVS.GetAddressOf()));
+	HR(m_pImpl->m_pEffectHelper->AddShader("BasicInstance_VS", device, blob.Get()));
 	// 创建顶点布局
 	HR(device->CreateInputLayout(basicInstLayout, ARRAYSIZE(basicInstLayout),
 		blob->GetBufferPointer(), blob->GetBufferSize(), m_pImpl->m_pInstancePosNormalTexLayout.GetAddressOf()));
 
+
 	HR(CreateShaderFromFile(L"HLSL\\BasicObject_VS.cso", L"HLSL\\BasicObject_VS.hlsl", "VS", "vs_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pBasicObjectVS.GetAddressOf()));
+	HR(m_pImpl->m_pEffectHelper->AddShader("BasicObject_VS", device, blob.Get()));
 	// 创建顶点布局
 	HR(device->CreateInputLayout(VertexPosNormalTex::InputLayout, ARRAYSIZE(VertexPosNormalTex::InputLayout),
 		blob->GetBufferPointer(), blob->GetBufferSize(), m_pImpl->m_pVertexPosNormalTexLayout.GetAddressOf()));
 
 	HR(CreateShaderFromFile(L"HLSL\\NormalMapInstance_VS.cso", L"HLSL\\NormalMapInstance_VS.hlsl", "VS", "vs_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pNormalMapInstanceVS.GetAddressOf()));
+	HR(m_pImpl->m_pEffectHelper->AddShader("NormalMapInstance_VS", device, blob.Get()));
 	// 创建顶点布局
 	HR(device->CreateInputLayout(normalMapInstLayout, ARRAYSIZE(normalMapInstLayout),
 		blob->GetBufferPointer(), blob->GetBufferSize(), m_pImpl->m_pInstancePosNormalTangentTexLayout.GetAddressOf()));
 
 	HR(CreateShaderFromFile(L"HLSL\\NormalMapObject_VS.cso", L"HLSL\\NormalMapObject_VS.hlsl", "VS", "vs_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pNormalMapObjectVS.GetAddressOf()));
+	HR(m_pImpl->m_pEffectHelper->AddShader("NormalMapObject_VS", device, blob.Get()));
 	// 创建顶点布局
 	HR(device->CreateInputLayout(VertexPosNormalTangentTex::InputLayout, ARRAYSIZE(VertexPosNormalTangentTex::InputLayout),
 		blob->GetBufferPointer(), blob->GetBufferSize(), m_pImpl->m_pVertexPosNormalTangentTexLayout.GetAddressOf()));
@@ -204,60 +142,52 @@ bool BasicEffect::InitAll(ID3D11Device* device) const
 	//
 
 	HR(CreateShaderFromFile(L"HLSL\\Basic_PS.cso", L"HLSL\\Basic_PS.hlsl", "PS", "ps_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pBasicPS.GetAddressOf()));
+	HR(m_pImpl->m_pEffectHelper->AddShader("Basic_PS", device, blob.Get()));
 
 	HR(CreateShaderFromFile(L"HLSL\\NormalMap_PS.cso", L"HLSL\\NormalMap_PS.hlsl", "PS", "ps_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pNormalMapPS.GetAddressOf()));
+	HR(m_pImpl->m_pEffectHelper->AddShader("NormalMap_PS", device, blob.Get()));
 
-	m_pImpl->m_pCBuffers = {
-		&m_pImpl->m_cbInstDrawing,
-		&m_pImpl->m_cbObjDrawing,
-		&m_pImpl->m_cbStates,
-		&m_pImpl->m_cbFrame,
-		&m_pImpl->m_cbOnResize,
-		&m_pImpl->m_cbRarely
-	};
+	// ******************
+	// 创建通道
+	//
+	EffectPassDesc passDesc;
+	passDesc.nameVS = "BasicObject_VS";
+	passDesc.namePS = "Basic_PS";
+	m_pImpl->m_pEffectHelper->AddEffectPass("BasicObject", device, &passDesc);
+	passDesc.nameVS = "BasicInstance_VS";
+	passDesc.namePS = "Basic_PS";
+	m_pImpl->m_pEffectHelper->AddEffectPass("BasicInstance", device, &passDesc);
+	passDesc.nameVS = "NormalMapObject_VS";
+	passDesc.namePS = "NormalMap_PS";
+	m_pImpl->m_pEffectHelper->AddEffectPass("NormalMapObject", device, &passDesc);
+	passDesc.nameVS = "NormalMapInstance_VS";
+	passDesc.namePS = "NormalMap_PS";
+	m_pImpl->m_pEffectHelper->AddEffectPass("NormalMapInstance", device, &passDesc);
 
-	// 创建常量缓冲区
-	for (auto& pBuffer : m_pImpl->m_pCBuffers)
-	{
-		HR(pBuffer->CreateBuffer(device));
-	}
+	m_pImpl->m_pEffectHelper->SetSamplerStateByName("g_Sam", RenderStates::SSLinearWrap.Get());
+	m_pImpl->m_pEffectHelper->SetSamplerStateByName("g_SamShadow", RenderStates::SSShadow.Get());
 
 	// 设置调试对象名
 	D3D11SetDebugObjectName(m_pImpl->m_pInstancePosNormalTexLayout.Get(), "BasicEffect.InstancePosNormalTexLayout");
 	D3D11SetDebugObjectName(m_pImpl->m_pVertexPosNormalTexLayout.Get(), "BasicEffect.VertexPosNormalTexLayout");
 	D3D11SetDebugObjectName(m_pImpl->m_pInstancePosNormalTangentTexLayout.Get(), "BasicEffect.InstancePosNormalTangentTexLayout");
 	D3D11SetDebugObjectName(m_pImpl->m_pVertexPosNormalTangentTexLayout.Get(), "BasicEffect.VertexPosNormalTangentTexLayout");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[0]->cBuffer.Get(), "BasicEffect.CBInstDrawing");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[1]->cBuffer.Get(), "BasicEffect.CBObjDrawing");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[2]->cBuffer.Get(), "BasicEffect.CBStates");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[3]->cBuffer.Get(), "BasicEffect.CBFrame");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[4]->cBuffer.Get(), "BasicEffect.CBOnResize");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[5]->cBuffer.Get(), "BasicEffect.CBRarely");
-	D3D11SetDebugObjectName(m_pImpl->m_pBasicObjectVS.Get(), "BasicEffect.BasicObject_VS");
-	D3D11SetDebugObjectName(m_pImpl->m_pBasicInstanceVS.Get(), "BasicEffect.BasicInstance_VS");
-	D3D11SetDebugObjectName(m_pImpl->m_pBasicPS.Get(), "BasicEffect.Basic_PS");
-	D3D11SetDebugObjectName(m_pImpl->m_pNormalMapObjectVS.Get(), "BasicEffect.NormalMapObject_VS");
-	D3D11SetDebugObjectName(m_pImpl->m_pNormalMapInstanceVS.Get(), "BasicEffect.NormalMapInstance_VS");
-	D3D11SetDebugObjectName(m_pImpl->m_pNormalMapPS.Get(), "BasicEffect.NormalMap_PS");
+	m_pImpl->m_pEffectHelper->SetDebugObjectName("BasicEffect");
 
 	return true;
 }
 
-void BasicEffect::SetRenderDefault(ID3D11DeviceContext* deviceContext, RenderType type) const
+void BasicEffect::SetRenderDefault(ID3D11DeviceContext* deviceContext, const RenderType type) const
 {
 	if (type == RenderType::RenderInstance)
 	{
 		deviceContext->IASetInputLayout(m_pImpl->m_pInstancePosNormalTexLayout.Get());
-		deviceContext->VSSetShader(m_pImpl->m_pBasicInstanceVS.Get(), nullptr, 0);
-		deviceContext->PSSetShader(m_pImpl->m_pBasicPS.Get(), nullptr, 0);
+		m_pImpl->m_pCurrEffectPass = m_pImpl->m_pEffectHelper->GetEffectPass("BasicInstance");
 	}
 	else
 	{
 		deviceContext->IASetInputLayout(m_pImpl->m_pVertexPosNormalTexLayout.Get());
-		deviceContext->VSSetShader(m_pImpl->m_pBasicObjectVS.Get(), nullptr, 0);
-		deviceContext->PSSetShader(m_pImpl->m_pBasicPS.Get(), nullptr, 0);
+		m_pImpl->m_pCurrEffectPass = m_pImpl->m_pEffectHelper->GetEffectPass("BasicObject");
 	}
 	
 	/*
@@ -273,19 +203,6 @@ void BasicEffect::SetRenderDefault(ID3D11DeviceContext* deviceContext, RenderTyp
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ	抛弃所有索引模2为奇数的顶点或索引，剩余的进行Triangle Strip的绘制
 	 */
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	deviceContext->GSSetShader(nullptr, nullptr, 0);
-	deviceContext->RSSetState(nullptr);
-
-	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
-	deviceContext->OMSetDepthStencilState(nullptr, 0);
-	/*
-		void ID3D11DeviceContext::OMSetBlendState(
-			ID3D11BlendState *pBlendState,      // [In]混合状态，如果要使用默认混合状态则提供nullptr
-			const FLOAT [4]  BlendFactor,       // [In]混合因子，如不需要可以为nullptr
-			UINT             SampleMask);       // [In]采样掩码，默认为0xffffffff
-	 */
-	deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 }
 
 void BasicEffect::SetRenderWithNormalMap(ID3D11DeviceContext* deviceContext, RenderType type) const
@@ -293,151 +210,114 @@ void BasicEffect::SetRenderWithNormalMap(ID3D11DeviceContext* deviceContext, Ren
 	if (type == RenderType::RenderInstance)
 	{
 		deviceContext->IASetInputLayout(m_pImpl->m_pInstancePosNormalTangentTexLayout.Get());
-		deviceContext->VSSetShader(m_pImpl->m_pNormalMapInstanceVS.Get(), nullptr, 0);
-		deviceContext->PSSetShader(m_pImpl->m_pNormalMapPS.Get(), nullptr, 0);
+		m_pImpl->m_pCurrEffectPass = m_pImpl->m_pEffectHelper->GetEffectPass("NormalMapInstance");
 	}
 	else
 	{
 		deviceContext->IASetInputLayout(m_pImpl->m_pVertexPosNormalTangentTexLayout.Get());
-		deviceContext->VSSetShader(m_pImpl->m_pNormalMapObjectVS.Get(), nullptr, 0);
-		deviceContext->PSSetShader(m_pImpl->m_pNormalMapPS.Get(), nullptr, 0);
+		m_pImpl->m_pCurrEffectPass = m_pImpl->m_pEffectHelper->GetEffectPass("NormalMapObject");
 	}
 
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	deviceContext->GSSetShader(nullptr, nullptr, 0);
-	deviceContext->RSSetState(nullptr);
-
-	// 使用各向异性过滤获取更好的绘制质量
-	deviceContext->PSSetSamplers(0, 1, RenderStates::SSAnistropicWrap.GetAddressOf());
-	deviceContext->OMSetDepthStencilState(nullptr, 0);
-	deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 }
 
 void XM_CALLCONV BasicEffect::SetWorldMatrix(FXMMATRIX world) const
 {
-	auto& cBuffer = m_pImpl->m_cbInstDrawing;
-	cBuffer.data.world = XMMatrixTranspose(world);
-	cBuffer.data.worldInvTranspose = XMMatrixInverse(nullptr, world);	// 两次转置抵消
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	XMStoreFloat4x4(&m_pImpl->m_world, world);
 }
 
 void XM_CALLCONV BasicEffect::SetViewMatrix(FXMMATRIX view) const
 {
-	auto& cBuffer = m_pImpl->m_cbFrame;
-	cBuffer.data.view = XMMatrixTranspose(view);
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	XMStoreFloat4x4(&m_pImpl->m_view, view);
 }
 
 void XM_CALLCONV BasicEffect::SetProjMatrix(FXMMATRIX proj) const
 {
-	auto& cBuffer = m_pImpl->m_cbOnResize;
-	cBuffer.data.proj = XMMatrixTranspose(proj);
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	XMStoreFloat4x4(&m_pImpl->m_proj, proj);
+}
+
+void XM_CALLCONV BasicEffect::SetShadowTransformMatrix(FXMMATRIX shadow) const
+{
+	XMMATRIX shadowTransform = XMMatrixTranspose(shadow);
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_ShadowTransform")->SetFloatMatrix(4, 4, reinterpret_cast<const FLOAT*>(&shadowTransform));
 }
 
 void BasicEffect::SetDirLight(const size_t position, const DirectionalLight& dirLight) const
 {
-	auto& cBuffer = m_pImpl->m_cbRarely;
-	cBuffer.data.dirLight[position] = dirLight;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_DirLight")->SetRaw(&dirLight, static_cast<UINT>(position) * sizeof(dirLight), sizeof(dirLight));
 }
 
 void BasicEffect::SetPointLight(const size_t position, const PointLight& pointLight) const
 {
-	auto& cBuffer = m_pImpl->m_cbRarely;
-	cBuffer.data.pointLight[position] = pointLight;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_PointLight")->SetRaw(&pointLight, static_cast<UINT>(position) * sizeof(pointLight), sizeof(pointLight));
 }
 
 void BasicEffect::SetSpotLight(const size_t position, const SpotLight& spotLight) const
 {
-	auto& cBuffer = m_pImpl->m_cbRarely;
-	cBuffer.data.spotLight[position] = spotLight;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_SpotLight")->SetRaw(&spotLight, static_cast<UINT>(position) * sizeof(spotLight), sizeof(spotLight));
 }
 
 void BasicEffect::SetMaterial(const Material& material) const
 {
-	auto& cBuffer = m_pImpl->m_cbObjDrawing;
-	cBuffer.data.material = material;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_Material")->SetRaw(&material);
 }
 
 void BasicEffect::SetTextureUsed(const bool isUsed) const
 {
-	auto& cBuffer = m_pImpl->m_cbStates;
-	cBuffer.data.textureUsed = isUsed;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_TextureUsed")->SetSInt(isUsed);
+}
+
+void BasicEffect::SetShadowEnabled(const bool enabled) const
+{
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_EnableShadow")->SetSInt(enabled);
 }
 
 void BasicEffect::SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const
 {
-	m_pImpl->m_pTextureDiffuse = textureDiffuse;
+	m_pImpl->m_pEffectHelper->SetShaderResourceByName("g_DiffuseMap", textureDiffuse);
 }
 
 void BasicEffect::SetTextureNormalMap(ID3D11ShaderResourceView* textureNormalMap) const
 {
-	m_pImpl->m_pTextureNormalMap = textureNormalMap;
+	m_pImpl->m_pEffectHelper->SetShaderResourceByName("g_NormalMap", textureNormalMap);
+}
+
+void BasicEffect::SetTextureShadowMap(ID3D11ShaderResourceView* textureShadowMap) const
+{
+	m_pImpl->m_pEffectHelper->SetShaderResourceByName("g_ShadowMap", textureShadowMap);
 }
 
 void BasicEffect::SetTextureCube(ID3D11ShaderResourceView* textureCube) const
 {
-	m_pImpl->m_pTextureCube = textureCube;
+	m_pImpl->m_pEffectHelper->SetShaderResourceByName("g_TexCube", textureCube);
 }
 
 void XM_CALLCONV BasicEffect::SetEyePos(FXMVECTOR eyePos) const
 {
-	auto& cBuffer = m_pImpl->m_cbFrame;
-	cBuffer.data.eyePos = eyePos;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
-}
-
-void BasicEffect::SetReflectionEnabled(const bool isEnable) const
-{
-	auto& cBuffer = m_pImpl->m_cbStates;
-	cBuffer.data.reflectionEnabled = isEnable;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
-}
-
-void BasicEffect::SetRefractionEnabled(const bool isEnable) const
-{
-	auto& cBuffer = m_pImpl->m_cbStates;
-	cBuffer.data.refractionEnabled = isEnable;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
-}
-
-void BasicEffect::SetRefractionEta(const float eta) const
-{
-	auto& cBuffer = m_pImpl->m_cbStates;
-	cBuffer.data.eta = eta;
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_EyePosW")->SetFloatVector(3, reinterpret_cast<const float*>(&eyePos));
 }
 
 void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
 {
-	auto& pCBuffers = m_pImpl->m_pCBuffers;
-	// 将缓冲区绑定到渲染管线上
-	pCBuffers[0]->BindVS(deviceContext);
-	pCBuffers[3]->BindVS(deviceContext);
-	pCBuffers[4]->BindVS(deviceContext);
+	XMMATRIX world = XMLoadFloat4x4(&m_pImpl->m_world);
+	XMMATRIX view = XMLoadFloat4x4(&m_pImpl->m_view);
+	XMMATRIX proj = XMLoadFloat4x4(&m_pImpl->m_proj);
 
-	pCBuffers[1]->BindPS(deviceContext);
-	pCBuffers[2]->BindPS(deviceContext);
-	pCBuffers[3]->BindPS(deviceContext);
-	pCBuffers[5]->BindPS(deviceContext);
+	XMMATRIX worldViewPrjMatrix = XMMatrixTranspose(world * view * proj);
+	XMMATRIX worldInvTranspose = XMMatrixTranspose(InverseTranspose(world));
 
-	// 设置纹理
-	deviceContext->PSSetShaderResources(0, 1, m_pImpl->m_pTextureDiffuse.GetAddressOf());
-	deviceContext->PSSetShaderResources(1, 1, m_pImpl->m_pTextureNormalMap.GetAddressOf());
-	deviceContext->PSSetShaderResources(2, 1, m_pImpl->m_pTextureCube.GetAddressOf());
+	world = XMMatrixTranspose(world);
+	view = XMMatrixTranspose(view);
+	proj = XMMatrixTranspose(proj);
 
-	if (m_pImpl->m_isDirty)
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_World")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&world));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_View")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&view));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_Proj")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&proj));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_WorldViewProj")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&worldViewPrjMatrix));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_WorldInvTranspose")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&worldInvTranspose));
+
+	if (m_pImpl->m_pCurrEffectPass)
 	{
-		m_pImpl->m_isDirty = false;
-		for (auto& pCBuffer : pCBuffers)
-		{
-			pCBuffer->UpdateBuffer(deviceContext);
-		}
-	}
+		m_pImpl->m_pCurrEffectPass->Apply(deviceContext);
+	}	
 }

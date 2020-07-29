@@ -31,7 +31,7 @@ public:
 	void XM_CALLCONV AdjustPosition(DirectX::FXMVECTOR minCoordinate, DirectX::FXMVECTOR maxCoordinate);
 
 	// 绘制
-	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
+	void Draw(ID3D11DeviceContext* deviceContext, IEffect* effect);
 
 private:
 

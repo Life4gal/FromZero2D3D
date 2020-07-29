@@ -3,15 +3,18 @@
 // Texture2D类型保存了2D纹理的信息，在这是全局变量。而register(t0)对应起始槽索引0.
 Texture2D g_DiffuseMap : register(t0);
 Texture2D g_NormalMap : register(t1);
-TextureCube g_TexCube : register(t2);
+Texture2D g_ShadowMap : register(t2);
+TextureCube g_TexCube : register(t3);
 
 // SamplerState类型确定采样器应如何进行采样，同样也是全局变量，register(s0)对应起始槽索引0.
 SamplerState g_Sam : register(s0);
+SamplerComparisonState g_SamShadow : register(s1);
 
 cbuffer CBChangesEveryInstanceDrawing : register(b0)
 {
     matrix g_World;
     matrix g_WorldInvTranspose;
+    matrix g_WorldViewProj;
 }
 
 cbuffer CBChangesEveryObjectDrawing : register(b1)
@@ -22,16 +25,16 @@ cbuffer CBChangesEveryObjectDrawing : register(b1)
 cbuffer CBDrawingStates : register(b2)
 {
     int g_TextureUsed;
-    int g_ReflectionEnabled;    // 反射
-    int g_RefractionEnabled;    // 折射
-    float g_Eta; // 空气/介质折射比
+    int g_EnableShadow;
+    float2 g_Pad;
 }
 
 cbuffer CBChangesEveryFrame : register(b3)
 {
     matrix g_View;
+    matrix g_ShadowTransform; // ShadowView * ShadowProj * T
     float3 g_EyePosW;
-    float g_Pad;
+    float g_Pad2;
 }
 
 cbuffer CBChangesOnResize : register(b4)
@@ -80,21 +83,23 @@ struct InstancePosNormalTangentTex
     matrix WorldInvTranspose : WorldInvTranspose;
 };
 
-struct VertexPosHWNormalTex
+struct VertexOutBasic
 {
-	float4 PosH : SV_POSITION;
-    float3 PosW : POSITION;     // 在世界中的位置
-    float3 NormalW : NORMAL;    // 法向量在世界中的方向
-	float2 Tex : TEXCOORD;
+    float4 PosH : SV_POSITION;
+    float3 PosW : POSITION; // 在世界中的位置
+    float3 NormalW : NORMAL; // 法向量在世界中的方向
+    float2 Tex : TEXCOORD0;
+    float4 ShadowPosH : TEXCOORD1;
 };
 
-struct VertexPosHWNormalTangentTex
+struct VertexOutNormalMap
 {
     float4 PosH : SV_POSITION;
     float3 PosW : POSITION; // 在世界中的位置
     float3 NormalW : NORMAL; // 法向量在世界中的方向
     float4 TangentW : TANGENT; // 切线在世界中的方向
-    float2 Tex : TEXCOORD;
+    float2 Tex : TEXCOORD0;
+    float4 ShadowPosH : TEXCOORD1;
 };
 
 

@@ -33,12 +33,6 @@
     <Filter Include="特效文件">
       <UniqueIdentifier>{1172e50d-ca40-41e4-9241-9faf71f78f0c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="特效文件\头文件">
-      <UniqueIdentifier>{46b98676-996d-4eb1-b10d-2893dfa55a34}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="特效文件\源文件">
-      <UniqueIdentifier>{8cdb57db-0e46-4c02-b13e-7f8b602a3aae}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ImGui">
       <UniqueIdentifier>{14d9c7c4-0df7-43ae-9255-7538c0307488}</UniqueIdentifier>
     </Filter>
@@ -62,6 +56,24 @@
     </Filter>
     <Filter Include="玩家">
       <UniqueIdentifier>{e6796f91-323d-420d-84f5-a0518fbed02f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="特效文件\Effect">
+      <UniqueIdentifier>{92d6eae5-f597-4efd-bd41-ca50f07cf088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="特效文件\Render">
+      <UniqueIdentifier>{a53cd617-fddc-42ef-8de0-1bd201aa2008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="特效文件\Effect\头文件">
+      <UniqueIdentifier>{3837ae99-45f1-458a-a406-413904e11877}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="特效文件\Effect\源文件">
+      <UniqueIdentifier>{d0d0d61a-1b11-4021-ba95-021c31fc5d29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="特效文件\Render\头文件">
+      <UniqueIdentifier>{37000f25-6e92-4720-939b-cb429ff0f527}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="特效文件\Render\源文件">
+      <UniqueIdentifier>{7223f6d5-fd99-4855-a361-336d37509533}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -116,14 +128,8 @@
     <ClInclude Include="ImGui\imstb_rectpack.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="EffectHelper.h">
-      <Filter>特效文件\头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ImGui\imstb_truetype.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderStates.h">
-      <Filter>特效文件\头文件</Filter>
     </ClInclude>
     <ClInclude Include="Geometry.h">
       <Filter>模块文件\头文件</Filter>
@@ -155,32 +161,14 @@
     <ClInclude Include="RelatedTransform.h">
       <Filter>废弃的</Filter>
     </ClInclude>
-    <ClInclude Include="SkyRender.h">
-      <Filter>特效文件\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicEffect.h">
-      <Filter>特效文件\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="SkyEffect.h">
-      <Filter>特效文件\头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ScreenFadeEffect.h">
-      <Filter>废弃的</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureRender.h">
       <Filter>废弃的</Filter>
     </ClInclude>
     <ClInclude Include="MinimapEffect.h">
       <Filter>废弃的</Filter>
     </ClInclude>
-    <ClInclude Include="Effect.h">
-      <Filter>特效文件\头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ScreenGrab.h">
       <Filter>模块文件\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Render.h">
-      <Filter>特效文件\头文件</Filter>
     </ClInclude>
     <ClInclude Include="Tank.h">
       <Filter>废弃的</Filter>
@@ -193,6 +181,36 @@
     </ClInclude>
     <ClInclude Include="NormalTank.h">
       <Filter>玩家</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicEffect.h">
+      <Filter>特效文件\Effect\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugEffect.h">
+      <Filter>特效文件\Effect\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Effect.h">
+      <Filter>特效文件\Effect\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectHelper.h">
+      <Filter>特效文件\Effect\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowEffect.h">
+      <Filter>特效文件\Effect\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Render.h">
+      <Filter>特效文件\Render\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderStates.h">
+      <Filter>特效文件\Render\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyRender.h">
+      <Filter>特效文件\Render\源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyEffect.h">
+      <Filter>特效文件\Effect\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureRender.h">
+      <Filter>特效文件\Render\头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -247,12 +265,6 @@
     <ClCompile Include="ImGui\imgui_demo.cpp">
       <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="BasicEffect.cpp">
-      <Filter>特效文件\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderStates.cpp">
-      <Filter>特效文件\源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
@@ -277,16 +289,7 @@
     <ClCompile Include="RelatedTransform.cpp">
       <Filter>废弃的</Filter>
     </ClCompile>
-    <ClCompile Include="SkyRender.cpp">
-      <Filter>特效文件\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="SkyEffect.cpp">
-      <Filter>特效文件\源文件</Filter>
-    </ClCompile>
     <ClCompile Include="ScreenFadeEffect.cpp">
-      <Filter>废弃的</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureRender.cpp">
       <Filter>废弃的</Filter>
     </ClCompile>
     <ClCompile Include="MinimapEffect.cpp">
@@ -303,6 +306,30 @@
     </ClCompile>
     <ClCompile Include="NormalTank.cpp">
       <Filter>玩家</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicEffect.cpp">
+      <Filter>特效文件\Effect\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugEffect.cpp">
+      <Filter>特效文件\Effect\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectHelper.cpp">
+      <Filter>特效文件\Effect\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowEffect.cpp">
+      <Filter>特效文件\Effect\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyEffect.cpp">
+      <Filter>特效文件\Effect\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderStates.cpp">
+      <Filter>特效文件\Render\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyRender.cpp">
+      <Filter>特效文件\Render\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureRender.cpp">
+      <Filter>特效文件\Render\源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -330,6 +357,27 @@
     <FxCompile Include="HLSL\NormalMapObject_VS.hlsl">
       <Filter>着色器</Filter>
     </FxCompile>
+    <FxCompile Include="HLSL\DebugTexture_VS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\DebugTextureOneComp_PS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\DebugTextureOneCompGray_PS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\DebugTextureRGBA_PS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\Shadow_PS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\ShadowInstance_VS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
+    <FxCompile Include="HLSL\ShadowObject_VS.hlsl">
+      <Filter>着色器</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="HLSL\LightHelper.hlsli">
@@ -339,6 +387,9 @@
       <Filter>着色器</Filter>
     </None>
     <None Include="HLSL\Sky.hlsli">
+      <Filter>着色器</Filter>
+    </None>
+    <None Include="HLSL\DebugTexture.hlsli">
       <Filter>着色器</Filter>
     </None>
   </ItemGroup>

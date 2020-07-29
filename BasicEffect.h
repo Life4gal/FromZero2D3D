@@ -8,12 +8,9 @@
 
 #include <array>
 
-class BasicEffect final : public IEffect
+class BasicEffect final : public IEffect, public IEffectTransform, public IEffectTextureDiffuse
 {
 public:
-
-	enum class RenderType { RenderObject, RenderInstance };
-
 	BasicEffect();
 	// 不应该对这个类使用多态,这个类也只需要默认的合成析构就够了(不需要自己特别指定default dtor)(但是IDE一直有警告就很烦....)
 	~BasicEffect() override;
@@ -31,7 +28,21 @@ public:
 	bool InitAll(ID3D11Device* device) const;
 
 	//
-	// 渲染模式的变更
+	// IEffectTransform
+	//
+
+	void XM_CALLCONV SetWorldMatrix(DirectX::FXMMATRIX world) const override;
+	void XM_CALLCONV SetViewMatrix(DirectX::FXMMATRIX view) const override;
+	void XM_CALLCONV SetProjMatrix(DirectX::FXMMATRIX proj) const override;
+
+	//
+	// IEffectTextureDiffuse
+	//
+
+	void SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const override;
+
+	//
+	// BasicEffect
 	//
 
 	// 默认状态来绘制
@@ -39,13 +50,7 @@ public:
 	// 带法线贴图的绘制
 	void SetRenderWithNormalMap(ID3D11DeviceContext* deviceContext, RenderType type) const;
 
-	//
-	// 矩阵设置
-	//
-
-	void XM_CALLCONV SetWorldMatrix(DirectX::FXMMATRIX world) const;
-	void XM_CALLCONV SetViewMatrix(DirectX::FXMMATRIX view) const;
-	void XM_CALLCONV SetProjMatrix(DirectX::FXMMATRIX proj) const;
+	void XM_CALLCONV SetShadowTransformMatrix(DirectX::FXMMATRIX shadow) const;
 
 	//
 	// 光照、材质和纹理相关设置
@@ -57,25 +62,20 @@ public:
 	void SetDirLight(size_t position, const DirectionalLight& dirLight) const;
 	void SetPointLight(size_t position, const PointLight& pointLight) const;
 	void SetSpotLight(size_t position, const SpotLight& spotLight) const;
-
 	void SetMaterial(const Material& material) const;
 
 	void SetTextureUsed(bool isUsed) const;
-
-	void SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const;
+	void SetShadowEnabled(bool enabled) const;
 	void SetTextureNormalMap(ID3D11ShaderResourceView* textureNormalMap) const;
+	void SetTextureShadowMap(ID3D11ShaderResourceView* textureShadowMap) const;
 	void SetTextureCube(ID3D11ShaderResourceView* textureCube) const;
 
 	void XM_CALLCONV SetEyePos(DirectX::FXMVECTOR eyePos) const;
 
 	//
-	// 状态开关设置，反射与折射不会共存
+	// IEffect
 	//
 
-	void SetReflectionEnabled(bool isEnable) const;
-	void SetRefractionEnabled(bool isEnable) const;
-	void SetRefractionEta(float eta) const;	// 空气/介质折射比
-	
 	// 应用常量缓冲区和纹理资源的变更
 	void Apply(ID3D11DeviceContext* deviceContext) override;
 

@@ -26,9 +26,12 @@ public:
 	static ComPtr<ID3D11RasterizerState> RSWireframe;		            // 光栅化器状态：线框模式
 	static ComPtr<ID3D11RasterizerState> RSNoCull;			            // 光栅化器状态：无背面裁剪模式
 	static ComPtr<ID3D11RasterizerState> RSCullClockWise;	            // 光栅化器状态：顺时针裁剪模式
+	static ComPtr<ID3D11RasterizerState> RSDepth;						// 光栅化器状态：深度偏移模式
 
+	static ComPtr<ID3D11SamplerState> SSPointClamp;						// 采样器状态：点过滤与Clamp模式
 	static ComPtr<ID3D11SamplerState> SSLinearWrap;			            // 采样器状态：线性过滤
 	static ComPtr<ID3D11SamplerState> SSAnistropicWrap;		            // 采样器状态：各项异性过滤
+	static ComPtr<ID3D11SamplerState> SSShadow;							// 采样器状态：深度比较与Border模式
 
 	static ComPtr<ID3D11BlendState> BSNoColorWrite;		                // 混合状态：不写入颜色
 	static ComPtr<ID3D11BlendState> BSTransparent;		                // 混合状态：透明混合

@@ -7,9 +7,12 @@ using namespace Microsoft::WRL;
 ComPtr<ID3D11RasterizerState> RenderStates::RSNoCull = nullptr;
 ComPtr<ID3D11RasterizerState> RenderStates::RSWireframe = nullptr;
 ComPtr<ID3D11RasterizerState> RenderStates::RSCullClockWise = nullptr;
+ComPtr<ID3D11RasterizerState> RenderStates::RSDepth = nullptr;
 
+ComPtr<ID3D11SamplerState> RenderStates::SSPointClamp = nullptr;
 ComPtr<ID3D11SamplerState> RenderStates::SSAnistropicWrap = nullptr;
 ComPtr<ID3D11SamplerState> RenderStates::SSLinearWrap = nullptr;
+ComPtr<ID3D11SamplerState> RenderStates::SSShadow = nullptr;
 
 ComPtr<ID3D11BlendState> RenderStates::BSAlphaToCoverage = nullptr;
 ComPtr<ID3D11BlendState> RenderStates::BSNoColorWrite = nullptr;
@@ -103,6 +106,16 @@ void RenderStates::InitAll(ID3D11Device * device)
 	rasterizerDesc.DepthClipEnable = true;
 	HR(device->CreateRasterizerState(&rasterizerDesc, RSCullClockWise.GetAddressOf()));
 
+	// 深度偏移模式
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_BACK;
+	rasterizerDesc.FrontCounterClockwise = false;
+	rasterizerDesc.DepthClipEnable = true;
+	rasterizerDesc.DepthBias = 100000;
+	rasterizerDesc.DepthBiasClamp = 0.0f;
+	rasterizerDesc.SlopeScaledDepthBias = 1.0f;
+	HR(device->CreateRasterizerState(&rasterizerDesc, RSDepth.GetAddressOf()));
+
 	// ******************
 	// 初始化采样器状态
 	/*
@@ -153,7 +166,17 @@ void RenderStates::InitAll(ID3D11Device * device)
 	D3D11_SAMPLER_DESC sampDesc;
 	ZeroMemory(&sampDesc, sizeof(sampDesc));
 
-	// 线性过滤模式
+	// 点过滤与Clamp模式
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	HR(device->CreateSamplerState(&sampDesc, SSPointClamp.GetAddressOf()));
+	
+	// 线性过滤与Wrap模式
 	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -168,7 +191,7 @@ void RenderStates::InitAll(ID3D11Device * device)
 	 */
 	HR(device->CreateSamplerState(&sampDesc, SSLinearWrap.GetAddressOf()));
 
-	// 各向异性过滤模式
+	// 各向异性过滤与Wrap模式
 	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -178,6 +201,18 @@ void RenderStates::InitAll(ID3D11Device * device)
 	sampDesc.MinLOD = 0;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	HR(device->CreateSamplerState(&sampDesc, SSAnistropicWrap.GetAddressOf()));
+
+	// 深度比较与Border模式
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	sampDesc.BorderColor[0] = { 1.0f };
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	HR(device->CreateSamplerState(&sampDesc, SSShadow.GetAddressOf()));
 
 	// ******************
 	// 初始化混合状态
@@ -215,8 +250,8 @@ void RenderStates::InitAll(ID3D11Device * device)
 	 */
 	D3D11_BLEND_DESC blendDesc;
 	ZeroMemory(&blendDesc, sizeof(blendDesc));
-	
 	auto& rtDesc = blendDesc.RenderTarget[0];
+	
 	// Alpha-To-Coverage模式
 	blendDesc.AlphaToCoverageEnable = true;
 	blendDesc.IndependentBlendEnable = false;
@@ -406,15 +441,18 @@ void RenderStates::InitAll(ID3D11Device * device)
 	D3D11SetDebugObjectName(RSCullClockWise.Get(), "RSCullClockWise");
 	D3D11SetDebugObjectName(RSNoCull.Get(), "RSNoCull");
 	D3D11SetDebugObjectName(RSWireframe.Get(), "RSWireframe");
+	D3D11SetDebugObjectName(RSDepth.Get(), "RSDepth");
 
 	D3D11SetDebugObjectName(SSAnistropicWrap.Get(), "SSAnistropicWrap");
 	D3D11SetDebugObjectName(SSLinearWrap.Get(), "SSLinearWrap");
+	D3D11SetDebugObjectName(SSShadow.Get(), "SSShadow");
 
 	D3D11SetDebugObjectName(BSAlphaToCoverage.Get(), "BSAlphaToCoverage");
 	D3D11SetDebugObjectName(BSNoColorWrite.Get(), "BSNoColorWrite");
 	D3D11SetDebugObjectName(BSTransparent.Get(), "BSTransparent");
 	D3D11SetDebugObjectName(BSAdditive.Get(), "BSAdditive");
 
+	D3D11SetDebugObjectName(DSSLessEqual.Get(), "DSSLessEqual");
 	D3D11SetDebugObjectName(DSSWriteStencil.Get(), "DSSWriteStencil");
 	D3D11SetDebugObjectName(DSSDrawWithStencil.Get(), "DSSDrawWithStencil");
 	D3D11SetDebugObjectName(DSSNoDoubleBlend.Get(), "DSSNoDoubleBlend");

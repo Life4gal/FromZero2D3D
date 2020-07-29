@@ -5,7 +5,7 @@ using namespace DirectX;
 namespace
 {
 	template<typename T>
-	void Safe_Release(T* p)
+	constexpr void Safe_Release(T* p)
 	{
 		if(p)
 		{

@@ -42,10 +42,10 @@ void Model::SetModel(ID3D11Device* device, const ObjReader& model)
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vbd.CPUAccessFlags = 0;
 		// 新建顶点缓冲区
-		D3D11_SUBRESOURCE_DATA InitData;
-		ZeroMemory(&InitData, sizeof(InitData));
-		InitData.pSysMem = part.vertices.data();
-		HR(device->CreateBuffer(&vbd, &InitData, modelParts[i].vertexBuffer.ReleaseAndGetAddressOf()));
+		D3D11_SUBRESOURCE_DATA initData;
+		ZeroMemory(&initData, sizeof(initData));
+		initData.pSysMem = part.vertices.data();
+		HR(device->CreateBuffer(&vbd, &initData, modelParts[i].vertexBuffer.ReleaseAndGetAddressOf()));
 
 		// 设置索引缓冲区描述
 		D3D11_BUFFER_DESC ibd;
@@ -58,7 +58,7 @@ void Model::SetModel(ID3D11Device* device, const ObjReader& model)
 			modelParts[i].indexCount = static_cast<UINT>(part.indices32.size());
 			modelParts[i].indexFormat = DXGI_FORMAT_R32_UINT;
 			ibd.ByteWidth = modelParts[i].indexCount * static_cast<UINT>(sizeof(DWORD));
-			InitData.pSysMem = part.indices32.data();
+			initData.pSysMem = part.indices32.data();
 
 		}
 		else
@@ -66,10 +66,10 @@ void Model::SetModel(ID3D11Device* device, const ObjReader& model)
 			modelParts[i].indexCount = static_cast<UINT>(part.indices16.size());
 			modelParts[i].indexFormat = DXGI_FORMAT_R16_UINT;
 			ibd.ByteWidth = modelParts[i].indexCount * static_cast<UINT>(sizeof(WORD));
-			InitData.pSysMem = part.indices16.data();
+			initData.pSysMem = part.indices16.data();
 		}
 		// 新建索引缓冲区
-		HR(device->CreateBuffer(&ibd, &InitData, modelParts[i].indexBuffer.ReleaseAndGetAddressOf()));
+		HR(device->CreateBuffer(&ibd, &initData, modelParts[i].indexBuffer.ReleaseAndGetAddressOf()));
 
 		// 创建漫射光对应纹理
 		auto& strD = part.texStrDiffuse;

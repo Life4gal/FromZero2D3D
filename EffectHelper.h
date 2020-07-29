@@ -10,30 +10,29 @@
 #ifndef EFFECTHELPER_H
 #define EFFECTHELPER_H
 
+//
+// 宏相关
+//
+
+// 默认开启图形调试器具名化
+// 如果不需要该项功能，可通过全局文本替换将其值设置为0
+#if (defined(DEBUG) || defined(_DEBUG))
+#ifndef GRAPHICS_DEBUGGER_OBJECT_NAME
+#define GRAPHICS_DEBUGGER_OBJECT_NAME 1
+#endif
+#endif
+
+#include <string>
 #include <memory>
+#include <d3d11_1.h>
+#include <wrl/client.h>
+#include <algorithm>
+#include <unordered_map>
+#include <d3d11shader.h>
+#include <d3dcompiler.h>
+
 #include "LightHelper.h"
 #include "RenderStates.h"
-
-class IEffect
-{
-public:
-	// 使用模板别名(C++11)简化类型名
-	template <typename T>
-	using ComPtr = Microsoft::WRL::ComPtr<T>;
-
-	IEffect() = default;
-	// 不应该对这个类使用多态,这个类也不应该(也不需要)自行定义析构函数(但是IDE一直有警告就很烦....)
-	virtual ~IEffect() = default;
-
-	// 不允许拷贝，允许移动
-	IEffect(const IEffect&) = delete;
-	IEffect& operator=(const IEffect&) = delete;
-	IEffect(IEffect&&) = default;
-	IEffect& operator=(IEffect&&) = default;
-
-	// 更新并绑定常量缓冲区
-	virtual void Apply(ID3D11DeviceContext* deviceContext) = 0;
-};
 
 // 若类需要内存对齐，从该类派生
 template<typename DerivedType>
@@ -85,6 +84,7 @@ struct CBufferBase
 	virtual void BindPS(ID3D11DeviceContext* deviceContext) = 0;
 };
 
+// 用于创建简易Effect框架
 template<UINT StartSlot, typename T>
 struct CBufferObject final : CBufferBase
 {
@@ -109,7 +109,6 @@ struct CBufferObject final : CBufferBase
 	{
 		if (isDirty)
 		{
-			isDirty = false;
 			D3D11_MAPPED_SUBRESOURCE mappedData;
 			/*
 				获取指向缓冲区中数据的指针并拒绝GPU对该缓冲区的访问
@@ -145,6 +144,7 @@ struct CBufferObject final : CBufferBase
 				);
 			*/
 			deviceContext->Unmap(cBuffer.Get(), 0);
+			isDirty = false;
 		}
 	}
 	
@@ -177,6 +177,229 @@ struct CBufferObject final : CBufferBase
 	{
 		deviceContext->PSSetConstantBuffers(StartSlot, 1, cBuffer.GetAddressOf());
 	}
+};
+
+// 渲染通道描述
+// 通过指定添加着色器时提供的名字来设置着色器
+struct EffectPassDesc
+{
+	LPCSTR nameVS = nullptr;
+	LPCSTR nameDS = nullptr;
+	LPCSTR nameHS = nullptr;
+	LPCSTR nameGS = nullptr;
+	LPCSTR namePS = nullptr;
+	LPCSTR nameCS = nullptr;
+};
+
+class IEffect
+{
+public:
+	enum class RenderType { RenderObject, RenderInstance };
+	
+	// 使用模板别名(C++11)简化类型名
+	template <typename T>
+	using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+	IEffect() = default;
+	// 不应该对这个类使用多态,这个类也不应该(也不需要)自行定义析构函数(但是IDE一直有警告就很烦....)
+	virtual ~IEffect() = default;
+
+	// 不允许拷贝，允许移动
+	IEffect(const IEffect&) = delete;
+	IEffect& operator=(const IEffect&) = delete;
+	
+	IEffect(IEffect&&) = default;
+	IEffect& operator=(IEffect&&) = default;
+
+	// 更新并绑定常量缓冲区
+	virtual void Apply(ID3D11DeviceContext* deviceContext) = 0;
+};
+
+class IEffectTransform
+{
+public:
+	IEffectTransform() = default;
+	virtual ~IEffectTransform() = default;
+
+	// 不允许拷贝，允许移动
+	IEffectTransform(const IEffectTransform& other) = delete;
+	IEffectTransform& operator=(const IEffectTransform& other) = delete;
+	
+	IEffectTransform(IEffectTransform&& other) noexcept = default;
+	IEffectTransform& operator=(IEffectTransform&& other) noexcept = default;
+
+	virtual void XM_CALLCONV SetWorldMatrix(DirectX::FXMMATRIX world) const = 0;
+	virtual void XM_CALLCONV SetViewMatrix(DirectX::FXMMATRIX view) const = 0;
+	virtual void XM_CALLCONV SetProjMatrix(DirectX::FXMMATRIX proj) const = 0;
+};
+
+class IEffectTextureDiffuse
+{
+public:
+	IEffectTextureDiffuse() = default;
+	virtual ~IEffectTextureDiffuse() = default;
+
+	// 不允许拷贝，允许移动
+	IEffectTextureDiffuse(const IEffectTextureDiffuse& other) = delete;
+	IEffectTextureDiffuse& operator=(const IEffectTextureDiffuse& other) = delete;
+	
+	IEffectTextureDiffuse(IEffectTextureDiffuse&& other) noexcept = default;
+	IEffectTextureDiffuse& operator=(IEffectTextureDiffuse&& other) noexcept = default;
+
+	virtual void SetTextureDiffuse(ID3D11ShaderResourceView* textureDiffuse) const = 0;
+};
+
+// 常量缓冲区的变量
+// 非COM组件
+struct IEffectConstantBufferVariable
+{
+	IEffectConstantBufferVariable() = default;
+	virtual ~IEffectConstantBufferVariable() = default;
+
+	// 不允许拷贝，允许移动
+	IEffectConstantBufferVariable(const IEffectConstantBufferVariable& other) = delete;
+	IEffectConstantBufferVariable& operator=(const IEffectConstantBufferVariable& other) = delete;
+	
+	IEffectConstantBufferVariable(IEffectConstantBufferVariable&& other) noexcept = default;
+	IEffectConstantBufferVariable& operator=(IEffectConstantBufferVariable&& other) noexcept = default;
+	
+	// 设置无符号整数，也可以为bool设置
+	virtual void SetUInt(UINT val) = 0;
+	// 设置有符号整数
+	virtual void SetSInt(INT val) = 0;
+	// 设置浮点数
+	virtual void SetFloat(FLOAT val) = 0;
+
+	// 设置无符号整数向量，允许设置1个到4个分量
+	// 着色器变量类型为bool也可以使用
+	// 根据要设置的分量数来读取data的前几个分量
+	virtual void SetUIntVector(UINT numComponents, const UINT data[4]) = 0;
+
+	// 设置有符号整数向量，允许设置1个到4个分量
+	// 根据要设置的分量数来读取data的前几个分量
+	virtual void SetSIntVector(UINT numComponents, const INT data[4]) = 0;
+
+	// 设置浮点数向量，允许设置1个到4个分量
+	// 根据要设置的分量数来读取data的前几个分量
+	virtual void SetFloatVector(UINT numComponents, const FLOAT data[4]) = 0;
+
+	// 设置无符号整数矩阵，允许行列数在1-4
+	// 要求传入数据没有填充，例如3x3矩阵可以直接传入UINT[3][3]类型
+	virtual void SetUIntMatrix(UINT rows, UINT cols, const UINT* noPadData) = 0;
+
+	// 设置有符号整数矩阵，允许行列数在1-4
+	// 要求传入数据没有填充，例如3x3矩阵可以直接传入INT[3][3]类型
+	virtual void SetSIntMatrix(UINT rows, UINT cols, const INT* noPadData) = 0;
+
+	// 设置浮点数矩阵，允许行列数在1-4
+	// 要求传入数据没有填充，例如3x3矩阵可以直接传入FLOAT[3][3]类型
+	virtual void SetFloatMatrix(UINT rows, UINT cols, const FLOAT* noPadData) = 0;
+
+	// 设置其余类型，允许指定设置范围
+	virtual void SetRaw(const void* data, UINT byteOffset = 0, UINT byteCount = 0xFFFFFFFF) = 0;
+
+	// 获取最近一次设置的值，允许指定读取范围
+	virtual HRESULT GetRaw(void* pOutput, UINT byteOffset = 0, UINT byteCount = 0xFFFFFFFF) = 0;
+};
+
+// 渲染通道
+// 非COM组件
+struct IEffectPass
+{
+	IEffectPass() = default;
+	virtual ~IEffectPass() = default;
+	
+	// 不允许拷贝，允许移动
+	IEffectPass(const IEffectPass& other) = delete;
+	IEffectPass& operator=(const IEffectPass& other) = delete;
+	
+	IEffectPass(IEffectPass&& other) noexcept = default;
+	IEffectPass& operator=(IEffectPass&& other) noexcept = default;
+	
+	// 设置光栅化状态
+	virtual void SetRasterizerState(ID3D11RasterizerState* pRS) = 0;
+	// 设置混合状态
+	virtual void SetBlendState(ID3D11BlendState* pBS, const FLOAT blendFactor[4], UINT sampleMask) = 0;
+	// 设置深度混合状态
+	virtual void SetDepthStencilState(ID3D11DepthStencilState* pDSS, UINT stencilValue) = 0;
+	// 获取顶点着色器的uniform形参用于设置值
+	virtual std::shared_ptr<IEffectConstantBufferVariable> VSGetParamByName(LPCSTR paramName) = 0;
+	// 获取域着色器的uniform形参用于设置值
+	virtual std::shared_ptr<IEffectConstantBufferVariable> DSGetParamByName(LPCSTR paramName) = 0;
+	// 获取外壳着色器的uniform形参用于设置值
+	virtual std::shared_ptr<IEffectConstantBufferVariable> HSGetParamByName(LPCSTR paramName) = 0;
+	// 获取几何着色器的uniform形参用于设置值
+	virtual std::shared_ptr<IEffectConstantBufferVariable> GSGetParamByName(LPCSTR paramName) = 0;
+	// 获取像素着色器的uniform形参用于设置值
+	virtual std::shared_ptr<IEffectConstantBufferVariable> PSGetParamByName(LPCSTR paramName) = 0;
+	// 获取计算着色器的uniform形参用于设置值
+	virtual std::shared_ptr<IEffectConstantBufferVariable> CSGetParamByName(LPCSTR paramName) = 0;
+	// 应用着色器、常量缓冲区(包括函数形参)、采样器、着色器资源和可读写资源到渲染管线
+	virtual void Apply(ID3D11DeviceContext* deviceContext) = 0;
+};
+
+// 特效助理
+// 负责管理着色器、采样器、着色器资源、常量缓冲区、着色器形参、可读写资源、渲染状态
+class EffectHelper
+{
+public:
+
+	EffectHelper();
+	~EffectHelper();
+	
+	// 不允许拷贝，允许移动
+	EffectHelper(const EffectHelper&) = delete;
+	EffectHelper& operator=(const EffectHelper&) = delete;
+	
+	EffectHelper(EffectHelper&& other) = default;
+	EffectHelper& operator=(EffectHelper&& other) = default;
+
+	// 添加着色器并为其设置标识名
+	// 注意：
+	// 1. 不同着色器代码，若常量缓冲区使用同一个槽，对应的定义应保持完全一致
+	// 2. 不同着色器代码，若存在全局变量，定义应保持完全一致
+	// 3. 不同着色器代码，若采样器、着色器资源或可读写资源使用同一个槽，对应的定义应保持完全一致，否则只能使用按槽设置
+	HRESULT AddShader(LPCSTR name, ID3D11Device* device, ID3DBlob* blob) const;
+
+	// 添加带流输出的几何着色器并为其设置标识名
+	// 注意：
+	// 1. 不同着色器代码，若常量缓冲区使用同一个槽，对应的定义应保持完全一致
+	// 2. 不同着色器代码，若存在全局变量，定义应保持完全一致
+	// 3. 不同着色器代码，若采样器、着色器资源或可读写资源使用同一个槽，对应的定义应保持完全一致，否则只能使用按槽设置 
+	HRESULT AddGeometryShaderWithStreamOutput(LPCSTR name, ID3D11Device* device, ID3D11GeometryShader* gsWithSO, ID3DBlob* blob) const;
+
+	// 清空所有内容
+	void Clear() const;
+
+	// 创建渲染通道
+	HRESULT AddEffectPass(LPCSTR effectPassName, ID3D11Device* device, EffectPassDesc* pDesc) const;
+	// 获取特定渲染通道
+	std::shared_ptr<IEffectPass> GetEffectPass(LPCSTR effectPassName) const;
+
+	// 获取常量缓冲区的变量用于设置值
+	std::shared_ptr<IEffectConstantBufferVariable> GetConstantBufferVariable(LPCSTR name) const;
+
+	// 按槽设置采样器状态
+	void SetSamplerStateBySlot(UINT slot, ID3D11SamplerState* samplerState) const;
+	// 按名设置采样器状态(若存在同槽多名称则只能使用按槽设置)
+	void SetSamplerStateByName(LPCSTR name, ID3D11SamplerState* samplerState) const;
+
+	// 按槽设置着色器资源
+	void SetShaderResourceBySlot(UINT slot, ID3D11ShaderResourceView* srv) const;
+	// 按名设置着色器资源(若存在同槽多名称则只能使用按槽设置)
+	void SetShaderResourceByName(LPCSTR name, ID3D11ShaderResourceView* srv) const;
+
+	// 按槽设置可读写资源
+	void SetUnorderedAccessBySlot(UINT slot, ID3D11UnorderedAccessView* uav, UINT* pUAVInitialCount) const;
+	// 按名设置可读写资源(若存在同槽多名称则只能使用按槽设置)
+	void SetUnorderedAccessByName(LPCSTR name, ID3D11UnorderedAccessView* uav, UINT* pUAVInitialCount) const;
+
+	// 设置调试对象名
+	void SetDebugObjectName(const std::string& name) const;
+
+private:
+	class Impl;
+	std::unique_ptr<Impl> m_pImpl;
 };
 
 #endif

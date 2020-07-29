@@ -71,7 +71,13 @@ void SkyRender::Draw(ID3D11DeviceContext* deviceContext, SkyEffect& skyEffect, c
 	deviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), strides, offsets);
 	deviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-	skyEffect.SetWorldViewProjMatrix(XMMatrixTranslationFromVector(camera.GetPositionVector()) * camera.GetViewProjMatrix());
+	skyEffect.SetWorldMatrix(XMMatrixIdentity());
+	// 抹除平移分量，避免摄像机移动带来天空盒抖动
+	XMMATRIX view = camera.GetViewMatrix();
+	view.r[3] = g_XMIdentityR3;
+	skyEffect.SetViewMatrix(view);
+	skyEffect.SetProjMatrix(camera.GetProjMatrix());
+	
 	skyEffect.SetTextureCube(m_pTextureCubeSRV.Get());
 	skyEffect.Apply(deviceContext);
 	deviceContext->DrawIndexed(m_indexCount, 0, 0);
@@ -104,10 +110,10 @@ HRESULT SkyRender::InitResource(ID3D11Device* device, const float skySphereRadiu
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
-	D3D11_SUBRESOURCE_DATA InitData;
-	InitData.pSysMem = sphere.vertexVec.data();
+	D3D11_SUBRESOURCE_DATA initData;
+	initData.pSysMem = sphere.vertexVec.data();
 
-	const HRESULT hr = device->CreateBuffer(&vbd, &InitData, &m_pVertexBuffer);
+	const HRESULT hr = device->CreateBuffer(&vbd, &initData, &m_pVertexBuffer);
 	
 	if (FAILED(hr))
 		return hr;
@@ -123,9 +129,9 @@ HRESULT SkyRender::InitResource(ID3D11Device* device, const float skySphereRadiu
 	ibd.StructureByteStride = 0;
 	ibd.MiscFlags = 0;
 
-	InitData.pSysMem = sphere.indexVec.data();
+	initData.pSysMem = sphere.indexVec.data();
 
-	return device->CreateBuffer(&ibd, &InitData, &m_pIndexBuffer);
+	return device->CreateBuffer(&ibd, &initData, &m_pIndexBuffer);
 }
 
 HRESULT DynamicSkyRender::InitResource(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::wstring& cubeMapFilename,

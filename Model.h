@@ -10,11 +10,12 @@
 #define MODEL_H
 
 #include <DirectXCollision.h>
-#include "d3dUtil.h"
-#include "DXTrace.h"
+#include <wrl/client.h>
+
 #include "ObjReader.h"
 #include "Geometry.h"
-#include <wrl/client.h>
+#include "d3dUtil.h"
+#include "DXTrace.h"
 
 struct ModelPart
 {
@@ -26,6 +27,7 @@ struct ModelPart
 
 	Material material;									// 物体材质
 	ComPtr<ID3D11ShaderResourceView> texDiffuse;		// 纹理
+	ComPtr<ID3D11ShaderResourceView> texNormalMap;
 	ComPtr<ID3D11Buffer> vertexBuffer;					// 顶点缓冲区
 	ComPtr<ID3D11Buffer> indexBuffer;					// 索引缓冲区
 	UINT vertexCount;									// 顶点字节大小
@@ -44,7 +46,7 @@ struct Model
 	// 设置缓冲区
 	template<class VertexType, class IndexType>
 	Model(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData);
-	
+
 	template<class VertexType, class IndexType>
 	Model(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices);
 
@@ -110,7 +112,6 @@ void Model::SetMesh(ID3D11Device* device, const std::vector<VertexType>& vertice
 	SetMesh(device, vertices.data(), sizeof(VertexType),
 		static_cast<UINT>(vertices.size()), indices.data(), static_cast<UINT>(indices.size()),
 		(sizeof(IndexType) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT));
-
 }
 
 #endif

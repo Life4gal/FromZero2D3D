@@ -63,7 +63,7 @@ void Player::SetPosition(const XMFLOAT3& position)
 	m_tank.SetPosition(position);
 }
 
-void Player::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
+void Player::Draw(ID3D11DeviceContext* deviceContext, IEffect* effect)
 {
 	m_tank.Draw(deviceContext, effect);
 }

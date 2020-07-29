@@ -1,17 +1,18 @@
 #include "Basic.hlsli"
 
 // 顶点着色器
-VertexPosHWNormalTangentTex VS(VertexPosNormalTangentTex vIn)
+VertexOutNormalMap VS(VertexPosNormalTangentTex vIn)
 {
-    VertexPosHWNormalTangentTex vOut;
+    VertexOutNormalMap vOut;
     
-    matrix viewProj = mul(g_View, g_Proj);
     vector posW = mul(float4(vIn.PosL, 1.0f), g_World);
 
     vOut.PosW = posW.xyz;
-    vOut.PosH = mul(posW, viewProj);
+    vOut.PosH = mul(float4(vIn.PosL, 1.0f), g_WorldViewProj);
     vOut.NormalW = mul(vIn.NormalL, (float3x3) g_WorldInvTranspose);
     vOut.TangentW = mul(vIn.TangentL, g_World);
     vOut.Tex = vIn.Tex;
+    vOut.ShadowPosH = mul(posW, g_ShadowTransform);
+    
     return vOut;
 }

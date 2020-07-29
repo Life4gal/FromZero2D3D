@@ -2,6 +2,14 @@
 
 using namespace DirectX;
 
+BasicTransform::BasicTransform()
+	:
+	m_scale{ 1.0f, 10.f, 1.0f },
+	m_rotation{},
+	m_position{}
+{
+}
+
 BasicTransform::BasicTransform(const XMFLOAT3& scale, const XMFLOAT3& rotation, const XMFLOAT3& position)
 	:
 	m_scale(scale),

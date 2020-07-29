@@ -1,7 +1,7 @@
 #include "Basic.hlsli"
 
 // 像素着色器(3D)
-float4 PS(VertexPosHWNormalTangentTex pIn) : SV_Target
+float4 PS(VertexOutNormalMap pIn) : SV_Target
 {
     // 若不使用纹理，则使用默认白色
     float4 texColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -33,13 +33,20 @@ float4 PS(VertexPosHWNormalTangentTex pIn) : SV_Target
     float4 S = float4(0.0f, 0.0f, 0.0f, 0.0f);
     int i;
 
+    float shadow[5] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
+    // 仅第一个方向光用于计算阴影
+    if (g_EnableShadow)
+    {
+        shadow[0] = CalcShadowFactor(g_SamShadow, g_ShadowMap, pIn.ShadowPosH);
+    }
+    
     [unroll]
     for (i = 0; i < 5; ++i)
     {
         ComputeDirectionalLight(g_Material, g_DirLight[i], bumpedNormalW, toEyeW, A, D, S);
         ambient += A;
-        diffuse += D;
-        spec += S;
+        diffuse += shadow[i] * D;
+        spec += shadow[i] * S;
     }
         
     [unroll]
@@ -61,26 +68,6 @@ float4 PS(VertexPosHWNormalTangentTex pIn) : SV_Target
     }
   
     float4 litColor = texColor * (ambient + diffuse) + spec;
-
-    // 反射
-    if (g_ReflectionEnabled)
-    {
-        float3 incident = -toEyeW;
-        float3 reflectionVector = reflect(incident, pIn.NormalW);
-        float4 reflectionColor = g_TexCube.Sample(g_Sam, reflectionVector);
-
-        litColor += g_Material.Reflect * reflectionColor;
-    }
-    // 折射
-    if (g_RefractionEnabled)
-    {
-        float3 incident = -toEyeW;
-        float3 refractionVector = refract(incident, pIn.NormalW, g_Eta);
-        float4 refractionColor = g_TexCube.Sample(g_Sam, refractionVector);
-
-        litColor += g_Material.Reflect * refractionColor;
-    }
-
     litColor.a = texColor.a * g_Material.Diffuse.a;
     return litColor;
 }

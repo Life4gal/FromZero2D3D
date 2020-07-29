@@ -205,7 +205,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BasicEffect.h" />
+    <ClInclude Include="DebugEffect.h" />
     <ClInclude Include="NormalTank.h" />
+    <ClInclude Include="ShadowEffect.h" />
     <ClInclude Include="TankStructureHelper.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Collision.h" />
@@ -255,7 +257,9 @@
     <ClCompile Include="d3dApp.cpp" />
     <ClCompile Include="d3dUtil.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="DebugEffect.cpp" />
     <ClCompile Include="DXTrace.cpp" />
+    <ClCompile Include="EffectHelper.cpp" />
     <ClCompile Include="GameApp.cpp" />
     <ClCompile Include="GameTimer.cpp" />
     <ClCompile Include="ImguiPanel.cpp" />
@@ -277,6 +281,7 @@
     <ClCompile Include="RenderStates.cpp" />
     <ClCompile Include="ScreenFadeEffect.cpp" />
     <ClCompile Include="ScreenGrab.cpp" />
+    <ClCompile Include="ShadowEffect.cpp" />
     <ClCompile Include="SkyEffect.cpp" />
     <ClCompile Include="SkyRender.cpp" />
     <ClCompile Include="Tank.cpp" />
@@ -299,9 +304,36 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
+    <FxCompile Include="HLSL\DebugTextureOneCompGray_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="HLSL\DebugTextureOneComp_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="HLSL\DebugTextureRGBA_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="HLSL\DebugTexture_VS.hlsl" />
     <FxCompile Include="HLSL\NormalMapInstance_VS.hlsl" />
     <FxCompile Include="HLSL\NormalMapObject_VS.hlsl" />
     <FxCompile Include="HLSL\NormalMap_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="HLSL\ShadowInstance_VS.hlsl" />
+    <FxCompile Include="HLSL\ShadowObject_VS.hlsl" />
+    <FxCompile Include="HLSL\Shadow_PS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS</EntryPointName>
@@ -317,6 +349,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="HLSL\Basic.hlsli" />
+    <None Include="HLSL\DebugTexture.hlsli" />
     <None Include="HLSL\LightHelper.hlsli" />
     <None Include="HLSL\Sky.hlsli" />
   </ItemGroup>

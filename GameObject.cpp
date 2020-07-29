@@ -70,12 +70,12 @@ void GameObject::SetModel(const Model& model)
 	m_model = model;
 }
 
-void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
+void GameObject::Draw(ID3D11DeviceContext* deviceContext, IEffect* effect)
 {
 	Draw(deviceContext, effect, XMMatrixIdentity(), XMMatrixIdentity());
 }
 
-void GameObject::DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& effect, const std::vector<BasicTransform>& data)
+void GameObject::DrawInstanced(ID3D11DeviceContext* deviceContext, IEffect* effect, const std::vector<BasicTransform>& data)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedData;
 	const UINT numInstances = static_cast<UINT>(data.size());
@@ -112,9 +112,22 @@ void GameObject::DrawInstanced(ID3D11DeviceContext* deviceContext, BasicEffect& 
 		deviceContext->IASetIndexBuffer(part.indexBuffer.Get(), part.indexFormat, 0);
 
 		// 更新数据并应用
-		effect.SetTextureDiffuse(part.texDiffuse.Get());
-		effect.SetMaterial(part.material);
-		effect.Apply(deviceContext);
+		const auto* pBasicEffect = dynamic_cast<BasicEffect*>(effect);
+		if (pBasicEffect)
+		{
+			pBasicEffect->SetTextureNormalMap(part.texNormalMap.Get());
+			pBasicEffect->SetMaterial(part.material);
+			pBasicEffect->SetTextureDiffuse(part.texDiffuse.Get());
+		}
+		else
+		{
+			auto* pEffectTextureDiffuse = dynamic_cast<IEffectTextureDiffuse*>(effect);
+			if (pEffectTextureDiffuse)
+			{
+				pEffectTextureDiffuse->SetTextureDiffuse(part.texDiffuse.Get());
+			}
+		}
+		effect->Apply(deviceContext);
 
 		deviceContext->DrawIndexedInstanced(part.indexCount, numInstances, 0, 0, 0);
 	}
@@ -133,7 +146,7 @@ void GameObject::SetDebugObjectName(const std::string& name)
 #endif
 }
 
-void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, FXMMATRIX parentScale, CXMMATRIX parentRotTraMatrix)
+void GameObject::Draw(ID3D11DeviceContext* deviceContext, IEffect* effect, FXMMATRIX parentScale, CXMMATRIX parentRotTraMatrix)
 {
 	const XMMATRIX scale = XMMatrixScalingFromVector(m_transform.GetScaleVector());
 	const XMMATRIX rotationTranslation = XMMatrixRotationRollPitchYawFromVector(m_transform.GetRotationVector()) * XMMatrixTranslationFromVector(m_transform.GetPositionVector());
@@ -147,12 +160,30 @@ void GameObject::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect, F
 		deviceContext->IASetVertexBuffers(0, 1, part.vertexBuffer.GetAddressOf(), &strides, &offsets);
 		deviceContext->IASetIndexBuffer(part.indexBuffer.Get(), part.indexFormat, 0);
 
-		// Rotation*Translation矩阵可以让物体从物体自身的局部坐标系变换到世界坐标系
-		effect.SetWorldMatrix(scale * parentScale * rotationTranslation * parentRotTraMatrix);
-		effect.SetTextureDiffuse(part.texDiffuse.Get());
-		effect.SetMaterial(part.material);
+		const auto* pBasicEffect = dynamic_cast<BasicEffect*>(effect);
+		if (pBasicEffect)
+		{
+			pBasicEffect->SetTextureNormalMap(part.texNormalMap.Get());
+			pBasicEffect->SetMaterial(part.material);
+			pBasicEffect->SetWorldMatrix(scale * parentScale * rotationTranslation * parentRotTraMatrix);
+			pBasicEffect->SetTextureDiffuse(part.texDiffuse.Get());
+		}
+		else
+		{
+			const auto* pEffectTransform = dynamic_cast<IEffectTransform*>(effect);
+			if (pEffectTransform)
+			{
+				pEffectTransform->SetWorldMatrix(scale * parentScale * rotationTranslation * parentRotTraMatrix);
+			}
 
-		effect.Apply(deviceContext);
+			const auto* pEffectTextureDiffuse = dynamic_cast<IEffectTextureDiffuse*>(effect);
+			if (pEffectTextureDiffuse)
+			{
+				pEffectTextureDiffuse->SetTextureDiffuse(part.texDiffuse.Get());
+			}
+		}
+		
+		effect->Apply(deviceContext);
 
 		deviceContext->DrawIndexed(part.indexCount, 0, 0);
 	}

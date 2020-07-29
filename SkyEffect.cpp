@@ -8,38 +8,17 @@ using namespace DirectX;
 // SkyEffect::Impl 需要先于SkyEffect的定义
 //
 
-class SkyEffect::Impl : public AlignedType<Impl>
+class SkyEffect::Impl
 {
 public:
-	//
-	// 这些结构体对应HLSL的结构体。需要按16字节对齐
-	//
-
-	struct CBChangesEveryFrame
-	{
-		XMMATRIX worldViewProj;
-	};
-
-	// 必须显式指定
-	Impl() : m_isDirty(), m_pCBuffers() {}
-	~Impl() = default;
-
-	Impl(const Impl& other) = default;
-	Impl(Impl && other) noexcept = default;
-	Impl& operator=(const Impl & other) = default;
-	Impl& operator=(Impl && other) noexcept = default;
-
-	CBufferObject<0, CBChangesEveryFrame> m_cbFrame;	        // 每帧绘制的常量缓冲区
-
-	BOOL m_isDirty;										        // 是否有值变更
-	std::array<CBufferBase*, 1> m_pCBuffers;				        // 统一管理上面所有的常量缓冲区
-
-	ComPtr<ID3D11VertexShader> m_pSkyVS;
-	ComPtr<ID3D11PixelShader> m_pSkyPS;
+	std::unique_ptr<EffectHelper> m_pEffectHelper;
+	std::shared_ptr<IEffectPass> m_pCurrEffectPass;
 
 	ComPtr<ID3D11InputLayout> m_pVertexPosLayout;
 
-	ComPtr<ID3D11ShaderResourceView> m_pTextureCube;			// 天空盒纹理
+	XMFLOAT4X4 m_world{};
+	XMFLOAT4X4 m_view{};
+	XMFLOAT4X4 m_proj{};
 };
 
 //
@@ -88,6 +67,8 @@ bool SkyEffect::InitAll(ID3D11Device* device) const
 	if (!RenderStates::IsInit())
 		throw std::exception("RenderStates need to be initialized first!");
 
+	m_pImpl->m_pEffectHelper = std::make_unique<EffectHelper>();
+
 	ComPtr<ID3DBlob> blob;
 	
 	// ******************
@@ -95,7 +76,7 @@ bool SkyEffect::InitAll(ID3D11Device* device) const
 	//
 
 	HR(CreateShaderFromFile(L"HLSL\\Sky_VS.cso", L"HLSL\\Sky_VS.hlsl", "VS", "vs_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreateVertexShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pSkyVS.GetAddressOf()));
+	HR(m_pImpl->m_pEffectHelper->AddShader("Sky_VS", device, blob.Get()));
 	// 创建顶点布局
 	HR(device->CreateInputLayout(VertexPos::InputLayout, ARRAYSIZE(VertexPos::InputLayout),
 		blob->GetBufferPointer(), blob->GetBufferSize(), m_pImpl->m_pVertexPosLayout.GetAddressOf()));
@@ -103,26 +84,26 @@ bool SkyEffect::InitAll(ID3D11Device* device) const
 	// ******************
 	// 创建像素着色器
 	//
-
 	HR(CreateShaderFromFile(L"HLSL\\Sky_PS.cso", L"HLSL\\Sky_PS.hlsl", "PS", "ps_5_0", blob.ReleaseAndGetAddressOf()));
-	HR(device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, m_pImpl->m_pSkyPS.GetAddressOf()));
+	HR(m_pImpl->m_pEffectHelper->AddShader("Sky_PS", device, blob.Get()));
 
 
-	m_pImpl->m_pCBuffers = {
-		&m_pImpl->m_cbFrame,
-	};
+	// ******************
+	// 创建通道
+	//
+	EffectPassDesc passDesc;
+	passDesc.nameVS = "Sky_VS";
+	passDesc.namePS = "Sky_PS";
+	HR(m_pImpl->m_pEffectHelper->AddEffectPass("Sky", device, &passDesc));
 
-	// 创建常量缓冲区
-	for (auto& pBuffer : m_pImpl->m_pCBuffers)
-	{
-		HR(pBuffer->CreateBuffer(device));
-	}
+	m_pImpl->m_pEffectHelper->SetSamplerStateByName("g_Sam", RenderStates::SSLinearWrap.Get());
+	m_pImpl->m_pCurrEffectPass = m_pImpl->m_pEffectHelper->GetEffectPass("Sky");
+	m_pImpl->m_pCurrEffectPass->SetDepthStencilState(RenderStates::DSSLessEqual.Get(), 0);
+	m_pImpl->m_pCurrEffectPass->SetRasterizerState(RenderStates::RSNoCull.Get());
 
 	// 设置调试对象名
 	D3D11SetDebugObjectName(m_pImpl->m_pVertexPosLayout.Get(), "SkyEffect.VertexPosLayout");
-	D3D11SetDebugObjectName(m_pImpl->m_pCBuffers[0]->cBuffer.Get(), "SkyEffect.CBFrame");
-	D3D11SetDebugObjectName(m_pImpl->m_pSkyVS.Get(), "SkyEffect.Sky_VS");
-	D3D11SetDebugObjectName(m_pImpl->m_pSkyPS.Get(), "SkyEffect.Sky_PS");
+	m_pImpl->m_pEffectHelper->SetDebugObjectName("SkyEffect");
 
 	return true;
 }
@@ -130,54 +111,33 @@ bool SkyEffect::InitAll(ID3D11Device* device) const
 void SkyEffect::SetRenderDefault(ID3D11DeviceContext* deviceContext) const
 {
 	deviceContext->IASetInputLayout(m_pImpl->m_pVertexPosLayout.Get());
-	deviceContext->VSSetShader(m_pImpl->m_pSkyVS.Get(), nullptr, 0);
-	deviceContext->PSSetShader(m_pImpl->m_pSkyPS.Get(), nullptr, 0);
-
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	deviceContext->GSSetShader(nullptr, nullptr, 0);
-	deviceContext->RSSetState(RenderStates::RSNoCull.Get());
-
-	deviceContext->PSSetSamplers(0, 1, RenderStates::SSLinearWrap.GetAddressOf());
-	deviceContext->OMSetDepthStencilState(RenderStates::DSSLessEqual.Get(), 0);
-	deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
 }
 
-void XM_CALLCONV SkyEffect::SetWorldViewProjMatrix(FXMMATRIX world, CXMMATRIX view, CXMMATRIX proj) const
+void XM_CALLCONV SkyEffect::SetWorldMatrix(FXMMATRIX world) const
 {
-	auto& cBuffer = m_pImpl->m_cbFrame;
-	cBuffer.data.worldViewProj = XMMatrixTranspose(world * view * proj);
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	XMStoreFloat4x4(&m_pImpl->m_world, world);
 }
 
-void XM_CALLCONV SkyEffect::SetWorldViewProjMatrix(FXMMATRIX worldViewProjMatrix) const
+void XM_CALLCONV SkyEffect::SetViewMatrix(FXMMATRIX view) const
 {
-	auto& cBuffer = m_pImpl->m_cbFrame;
-	cBuffer.data.worldViewProj = XMMatrixTranspose(worldViewProjMatrix);
-	m_pImpl->m_isDirty = cBuffer.isDirty = true;
+	XMStoreFloat4x4(&m_pImpl->m_view, view);
+}
+
+void XM_CALLCONV SkyEffect::SetProjMatrix(FXMMATRIX proj) const
+{
+	XMStoreFloat4x4(&m_pImpl->m_proj, proj);
 }
 
 void SkyEffect::SetTextureCube(ID3D11ShaderResourceView* textureCube) const
 {
-	m_pImpl->m_pTextureCube = textureCube;
+	m_pImpl->m_pEffectHelper->SetShaderResourceByName("g_TexCube", textureCube);
 }
 
 void SkyEffect::Apply(ID3D11DeviceContext* deviceContext)
 {
-	auto& pCBuffers = m_pImpl->m_pCBuffers;
-	// 将缓冲区绑定到渲染管线上
-	pCBuffers[0]->BindVS(deviceContext);
-	
-	// 设置SRV
-	deviceContext->PSSetShaderResources(0, 1, m_pImpl->m_pTextureCube.GetAddressOf());
+	XMMATRIX worldViewProjMatrix = XMMatrixTranspose(XMLoadFloat4x4(&m_pImpl->m_world) * XMLoadFloat4x4(&m_pImpl->m_view) * XMLoadFloat4x4(&m_pImpl->m_proj));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_WorldViewProj")->SetFloatMatrix(4, 4, reinterpret_cast<const FLOAT*>(&worldViewProjMatrix));
 
-	if (m_pImpl->m_isDirty)
-	{
-		m_pImpl->m_isDirty = false;
-		for (auto& pCBuffer : pCBuffers)
-		{
-			pCBuffer->UpdateBuffer(deviceContext);
-		}
-	}
+	m_pImpl->m_pCurrEffectPass->Apply(deviceContext);
 }
-

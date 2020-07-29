@@ -470,7 +470,7 @@ void NormalTank::Init(ID3D11Device* device)
 	m_barrel.SetDebugObjectName("TankBarrel");
 }
 
-void NormalTank::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
+void NormalTank::Draw(ID3D11DeviceContext* deviceContext, IEffect* effect)
 {
 	m_tankMainBody[0].Draw(deviceContext, effect);
 }

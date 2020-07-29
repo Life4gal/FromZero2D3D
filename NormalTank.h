@@ -18,7 +18,7 @@ public:
 	
 	void Init(ID3D11Device* device) override;
 
-	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect) override;
+	void Draw(ID3D11DeviceContext* deviceContext, IEffect* effect) override;
 	
 private:
 	BasicTransform& GetTankTransform() override;

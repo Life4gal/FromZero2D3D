@@ -207,7 +207,7 @@ void Tank::AdjustPosition(FXMVECTOR minCoordinate, FXMVECTOR maxCoordinate)
 	tankTransform.SetPosition(adjustedPos);
 }
 
-void Tank::Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect)
+void Tank::Draw(ID3D11DeviceContext* deviceContext, IEffect* effect)
 {
 	m_tankMainBody.Draw(deviceContext, effect);
 }

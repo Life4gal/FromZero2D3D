@@ -41,7 +41,7 @@ public:
 		DirectX::FXMVECTOR maxCoordinate = { { 25.0f, 0.5f , 25.0f, 0.0f } });
 	
 	// 绘制
-	void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect);
+	void Draw(ID3D11DeviceContext* deviceContext, IEffect* effect);
 	
 	// 坦克相关信息的结果可以公开
 	struct VehicleInfo

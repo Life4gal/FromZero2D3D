@@ -79,7 +79,7 @@ public:
 	}
 
 	// 绘制
-	virtual void Draw(ID3D11DeviceContext* deviceContext, BasicEffect& effect) = 0;
+	virtual void Draw(ID3D11DeviceContext* deviceContext, IEffect* effect) = 0;
 
 private:
 	// 获取坦克Transform

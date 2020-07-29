@@ -14,9 +14,12 @@
 #include <DirectXPackedVector.h>
 #include <DirectXColors.h>
 #include <d3dcompiler.h>
+#include <wincodec.h>			// 使用ScreenGrab需要包含
 #include <vector>
 #include <string>
+#include <random>
 
+#include "ScreenGrab.h"
 #include "DDSTextureLoader.h"	
 #include "WICTextureLoader.h"
 
@@ -31,7 +34,8 @@
 #endif
 
 // 安全COM组件释放宏
-#define SAFE_RELEASE(p) { if ((p)) { (p)->Release(); (p) = nullptr; } }
+// #define SAFE_RELEASE(p) { if ((p)) { (p)->Release(); (p) = nullptr; } }
+// 已用模版函数代替,放在cpp文件中(因为其他地方用不到)
 
 //
 // 辅助调试相关函数
@@ -61,7 +65,7 @@ void D3D11SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_ const char(&
 // [In]resource				D3D11设备创建出的对象
 // [In]name					对象名
 // [In]length				字符串长度
-inline void D3D11SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_ LPCSTR name, _In_ UINT length)
+inline void D3D11SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_ const LPCSTR name, _In_ const UINT length)
 {
 #if (defined(DEBUG) || defined(_DEBUG)) && (GRAPHICS_DEBUGGER_OBJECT_NAME)
 	resource->SetPrivateData(WKPDID_D3DDebugObjectName, length, name);
@@ -81,7 +85,7 @@ inline void D3D11SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_ LPCST
 inline void D3D11SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_ const std::string& name)
 {
 #if (defined(DEBUG) || defined(_DEBUG)) && (GRAPHICS_DEBUGGER_OBJECT_NAME)
-	resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)name.length(), name.c_str());
+	resource->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()), name.c_str());
 #else
 	UNREFERENCED_PARAMETER(resource);
 	UNREFERENCED_PARAMETER(name);
@@ -126,7 +130,7 @@ void DXGISetDebugObjectName(_In_ IDXGIObject* object, _In_ const char(&name)[TNa
 // [In]object				DXGI对象
 // [In]name					对象名
 // [In]length				字符串长度
-inline void DXGISetDebugObjectName(_In_ IDXGIObject* object, _In_ LPCSTR name, _In_ UINT length)
+inline void DXGISetDebugObjectName(_In_ IDXGIObject* object, _In_ const LPCSTR name, _In_ const UINT length)
 {
 #if (defined(DEBUG) || defined(_DEBUG)) && (GRAPHICS_DEBUGGER_OBJECT_NAME)
 	object->SetPrivateData(WKPDID_D3DDebugObjectName, length, name);
@@ -146,7 +150,7 @@ inline void DXGISetDebugObjectName(_In_ IDXGIObject* object, _In_ LPCSTR name, _
 inline void DXGISetDebugObjectName(_In_ IDXGIObject* object, _In_ const std::string& name)
 {
 #if (defined(DEBUG) || defined(_DEBUG)) && (GRAPHICS_DEBUGGER_OBJECT_NAME)
-	object->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)name.length(), name.c_str());
+	object->SetPrivateData(WKPDID_D3DDebugObjectName, static_cast<UINT>(name.length()), name.c_str());
 #else
 	UNREFERENCED_PARAMETER(object);
 	UNREFERENCED_PARAMETER(name);
@@ -188,20 +192,156 @@ HRESULT CreateShaderFromFile(
 );
 
 //
+// 缓冲区相关函数
+//
+
+// ------------------------------
+// CreateVertexBuffer函数
+// ------------------------------
+// [In]d3dDevice			D3D设备
+// [In]data					初始化数据
+// [In]byteWidth			缓冲区字节数
+// [Out]vertexBuffer		输出的顶点缓冲区
+// [InOpt]dynamic			是否需要CPU经常更新
+// [InOpt]streamOutput		是否还用于流输出阶段(不能与dynamic同时设为true)
+HRESULT CreateVertexBuffer(
+	ID3D11Device* d3dDevice,
+	void* data,
+	UINT byteWidth,
+	ID3D11Buffer** vertexBuffer,
+	/* 可选扩展部分 */
+	bool dynamic = false,
+	bool streamOutput = false
+);
+
+// ------------------------------
+// CreateIndexBuffer函数
+// ------------------------------
+// [In]d3dDevice			D3D设备
+// [In]data					初始化数据
+// [In]byteWidth			缓冲区字节数
+// [Out]indexBuffer			输出的索引缓冲区
+// [InOpt]dynamic			是否需要CPU经常更新
+HRESULT CreateIndexBuffer(
+	ID3D11Device* d3dDevice,
+	void* data,
+	UINT byteWidth,
+	ID3D11Buffer** indexBuffer,
+	/* 可选扩展部分 */
+	bool dynamic = false
+);
+
+// ------------------------------
+// CreateConstantBuffer函数
+// ------------------------------
+// [In]d3dDevice			D3D设备
+// [In]data					初始化数据
+// [In]byteWidth			缓冲区字节数，必须是16的倍数
+// [Out]indexBuffer			输出的索引缓冲区
+// [InOpt]cpuUpdates		是否允许CPU更新
+// [InOpt]gpuUpdates		是否允许GPU更新
+HRESULT CreateConstantBuffer(
+	ID3D11Device* d3dDevice,
+	void* data,
+	UINT byteWidth,
+	ID3D11Buffer** constantBuffer,
+	/* 可选扩展部分 */
+	bool cpuUpdates = true,
+	bool gpuUpdates = false
+);
+
+// ------------------------------
+// CreateTypedBuffer函数
+// ------------------------------
+// [In]d3dDevice			D3D设备
+// [In]data					初始化数据
+// [In]byteWidth			缓冲区字节数
+// [Out]typedBuffer			输出的有类型的缓冲区
+// [InOpt]cpuUpdates		是否允许CPU更新
+// [InOpt]gpuUpdates		是否允许使用RWBuffer
+HRESULT CreateTypedBuffer(
+	ID3D11Device* d3dDevice,
+	void* data,
+	UINT byteWidth,
+	ID3D11Buffer** typedBuffer,
+	/* 可选扩展部分 */
+	bool cpuUpdates = false,
+	bool gpuUpdates = false
+);
+
+// ------------------------------
+// CreateStructuredBuffer函数
+// ------------------------------
+// 如果需要创建Append/Consume Buffer，需指定cpuUpdates为false, gpuUpdates为true
+// [In]d3dDevice			D3D设备
+// [In]data					初始化数据
+// [In]byteWidth			缓冲区字节数
+// [In]structuredByteStride 每个结构体的字节数
+// [Out]structuredBuffer	输出的结构化缓冲区
+// [InOpt]cpuUpdates		是否允许CPU更新
+// [InOpt]gpuUpdates		是否允许使用RWStructuredBuffer
+HRESULT CreateStructuredBuffer(
+	ID3D11Device* d3dDevice,
+	void* data,
+	UINT byteWidth,
+	UINT structuredByteStride,
+	ID3D11Buffer** structuredBuffer,
+	/* 可选扩展部分 */
+	bool cpuUpdates = false,
+	bool gpuUpdates = false
+);
+
+// ------------------------------
+// CreateRawBuffer函数
+// ------------------------------
+// [In]d3dDevice			D3D设备
+// [In]data					初始化数据
+// [In]byteWidth			缓冲区字节数
+// [Out]rawBuffer			输出的字节地址缓冲区
+// [InOpt]cpuUpdates		是否允许CPU更新
+// [InOpt]gpuUpdates		是否允许使用RWByteAddressBuffer
+HRESULT CreateRawBuffer(
+	ID3D11Device* d3dDevice,
+	void* data,
+	UINT byteWidth,
+	ID3D11Buffer** rawBuffer,
+	/* 可选扩展部分 */
+	bool cpuUpdates = false,
+	bool gpuUpdates = false
+);
+
+//
 // 纹理数组相关函数
 //
 
 // ------------------------------
-// CreateDDSTexture2DArrayFromFile函数
+// CreateRandomTexture1D函数
 // ------------------------------
-// 该函数要求所有的dds纹理的宽高、数据格式、mip等级一致
+// 创建1D随机值向量纹理，范围在[-1.0f, 1.0f]
+// [In]d3dDevice            D3D设备
+// [OutOpt]texture		    输出的纹理资源
+// [OutOpt]textureView      输出的纹理资源视图
+HRESULT CreateRandomTexture1D(
+	ID3D11Device* d3dDevice,
+	ID3D11Texture1D** texture,
+	ID3D11ShaderResourceView** textureView
+);
+
+//
+// 纹理数组相关函数
+//
+
+// ------------------------------
+// CreateTexture2DArrayFromFile函数
+// ------------------------------
+// 该函数要求所有纹理的宽高、数据格式、mip等级一致
 // [In]d3dDevice			D3D设备
 // [In]d3dDeviceContext		D3D设备上下文
 // [In]fileNames			dds文件名数组
 // [OutOpt]textureArray		输出的纹理数组资源
 // [OutOpt]textureArrayView 输出的纹理数组资源视图
 // [In]generateMips			是否生成mipmaps
-HRESULT CreateDDSTexture2DArrayFromFile(
+HRESULT CreateTexture2DArrayFromFile(
 	ID3D11Device* d3dDevice,
 	ID3D11DeviceContext* d3dDeviceContext,
 	const std::vector<std::wstring>& fileNames,
@@ -209,31 +349,10 @@ HRESULT CreateDDSTexture2DArrayFromFile(
 	ID3D11ShaderResourceView** textureArrayView,
 	bool generateMips = false
 );
-
-// ------------------------------
-// CreateWICTexture2DArrayFromFile函数
-// ------------------------------
-// 该函数要求所有的dds纹理的宽高、数据格式、mip等级一致
-// [In]d3dDevice			D3D设备
-// [In]d3dDeviceContext		D3D设备上下文
-// [In]fileNames			dds文件名数组
-// [OutOpt]textureArray		输出的纹理数组资源
-// [OutOpt]textureArrayView 输出的纹理数组资源视图
-// [In]generateMips			是否生成mipmaps
-HRESULT CreateWICTexture2DArrayFromFile(
-	ID3D11Device* d3dDevice,
-	ID3D11DeviceContext* d3dDeviceContext,
-	const std::vector<std::wstring>& fileNames,
-	ID3D11Texture2D** textureArray,
-	ID3D11ShaderResourceView** textureArrayView,
-	bool generateMips = false
-);
-
 
 //
 // 纹理立方体相关函数
 //
-
 
 // ------------------------------
 // CreateWICTexture2DCubeFromFile函数
@@ -258,6 +377,7 @@ HRESULT CreateWICTexture2DCubeFromFile(
 	bool generateMips = false
 );
 
+
 // ------------------------------
 // CreateWICTexture2DCubeFromFile函数
 // ------------------------------
@@ -278,5 +398,24 @@ HRESULT CreateWICTexture2DCubeFromFile(
 	ID3D11ShaderResourceView** textureCubeView,
 	bool generateMips = false
 );
+
+//
+// 数学相关函数
+//
+
+// ------------------------------
+// InverseTranspose函数
+// ------------------------------
+inline DirectX::XMMATRIX XM_CALLCONV InverseTranspose(DirectX::FXMMATRIX matrix)
+{
+	using namespace DirectX;
+
+	// 世界矩阵的逆的转置仅针对法向量，我们也不需要世界矩阵的平移分量
+	// 而且不去掉的话，后续再乘上观察矩阵之类的就会产生错误的变换结果
+	XMMATRIX localMatrix = matrix;
+	localMatrix.r[3] = g_XMIdentityR3;
+
+	return XMMatrixTranspose(XMMatrixInverse(nullptr, localMatrix));
+}
 
 #endif

@@ -438,16 +438,6 @@ void GameApp::DrawScene()
 			text += L"G-灰度/单通道色显示切换\n";
 		text += L"方向光倾斜: " + std::to_wstring(Slopes[m_slopeIndex]) + L" (主键盘1-5切换)\n";
 
-		/*
-			void ID2D1RenderTarget::DrawTextW(
-			    WCHAR *string,                      // [In]要输出的文本
-			    UINT stringLength,                  // [In]文本长度，用wcslen函数或者wstring::length方法获取即可
-			    IDWriteTextFormat *textFormat,      // [In]文本格式
-			    const D2D1_RECT_F &layoutRect,      // [In]布局区域
-			    ID2D1Brush *defaultForegroundBrush, // [In]使用的前景刷
-			    D2D1_DRAW_TEXT_OPTIONS options = D2D1_DRAW_TEXT_OPTIONS_NONE,
-			    DWRITE_MEASURING_MODE measuringMode = DWRITE_MEASURING_MODE_NATURAL);
-		 */
 		m_pd2dRenderTarget->DrawTextW(text.c_str(), static_cast<UINT32>(text.length()), m_pTextFormat.Get(),
 			D2D1_RECT_F{ 0.0f, 0.0f, 600.0f, 200.0f }, m_pColorBrush.Get());
 		HR(m_pd2dRenderTarget->EndDraw());
@@ -466,16 +456,12 @@ void GameApp::DrawScene(BasicEffect* pBasicEffect)
 	m_ground.Draw(m_pd3dImmediateContext.Get(), pBasicEffect);
 
 	// 石柱
-	//pBasicEffect->SetRenderWithNormalMap(m_pd3dImmediateContext.Get(), IEffect::RenderType::RenderInstance);
-	//m_cylinder.DrawInstanced(m_pd3dImmediateContext.Get(), pBasicEffect, m_cylinderTransforms);
-	pBasicEffect->SetRenderWithNormalMap(m_pd3dImmediateContext.Get(), IEffect::RenderType::RenderObject);
-	m_cylinder.Draw(m_pd3dImmediateContext.Get(), pBasicEffect);
+	pBasicEffect->SetRenderWithNormalMap(m_pd3dImmediateContext.Get(), IEffect::RenderType::RenderInstance);
+	m_cylinder.DrawInstanced(m_pd3dImmediateContext.Get(), pBasicEffect, m_cylinderTransforms);
 
 	// 石球
-	//pBasicEffect->SetRenderWithNormalMap(m_pd3dImmediateContext.Get(), IEffect::RenderType::RenderInstance);
-	//m_sphere.DrawInstanced(m_pd3dImmediateContext.Get(), pBasicEffect, m_sphereTransforms);
-	pBasicEffect->SetRenderWithNormalMap(m_pd3dImmediateContext.Get(), IEffect::RenderType::RenderObject);
-	m_sphere.Draw(m_pd3dImmediateContext.Get(), pBasicEffect);
+	pBasicEffect->SetRenderWithNormalMap(m_pd3dImmediateContext.Get(), IEffect::RenderType::RenderInstance);
+	m_sphere.DrawInstanced(m_pd3dImmediateContext.Get(), pBasicEffect, m_sphereTransforms);
 	
 	// 玩家
 	pBasicEffect->SetRenderDefault(m_pd3dImmediateContext.Get(), IEffect::RenderType::RenderObject);
@@ -606,7 +592,7 @@ bool GameApp::InitResource()
 		m_sphereTransforms.resize(10);
 		for (int i = 0; i < 10; ++i)
 		{
-			m_sphereTransforms[i].SetPosition(-6.0f + 12.0f * (static_cast<float>(i) / 5), 4.01f, -10.0f + static_cast<float>(i % 5) * 5.0f);
+			m_sphereTransforms[i].SetPosition(-6.0f + 12.0f * (static_cast<float>(i) / 5), 5.51f, -10.0f + static_cast<float>(i % 5) * 5.0f);
 		}
 	}
 	// 柱体

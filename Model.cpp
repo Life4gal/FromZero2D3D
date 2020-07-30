@@ -101,10 +101,6 @@ void Model::SetMesh(ID3D11Device* device, const void* vertices, const UINT verte
 	modelParts[0].indexCount = indexCount;
 	modelParts[0].indexFormat = indexFormat;
 
-	modelParts[0].material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-	modelParts[0].material.diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-	modelParts[0].material.specular = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-
 	// 设置顶点缓冲区描述
 	D3D11_BUFFER_DESC vbd;
 	ZeroMemory(&vbd, sizeof(vbd));

@@ -4,7 +4,7 @@ using namespace DirectX;
 
 BasicTransform::BasicTransform()
 	:
-	m_scale{ 1.0f, 10.f, 1.0f },
+	m_scale{ 1.0f, 1.0f, 1.0f },
 	m_rotation{},
 	m_position{}
 {

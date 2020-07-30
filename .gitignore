@@ -339,3 +339,11 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 *.exe
+
+*.cso
+*.dso
+*.gso
+*.hso
+*.pso
+*.vso
+*.mbo

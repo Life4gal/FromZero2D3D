@@ -89,12 +89,12 @@ void GameObject::DrawInstanced(ID3D11DeviceContext* deviceContext, IEffect* effe
 
 	HR(deviceContext->Map(m_pInstancedBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData));
 
-	auto iter = reinterpret_cast<InstancedData*>(mappedData.pData);
+	auto* iter = reinterpret_cast<InstancedData*>(mappedData.pData);
 	for (auto& transform : data)
 	{
 		const XMMATRIX world = transform.GetLocalToWorldMatrix();
 		iter->world = XMMatrixTranspose(world);
-		iter->worldInvTranspose = XMMatrixInverse(nullptr, world);	// 两次转置抵消
+		iter->worldInvTranspose = XMMatrixTranspose(InverseTranspose(world));	
 		++iter;
 	}
 

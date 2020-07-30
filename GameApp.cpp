@@ -163,9 +163,6 @@ void GameApp::OnResize()
 	}
 }
 
-// IMGUI是否需要获取鼠标控制权
-bool g_isImguiCaptureMouse = false;
-
 void GameApp::UpdateScene(const float dt)
 {
 	const Mouse::State mouseState = m_pMouse->GetState();
@@ -238,7 +235,7 @@ void GameApp::UpdateScene(const float dt)
 	}
 
 	// 调整位置
-	m_player.AdjustPosition({ { -25.0f, 0.5f, -25.0f, 0.0f } }, { { 25.0f, 0.5f , 25.0f, 0.0f } });
+	m_player.AdjustPosition({ { -50.0f, 0.5f, -50.0f, 0.0f } }, { { 50.0f, 0.5f , 50.0f, 0.0f } });
 
 	if (m_cameraMode == CameraMode::FirstPerson)
 	{
@@ -257,19 +254,17 @@ void GameApp::UpdateScene(const float dt)
 
 		if(keyState.IsKeyDown(Keyboard::LeftControl))
 		{
+			// 我们不再需要一个flag来标识IMGUI是否需要鼠标了
+			// 只有在绝对模式下我们才能操作IMGUI
 			m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
-			g_isImguiCaptureMouse = true;
 		}
 		else
 		{
 			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-			g_isImguiCaptureMouse = false;
 		}
 	}
 	else if(m_cameraMode == CameraMode::ThirdPerson)
 	{
-		g_isImguiCaptureMouse = false;
-		
 		auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
 		
 		// 设置目标
@@ -342,7 +337,7 @@ void GameApp::UpdateScene(const float dt)
 
 	//
 	// 投影区域为正方体，以原点为中心，以方向光为+Z朝向
-	const XMMATRIX lightView = XMMatrixLookAtLH(XMLoadFloat3(&m_dirLights[0].direction) * 20.0f * (-2.0f), g_XMZero, g_XMIdentityR1);
+	const XMMATRIX lightView = XMMatrixLookAtLH(XMLoadFloat3(&m_dirLights[0].direction) * 20.0f * -2.0f, g_XMZero, g_XMIdentityR1);
 	m_pShadowEffect->SetViewMatrix(lightView);
 
 	// 将NDC空间 [-1, +1]^2 变换到纹理坐标空间 [0, 1]^2
@@ -354,7 +349,7 @@ void GameApp::UpdateScene(const float dt)
 		0.5f, 0.5f, 0.0f, 1.0f
 	);
 	// S = V * P * T
-	m_pBasicEffect->SetShadowTransformMatrix(lightView * XMMatrixOrthographicLH(40.0f, 40.0f, 20.0f, 60.0f) * transform);
+	m_pBasicEffect->SetShadowTransformMatrix(lightView * XMMatrixOrthographicLH(100.0f, 100.0f, 20.0f, 60.0f) * transform);
 
 	// 重置滚轮值
 	m_pMouse->ResetScrollWheelValue();
@@ -526,7 +521,7 @@ bool GameApp::InitResource()
 	m_pBasicEffect->SetViewMatrix(camera->GetViewMatrix());
 	m_pBasicEffect->SetProjMatrix(camera->GetProjMatrix());
 
-	m_pShadowEffect->SetProjMatrix(XMMatrixOrthographicLH(40.0f, 40.0f, 20.0f, 60.0f));
+	m_pShadowEffect->SetProjMatrix(XMMatrixOrthographicLH(100.0f, 100.0f, 20.0f, 60.0f));
 
 	m_pDebugEffect->SetWorldMatrix(XMMatrixIdentity());
 	m_pDebugEffect->SetViewMatrix(XMMatrixIdentity());
@@ -541,7 +536,7 @@ bool GameApp::InitResource()
 
 	 // 地面
 	{
-		Model ground(m_pd3dDevice.Get(), Geometry::CreatePlane<VertexPosNormalTangentTex>(XMFLOAT2(50.0f, 50.0f), XMFLOAT2(6.0f, 9.0f)));
+		Model ground(m_pd3dDevice.Get(), Geometry::CreatePlane<VertexPosNormalTangentTex>(XMFLOAT2(100.0f, 100.0f), XMFLOAT2(6.0f, 9.0f)));
 		ModelPart& modelPart = ground.modelParts.front();
 		modelPart.material.ambient = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
 		modelPart.material.diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -589,10 +584,15 @@ bool GameApp::InitResource()
 		
 		m_sphere.SetModel(std::move(sphere));
 
-		m_sphereTransforms.resize(10);
-		for (int i = 0; i < 10; ++i)
+		m_sphereTransforms.resize(100);
+		for (int i = 0; i < 100; ++i)
 		{
-			m_sphereTransforms[i].SetPosition(-6.0f + 12.0f * (static_cast<float>(i) / 5), 5.51f, -10.0f + static_cast<float>(i % 5) * 5.0f);
+			m_sphereTransforms[i].SetPosition(
+				15 * (2 * cosf(XM_PI * static_cast<float>(i) / 50) - cosf(XM_2PI * static_cast<float>(i) / 50)), 
+				5.51f, 
+				15 * (2 * sinf(XM_PI * static_cast<float>(i) / 50) - sinf(XM_2PI * static_cast<float>(i) / 50))
+			);
+			m_sphereTransforms[i].SetScale(0.35f, 0.35f, 0.35f);
 		}
 	}
 	// 柱体
@@ -618,12 +618,17 @@ bool GameApp::InitResource()
 			modelPart.texNormalMap.GetAddressOf())
 		);
 		
-		
 		m_cylinder.SetModel(std::move(cylinder));
-		m_cylinderTransforms.resize(10);
-		for (int i = 0; i < 10; ++i)
+		
+		m_cylinderTransforms.resize(100);
+		for (int i = 0; i < 100; ++i)
 		{
-			m_cylinderTransforms[i].SetPosition(-6.0f + 12.0f * (static_cast<float>(i) / 5), 0.51f, -10.0f + static_cast<float>(i % 5) * 5.0f);
+			m_cylinderTransforms[i].SetPosition(
+				15 * (2 * cosf(XM_PI * static_cast<float>(i) / 50) - cosf(XM_2PI * static_cast<float>(i) / 50)),
+				0.51f,
+				15 * (2 * sinf(XM_PI * static_cast<float>(i) / 50) - sinf(XM_2PI * static_cast<float>(i) / 50))
+			);
+			m_cylinderTransforms[i].SetScale(0.35f, 1.0f, 0.35f);
 		}
 	}
 

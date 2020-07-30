@@ -205,12 +205,14 @@ void D3DApp::OnResize()
 
 }
 
-extern bool g_isImguiCaptureMouse;
+extern bool g_isImGuiUsedKBandMouse;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // ReSharper disable once CppParameterMayBeConst,不要给HWND附加顶层const声明,不然实际上会变成底层const
 LRESULT D3DApp::MsgProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
+	ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
+	
 	switch (msg)
 	{
 		// WM_ACTIVATE is sent when the window is activated or deactivated.  
@@ -335,25 +337,32 @@ LRESULT D3DApp::MsgProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LP
 	case WM_MOUSEWHEEL:
 	case WM_MOUSEHOVER:
 	case WM_MOUSEMOVE:
+		if(!g_isImGuiUsedKBandMouse)
 		{
-			if (g_isImguiCaptureMouse)
-			{
-				return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
-			}
 			m_pMouse->ProcessMessage(msg, wParam, lParam);
-			return 0;
+			
 		}
+		g_isImGuiUsedKBandMouse = false;
+		return 0;
 
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
-		m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+		if (!g_isImGuiUsedKBandMouse)
+		{
+			m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+		}
+		g_isImGuiUsedKBandMouse = false;
 		return 0;
 
 	case WM_ACTIVATEAPP:
-		m_pMouse->ProcessMessage(msg, wParam, lParam);
-		m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+		if (!g_isImGuiUsedKBandMouse)
+		{
+			m_pMouse->ProcessMessage(msg, wParam, lParam);
+			m_pKeyboard->ProcessMessage(msg, wParam, lParam);
+		}
+		g_isImGuiUsedKBandMouse = false;
 		return 0;
 		
 	default:

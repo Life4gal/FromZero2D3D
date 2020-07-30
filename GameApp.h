@@ -11,8 +11,6 @@
 #include "Effect.h"
 #include "Render.h"
 
-#include "ImguiPanel.h"
-
 class GameApp final : public D3DApp
 {
 public:
@@ -70,8 +68,6 @@ private:
 	std::shared_ptr<Camera> m_pCamera;						    // 摄像机
 
 	CameraMode m_cameraMode;									// 摄像机模式
-
-	ImguiPanel m_imguiPanel;
 };
 
 #endif

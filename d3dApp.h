@@ -97,6 +97,8 @@ protected:
 	std::wstring m_mainWndCaption;                       // 主窗口标题
 	int m_clientWidth;                                   // 视口宽度
 	int m_clientHeight;                                  // 视口高度
+
+	ImguiPanel m_imguiPanel;							// IMGUI面板
 };
 
 #endif // D3DAPP_H

@@ -15,7 +15,7 @@ class GameApp final : public D3DApp
 {
 public:
 	// 摄像机模式
-	enum class CameraMode { FirstPerson, ThirdPerson };
+	enum class CameraMode { FirstPerson, ThirdPerson, Free };
 	
 	explicit GameApp(HINSTANCE hInstance);
 	~GameApp();

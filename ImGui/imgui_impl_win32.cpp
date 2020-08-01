@@ -148,6 +148,7 @@ void    ImGui_ImplWin32_NewFrame()
     }
 }
 
+extern bool g_isImGuiCanUseKBandMouse;
 // 如果IMGUI使用了键鼠,其他地方则不响应键鼠操作
 bool g_isImGuiUsedKBandMouse = false;
 
@@ -157,11 +158,17 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, const UINT msg,
 	if (ImGui::GetCurrentContext() == nullptr)
 		return 0;
 
+	// g_isImGuiCanUseKBandMouse是false的,而可以改变他的地方必定是在 ImGui::NewFrame() 之后,
+	// 此时调用 ImGui::IsAnyWindowHovered() 或 ImGui::IsAnyItemHovered() 是安全的
+	// TODO 不论是单独的 !ImGui::IsAnyWindowHovered() 还是 !ImGui::IsAnyItemHovered() 都有问题
+	// 前者不能响应点击物件,后者不能响应拖动窗体,一起用才行
+    if (!g_isImGuiCanUseKBandMouse || !ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemHovered())
+        return 0;
+	
 	ImGuiIO& io = ImGui::GetIO();
 	switch (msg)
 	{
 	case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
-		
 	case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
 	case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
 	case WM_XBUTTONDOWN: case WM_XBUTTONDBLCLK:
@@ -208,7 +215,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, const UINT msg,
 		return 0;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
-		if (wParam < 256 && ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+		if (wParam < 256)
 		{
 			io.KeysDown[wParam] = true;
 			g_isImGuiUsedKBandMouse = true;
@@ -216,7 +223,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, const UINT msg,
 		return 0;
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
-		if (wParam < 256 && ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+		if (wParam < 256)
 		{
 			io.KeysDown[wParam] = false;
 			g_isImGuiUsedKBandMouse = true;
@@ -231,6 +238,6 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, const UINT msg,
 			return 1;
 		return 0;
 	default:
-		return DefWindowProc(hWnd, msg, wParam, lParam);
+		return 0;
 	}
 }

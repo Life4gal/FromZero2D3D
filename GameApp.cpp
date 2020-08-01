@@ -163,6 +163,9 @@ void GameApp::OnResize()
 	}
 }
 
+// IMGUI 是否可以使用键鼠
+bool g_isImGuiCanUseKBandMouse = false;
+
 void GameApp::UpdateScene(const float dt)
 {
 	const Mouse::State mouseState = m_pMouse->GetState();
@@ -172,7 +175,7 @@ void GameApp::UpdateScene(const float dt)
 	m_keyboardTracker.Update(keyState);
 
 	// 调试模式开关
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::E))
+	if (m_keyboardTracker.IsKeyPressed(Keyboard::F))
 		m_enableDebug = !m_enableDebug;
 	// 灰度模式开关
 	if (m_keyboardTracker.IsKeyPressed(Keyboard::G))
@@ -233,6 +236,51 @@ void GameApp::UpdateScene(const float dt)
 			m_player.Turn(dt * 6.0f);
 		}
 	}
+	else if(m_cameraMode == CameraMode::Free)
+	{
+		// 在鼠标没进入窗口前仍为ABSOLUTE模式
+		// 只允许在相对模式下移动
+		if (mouseState.positionMode == Mouse::MODE_RELATIVE)
+		{
+			auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
+
+			if (keyState.IsKeyDown(Keyboard::W))
+			{
+				firstPersonCamera->MoveForward(dt * 6.0f);
+			}
+			if (keyState.IsKeyDown(Keyboard::S))
+			{
+				firstPersonCamera->MoveForward(dt * -6.0f);
+			}
+			if (keyState.IsKeyDown(Keyboard::A))
+			{
+				firstPersonCamera->Strafe(dt * -6.0f);
+			}
+			if (keyState.IsKeyDown(Keyboard::D))
+			{
+				firstPersonCamera->Strafe(dt * 6.0f);
+			}
+			
+			firstPersonCamera->Pitch(static_cast<float>(mouseState.y) * dt * 2.5f);
+			firstPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
+		}
+
+		// 我们暂时改为只允许自由模式下操作IMGUI
+		if (keyState.IsKeyDown(Keyboard::LeftControl))
+		{
+			if(mouseState.positionMode == Mouse::MODE_ABSOLUTE)
+			{
+				m_pMouse->SetMode(Mouse::MODE_RELATIVE);
+				g_isImGuiCanUseKBandMouse = false;
+			}
+			else
+			{
+				// 只有在绝对模式下我们才能操作IMGUI
+				m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
+				g_isImGuiCanUseKBandMouse = true;
+			}
+		}
+	}
 
 	// 调整位置
 	m_player.AdjustPosition({ { -50.0f, 0.5f, -50.0f, 0.0f } }, { { 50.0f, 0.5f , 50.0f, 0.0f } });
@@ -251,17 +299,7 @@ void GameApp::UpdateScene(const float dt)
 			firstPersonCamera->Pitch(static_cast<float>(mouseState.y) * dt * 2.5f);
 			firstPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
 		}
-
-		if(keyState.IsKeyDown(Keyboard::LeftControl))
-		{
-			// 我们不再需要一个flag来标识IMGUI是否需要鼠标了
-			// 只有在绝对模式下我们才能操作IMGUI
-			m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
-		}
-		else
-		{
-			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-		}
+		
 	}
 	else if(m_cameraMode == CameraMode::ThirdPerson)
 	{
@@ -269,9 +307,13 @@ void GameApp::UpdateScene(const float dt)
 		
 		// 设置目标
 		thirdPersonCamera->SetTarget(m_player.GetPosition());
-		// 绕物体旋转
-		thirdPersonCamera->RotateX(static_cast<float>(mouseState.y) * dt * 2.5f);
-		thirdPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
+		// 在鼠标没进入窗口前仍为ABSOLUTE模式
+		if (mouseState.positionMode == Mouse::MODE_RELATIVE)
+		{
+			thirdPersonCamera->RotateX(static_cast<float>(mouseState.y) * dt * 2.5f);
+			thirdPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
+		}
+		// 与目标物体的距离
 		thirdPersonCamera->Approach(static_cast<float>(-mouseState.scrollWheelValue) / 120 * 1.0f);
 	}
 	
@@ -280,27 +322,42 @@ void GameApp::UpdateScene(const float dt)
 	m_pBasicEffect->SetEyePos(m_pCamera->GetPositionVector());
 
 	// 摄像机模式切换
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::D0) && m_cameraMode != CameraMode::FirstPerson)
+	if (m_keyboardTracker.IsKeyPressed(Keyboard::D8))
 	{
-		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
-		const XMVECTOR look = m_pCamera->GetForwardAxisVector();
-		const XMVECTOR up = m_pCamera->GetUpAxisVector();
-		auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
-		if (!firstPersonCamera)
+		// 从第三人称或者从自由视角切换过啦才要变
+		if(m_cameraMode == CameraMode::ThirdPerson || m_cameraMode == CameraMode::Free)
 		{
-			firstPersonCamera.reset(new FirstPersonCamera);
-			firstPersonCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
-			m_pCamera = firstPersonCamera;
+			// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
+			const XMVECTOR look = m_pCamera->GetForwardAxisVector();
+			const XMVECTOR up = m_pCamera->GetUpAxisVector();
+			auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
+			if (!firstPersonCamera)
+			{
+				firstPersonCamera.reset(new FirstPersonCamera);
+				firstPersonCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
+				m_pCamera = firstPersonCamera;
+			}
+
+			const XMFLOAT3 position = m_player.GetPosition();
+			firstPersonCamera->LookTo(
+				XMLoadFloat3(&position),
+				look,
+				up
+			);
+
+			// TODO 我们需要一个简单可行的办法来保证切换摄像机视角时关闭对IMGUI的控制
+			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
+			g_isImGuiCanUseKBandMouse = false;
 		}
 
-		const XMFLOAT3 position = m_player.GetPosition();
-		firstPersonCamera->LookTo(
-			XMLoadFloat3(&position),
-			look,
-			up
-		);
-
-		m_cameraMode = CameraMode::FirstPerson;
+		if(m_cameraMode == CameraMode::ThirdPerson)
+		{
+			m_cameraMode = CameraMode::FirstPerson;
+		}
+		else
+		{
+			m_cameraMode = m_cameraMode != CameraMode::FirstPerson ? CameraMode::FirstPerson : CameraMode::Free;
+		}
 	}
 	else if (m_keyboardTracker.IsKeyPressed(Keyboard::D9) && m_cameraMode != CameraMode::ThirdPerson)
 	{
@@ -320,6 +377,10 @@ void GameApp::UpdateScene(const float dt)
 		thirdPersonCamera->SetDistance(8.0f);
 		thirdPersonCamera->SetDistanceMinMax(3.0f, 20.0f);
 
+		// TODO 我们需要一个简单可行的办法来保证切换摄像机视角时关闭对IMGUI的控制
+		m_pMouse->SetMode(Mouse::MODE_RELATIVE);
+		g_isImGuiCanUseKBandMouse = false;
+		
 		m_cameraMode = CameraMode::ThirdPerson;
 	}
 
@@ -428,7 +489,27 @@ void GameApp::DrawScene()
 		
 		m_pd2dRenderTarget->BeginDraw();
 		std::wstring text =
-			L"调试深度图: " + (m_enableDebug ? std::wstring(L"开") : std::wstring(L"关")) + L" (E切换)\n";
+			L"当前摄像机模式: ";
+		switch (m_cameraMode)
+		{
+		case CameraMode::FirstPerson:
+			text += L"第一人称";
+			break;
+		case CameraMode::ThirdPerson:
+			text += L"第三人称";
+			break;
+		default:
+			{
+				text += L"自由视角\n当前控制: ";
+				if (m_pMouse->GetState().positionMode == Mouse::MODE_ABSOLUTE)
+					text += L"IMGUI面板";
+				else
+					text += L"摄像机";
+				text += L"\n(按左CTRL以切换对IMGUI和摄像机的控制)";
+			}
+		}
+		text += L"\n(主键盘8在第一人称和自由视角间切换,主键盘9切换第三人称)\n";
+		text +=	L"调试深度图: " + (m_enableDebug ? std::wstring(L"开") : std::wstring(L"关")) + L" (F切换)\n";
 		if (m_enableDebug)
 			text += L"G-灰度/单通道色显示切换\n";
 		text += L"方向光倾斜: " + std::to_wstring(Slopes[m_slopeIndex]) + L" (主键盘1-5切换)\n";

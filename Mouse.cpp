@@ -536,7 +536,6 @@ void Mouse::SetMode(Mode mode)
 	pImpl->SetMode(mode);
 }
 
-
 bool Mouse::IsConnected() const
 {
 	return pImpl->IsConnected();

@@ -205,6 +205,7 @@ void D3DApp::OnResize()
 
 }
 
+// 主要是为了让 DX 的键鼠不会在操作 IMGUI 的时候同步响应
 extern bool g_isImGuiUsedKBandMouse;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -340,7 +341,6 @@ LRESULT D3DApp::MsgProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LP
 		if(!g_isImGuiUsedKBandMouse)
 		{
 			m_pMouse->ProcessMessage(msg, wParam, lParam);
-			
 		}
 		g_isImGuiUsedKBandMouse = false;
 		return 0;

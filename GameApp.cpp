@@ -410,7 +410,7 @@ void GameApp::UpdateScene(const float dt)
 		0.5f, 0.5f, 0.0f, 1.0f
 	);
 	// S = V * P * T
-	m_pBasicEffect->SetShadowTransformMatrix(lightView * XMMatrixOrthographicLH(100.0f, 100.0f, 20.0f, 60.0f) * transform);
+	m_pBasicEffect->SetShadowTransformMatrix(lightView * XMMatrixOrthographicLH(100.0f, 100.0f, 0.0f, 100.0f) * transform);
 
 	// 重置滚轮值
 	m_pMouse->ResetScrollWheelValue();
@@ -602,7 +602,7 @@ bool GameApp::InitResource()
 	m_pBasicEffect->SetViewMatrix(camera->GetViewMatrix());
 	m_pBasicEffect->SetProjMatrix(camera->GetProjMatrix());
 
-	m_pShadowEffect->SetProjMatrix(XMMatrixOrthographicLH(100.0f, 100.0f, 20.0f, 60.0f));
+	m_pShadowEffect->SetProjMatrix(XMMatrixOrthographicLH(100.0f, 100.0f, 0.0f, 100.0f));
 
 	m_pDebugEffect->SetWorldMatrix(XMMatrixIdentity());
 	m_pDebugEffect->SetViewMatrix(XMMatrixIdentity());
@@ -664,17 +664,6 @@ bool GameApp::InitResource()
 		);
 		
 		m_sphere.SetModel(std::move(sphere));
-
-		m_sphereTransforms.resize(100);
-		for (int i = 0; i < 100; ++i)
-		{
-			m_sphereTransforms[i].SetPosition(
-				15 * (2 * cosf(XM_PI * static_cast<float>(i) / 50) - cosf(XM_2PI * static_cast<float>(i) / 50)), 
-				5.51f, 
-				15 * (2 * sinf(XM_PI * static_cast<float>(i) / 50) - sinf(XM_2PI * static_cast<float>(i) / 50))
-			);
-			m_sphereTransforms[i].SetScale(0.35f, 0.35f, 0.35f);
-		}
 	}
 	// 柱体
 	{
@@ -700,16 +689,29 @@ bool GameApp::InitResource()
 		);
 		
 		m_cylinder.SetModel(std::move(cylinder));
-		
-		m_cylinderTransforms.resize(100);
-		for (int i = 0; i < 100; ++i)
+	}
+	// 柱子和球的位置
+	{
+		m_sphereTransforms.resize(90);
+		m_cylinderTransforms.resize(90);
+
+		// 前10个离得太近了,我们跳过
+		for(int i = 0; i < 45; ++i)
 		{
-			m_cylinderTransforms[i].SetPosition(
-				15 * (2 * cosf(XM_PI * static_cast<float>(i) / 50) - cosf(XM_2PI * static_cast<float>(i) / 50)),
-				0.51f,
-				15 * (2 * sinf(XM_PI * static_cast<float>(i) / 50) - sinf(XM_2PI * static_cast<float>(i) / 50))
-			);
+			// 我们只改变cos和sin的参数,不改变变化系数α
+			const int j = i + 5;
+			const float x = (5 + (45 - i) * 0.4f) * (2 * sinf(XM_PI * static_cast<float>(j) / 50) - sinf(XM_2PI * static_cast<float>(j) / 50));
+			const float z = 12 + 15 * (2 * cosf(XM_PI * static_cast<float>(j) / 50) - cosf(XM_2PI * static_cast<float>(j) / 50));
+
+			m_sphereTransforms[i].SetPosition(x, 5.51f, z);
+			m_sphereTransforms[i].SetScale(0.35f, 0.35f, 0.35f);
+			m_sphereTransforms[static_cast<size_t>(89 - i)].SetPosition(-x, 5.51f, z);
+			m_sphereTransforms[static_cast<size_t>(89 - i)].SetScale(0.35f, 0.35f, 0.35f);
+
+			m_cylinderTransforms[i].SetPosition(x, 0.51f, z);
 			m_cylinderTransforms[i].SetScale(0.35f, 1.0f, 0.35f);
+			m_cylinderTransforms[static_cast<size_t>(89 - i)].SetPosition(-x, 0.51f, z);
+			m_cylinderTransforms[static_cast<size_t>(89 - i)].SetScale(0.35f, 1.0f, 0.35f);
 		}
 	}
 
@@ -752,8 +754,7 @@ bool GameApp::InitResource()
 	m_cylinder.SetDebugObjectName("Cylinder");
 	m_sphere.SetDebugObjectName("Sphere");
 	m_debugQuad.SetDebugObjectName("DebugQuad");
-	// 作为阴影RTV是空的
-	//m_pShadowMap->SetDebugObjectName("ShadowMap");
+	m_pShadowMap->SetDebugObjectName("ShadowMap");
 	m_pDaylight->SetDebugObjectName("DayLight");
 	
 	return true;

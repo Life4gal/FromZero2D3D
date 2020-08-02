@@ -340,10 +340,4 @@ ASALocalRun/
 healthchecksdb
 *.exe
 
-*.cso
-*.dso
-*.gso
-*.hso
-*.pso
-*.vso
-*.mbo
+HLSL/*.cso

@@ -229,8 +229,8 @@ float CalcShadowFactor(SamplerComparisonState samShadow,
 	[unroll]
     for (int i = 0; i < 9; ++i)
     {
-        percentLit += shadowMap.SampleCmpLevelZero(samShadow,
-			shadowPosH.xy + offsets[i], depth).r;
+        // 该方法使用的并非一般的采样器对象，而是比较采样器
+        percentLit += shadowMap.SampleCmpLevelZero(samShadow,shadowPosH.xy + offsets[i], depth).r;
     }
     
     return percentLit /= 9.0f;

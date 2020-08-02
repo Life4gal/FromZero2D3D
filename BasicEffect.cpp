@@ -294,7 +294,7 @@ void BasicEffect::SetTextureCube(ID3D11ShaderResourceView* textureCube) const
 
 void XM_CALLCONV BasicEffect::SetEyePos(FXMVECTOR eyePos) const
 {
-	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_EyePosW")->SetFloatVector(3, reinterpret_cast<const float*>(&eyePos));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_EyePosW")->SetFloatVector(3, reinterpret_cast<const FLOAT*>(&eyePos));
 }
 
 void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
@@ -310,11 +310,11 @@ void BasicEffect::Apply(ID3D11DeviceContext* deviceContext)
 	view = XMMatrixTranspose(view);
 	proj = XMMatrixTranspose(proj);
 
-	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_World")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&world));
-	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_View")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&view));
-	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_Proj")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&proj));
-	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_WorldViewProj")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&worldViewPrjMatrix));
-	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_WorldInvTranspose")->SetFloatMatrix(4, 4, reinterpret_cast<const float*>(&worldInvTranspose));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_World")->SetFloatMatrix(4, 4, reinterpret_cast<const FLOAT*>(&world));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_View")->SetFloatMatrix(4, 4, reinterpret_cast<const FLOAT*>(&view));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_Proj")->SetFloatMatrix(4, 4, reinterpret_cast<const FLOAT*>(&proj));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_WorldViewProj")->SetFloatMatrix(4, 4, reinterpret_cast<const FLOAT*>(&worldViewPrjMatrix));
+	m_pImpl->m_pEffectHelper->GetConstantBufferVariable("g_WorldInvTranspose")->SetFloatMatrix(4, 4, reinterpret_cast<const FLOAT*>(&worldInvTranspose));
 
 	if (m_pImpl->m_pCurrEffectPass)
 	{

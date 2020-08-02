@@ -48,9 +48,12 @@ void RenderStates::InitAll(ID3D11Device * device)
 			D3D11_FILL_MODE FillMode;          // 填充模式
 			D3D11_CULL_MODE CullMode;          // 裁剪模式
 			BOOL FrontCounterClockwise;        // 是否三角形顶点按逆时针排布时为正面
-			INT DepthBias;                     // 忽略
-			FLOAT DepthBiasClamp;              // 忽略
-			FLOAT SlopeScaledDepthBias;        // 忽略
+			
+			下面三个参数名为斜率缩放偏移的光栅化状态属性
+			INT DepthBias;                     // 一个固定的应用偏移量
+			FLOAT DepthBiasClamp;              // 所允许的最大深度偏移量。以此来设置深度偏移量的上限。不难想象，极其陡峭的倾斜度会导致斜率缩放偏移量过大，从而造成peter-panning失真
+			FLOAT SlopeScaledDepthBias;        // 根据多边形的斜率来控制偏移程度的缩放因子
+			
 			BOOL DepthClipEnable;              // 是否允许深度测试将范围外的像素进行裁剪，默认TRUE
 			BOOL ScissorEnable;                // 是否允许指定矩形范围的裁剪，若TRUE，则需要在RSSetScissor设置像素保留的矩形区域
 			BOOL MultisampleEnable;            // 是否允许多重采样
@@ -111,6 +114,26 @@ void RenderStates::InitAll(ID3D11Device * device)
 	rasterizerDesc.CullMode = D3D11_CULL_BACK;
 	rasterizerDesc.FrontCounterClockwise = false;
 	rasterizerDesc.DepthClipEnable = true;
+	/*
+		[出自MSDN]
+		如果当前的深度缓冲区采用UNORM格式并且绑定在输出合并阶段，或深度缓冲区还没有被绑定
+		则偏移量的计算过程如下：
+		
+		Bias = (float)DepthBias * r + SlopeScaledDepthBias * MaxDepthSlope;
+		
+		这里的r是在深度缓冲区格式转换为float32类型后，其深度值可取到大于0的最小可表示的值
+		MaxDepthSlope则是像素在水平方向和竖直方向上的深度斜率的最大值
+		[结束MSDN引用]
+		
+		对于一个24位的深度缓冲区来说， r = 1 / 2^24
+		
+		例如：DepthBias = 100000 ==> 实际的DepthBias = 100000/2^24 = .006
+		
+		本Demo中的方向光始终与地面法线呈45度夹角，故取斜率为1.0f
+		以下数据极其依赖于实际场景，因此我们需要对特定场景反复尝试才能找到最合适
+
+		注意：深度偏移发生在光栅化期间（裁剪之后），因此不会对几何体裁剪造成影响
+	 */
 	rasterizerDesc.DepthBias = 100000;
 	rasterizerDesc.DepthBiasClamp = 0.0f;
 	rasterizerDesc.SlopeScaledDepthBias = 1.0f;
@@ -208,6 +231,7 @@ void RenderStates::InitAll(ID3D11Device * device)
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	// 函数中传入的depth将会出现在比较运算符的左边，即 depth <= sampleDepth
 	sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 	sampDesc.BorderColor[0] = { 1.0f };
 	sampDesc.MinLOD = 0;

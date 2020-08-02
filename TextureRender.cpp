@@ -149,7 +149,11 @@ void TextureRender::SetDebugObjectName(const std::string& name) const
 #if (defined(DEBUG) || defined(_DEBUG)) && (GRAPHICS_DEBUGGER_OBJECT_NAME)
 	D3D11SetDebugObjectName(m_pOutputTextureDSV.Get(), name + ".TextureDSV");
 	D3D11SetDebugObjectName(m_pOutputTextureSRV.Get(), name + ".TextureSRV");
-	D3D11SetDebugObjectName(m_pOutputTextureRTV.Get(), name + ".TextureRTV");
+	if(!m_shadowMap)
+	{
+		// 作为阴影RTV是空的
+		D3D11SetDebugObjectName(m_pOutputTextureRTV.Get(), name + ".TextureRTV");
+	}
 #else
 	UNREFERENCED_PARAMETER(name);
 #endif

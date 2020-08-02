@@ -198,7 +198,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, const UINT msg,
 			if (msg == WM_MBUTTONUP) { button = 2; }
 			if (msg == WM_XBUTTONUP) { button = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? 3 : 4; }
 			io.MouseDown[button] = false;
-			if (!ImGui::IsAnyMouseDown() && ::GetCapture() == hWnd)
+			if (!ImGui::IsAnyMouseDown() && GetCapture() == hWnd)
 				ReleaseCapture();
 
             g_isImGuiUsedKBandMouse = true;

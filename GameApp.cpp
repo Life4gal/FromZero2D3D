@@ -705,13 +705,13 @@ bool GameApp::InitResource()
 
 			m_sphereTransforms[i].SetPosition(x, 5.51f, z);
 			m_sphereTransforms[i].SetScale(0.35f, 0.35f, 0.35f);
-			m_sphereTransforms[static_cast<size_t>(89 - i)].SetPosition(-x, 5.51f, z);
-			m_sphereTransforms[static_cast<size_t>(89 - i)].SetScale(0.35f, 0.35f, 0.35f);
+			m_sphereTransforms[static_cast<size_t>(89) - i].SetPosition(-x, 5.51f, z);
+			m_sphereTransforms[static_cast<size_t>(89) - i].SetScale(0.35f, 0.35f, 0.35f);
 
 			m_cylinderTransforms[i].SetPosition(x, 0.51f, z);
 			m_cylinderTransforms[i].SetScale(0.35f, 1.0f, 0.35f);
-			m_cylinderTransforms[static_cast<size_t>(89 - i)].SetPosition(-x, 0.51f, z);
-			m_cylinderTransforms[static_cast<size_t>(89 - i)].SetScale(0.35f, 1.0f, 0.35f);
+			m_cylinderTransforms[static_cast<size_t>(89) - i].SetPosition(-x, 0.51f, z);
+			m_cylinderTransforms[static_cast<size_t>(89) - i].SetScale(0.35f, 1.0f, 0.35f);
 		}
 	}
 

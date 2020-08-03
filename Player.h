@@ -7,9 +7,6 @@
 
 class Player
 {
-	// 允许IMGUI面板自由访问数据
-	friend class ImguiPanel;
-	
 public:
 	struct VehicleInfo;
 

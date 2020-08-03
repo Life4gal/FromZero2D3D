@@ -1,31 +1,30 @@
 #ifndef IMGUIPANEL_H
 #define IMGUIPANEL_H
 
-#include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx11.h"
-#include "ImGui/imgui_impl_win32.h"
 
-#include "Player.h"
+#include "d3dApp.h"
 
 class ImguiPanel
 {
 public:
 	// 初始化 IMGUI
-	static bool Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
-	// 获取需要的数据
-	void LoadData(const Player& player);
+	// TODO 因为 D3DApp 含义类成员 ImguiPanel ,所以参数类型声明为 D3DApp* 会报错,改成 void* 然后转型才可以
+	static bool Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext, void* app);
 	// 绘制 IMGUI 面板
-	void Draw() const;
+	static void Draw();
+	// 我们将WIN32处理消息的方式移动到我们自己的IMGUI面板里
+	static LRESULT ImGuiWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	// 呈现 IMGUI 面板,必须在 其他2D/3D部分渲染完毕 之后且在 SwapChain->Present 前调用,不然不会显示面板
+
+	// 设置IMGUI能不能使用键鼠
+	static void SetPanelCanUseKBandMouse(bool canUse);
+	// IMGUI 是否使用过了键鼠,主要是为了让 DX 的键鼠不会在操作 IMGUI 的时候同步响应
+	//static bool IsPanelUsedKBandMouse();
+	
 	static void Present();
 	// 关闭 IMGUI
 	static void Shutdown();
-
-	DirectX::XMFLOAT3 m_direction{};
-	DirectX::XMFLOAT3 m_position{};
-	
-	DirectX::XMFLOAT3 m_barrelDirection{};
-	DirectX::XMFLOAT3 m_barrelPosition{};
 };
 
 #endif

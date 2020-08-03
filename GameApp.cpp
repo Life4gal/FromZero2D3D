@@ -163,9 +163,6 @@ void GameApp::OnResize()
 	}
 }
 
-// IMGUI 是否可以使用键鼠
-bool g_isImGuiCanUseKBandMouse = false;
-
 void GameApp::UpdateScene(const float dt)
 {
 	const Mouse::State mouseState = m_pMouse->GetState();
@@ -270,7 +267,7 @@ void GameApp::UpdateScene(const float dt)
 			if(m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
 			{
 				m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
-				g_isImGuiCanUseKBandMouse = true;
+				m_imguiPanel->SetPanelCanUseKBandMouse(true);
 			}
 
 			/*
@@ -302,7 +299,7 @@ void GameApp::UpdateScene(const float dt)
 
 			// 第一人称摄像机距物体中心偏一点
 			const XMFLOAT3 position = m_player.GetPosition();
-			firstPersonCamera->SetPosition(position.x, position.y + 1.5f, position.z + 1.5f);
+			firstPersonCamera->SetPosition(position.x, position.y + 2.5f, position.z + 1.5f);
 			firstPersonCamera->Pitch(static_cast<float>(mouseState.y) * dt * 2.5f);
 			firstPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
 		}
@@ -385,7 +382,7 @@ void GameApp::UpdateScene(const float dt)
 		if (m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
 		{
 			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-			g_isImGuiCanUseKBandMouse = false;
+			m_imguiPanel->SetPanelCanUseKBandMouse(false);
 		}
 		// TODO 鼠标在窗口之外也是绝对模式,我们需要另外的判断
 		// 暂时我们只能先设置为切换为自由模式
@@ -449,8 +446,6 @@ void GameApp::UpdateScene(const float dt)
 	{
 		SendMessage(MainWnd(), WM_DESTROY, 0, 0);
 	}
-
-	m_imguiPanel.LoadData(m_player);
 }
 
 void GameApp::DrawScene()
@@ -458,7 +453,7 @@ void GameApp::DrawScene()
 	assert(m_pd3dImmediateContext);
 	assert(m_pSwapChain);
 
-	m_imguiPanel.Draw();
+	m_imguiPanel->Draw();
 
 	// ******************
 	// 绘制Direct3D部分

@@ -37,6 +37,7 @@ D3DApp::D3DApp(HINSTANCE hInstance)
 	m_pDepthStencilBuffer(nullptr),
 	m_pRenderTargetView(nullptr),
 	m_pDepthStencilView(nullptr),
+	m_screenViewport(),
 	m_mainWndCaption(L"DirectX11"),
 	m_clientWidth(800),
 	m_clientHeight(600)
@@ -110,6 +111,7 @@ bool D3DApp::Init()
 {
 	m_pMouse = std::make_unique<DirectX::Mouse>();
 	m_pKeyboard = std::make_unique<DirectX::Keyboard>();
+	m_imguiPanel = std::make_unique<ImguiPanel>();
 	
 	if (!InitMainWindow())
 		return false;
@@ -119,8 +121,8 @@ bool D3DApp::Init()
 	
 	if (!InitDirect3D())
 		return false;
-	
-	if (!ImguiPanel::Init(MainWnd(), m_pd3dDevice.Get(), m_pd3dImmediateContext.Get()))
+
+	if (!m_imguiPanel->Init(MainWnd(), m_pd3dDevice.Get(), m_pd3dImmediateContext.Get(), this))
 		return false;
 
 	return true;
@@ -205,15 +207,19 @@ void D3DApp::OnResize()
 
 }
 
-// 主要是为了让 DX 的键鼠不会在操作 IMGUI 的时候同步响应
-extern bool g_isImGuiUsedKBandMouse;
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 // ReSharper disable once CppParameterMayBeConst,不要给HWND附加顶层const声明,不然实际上会变成底层const
 LRESULT D3DApp::MsgProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
-	ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
-	
+	// 面板处理消息
+	m_imguiPanel->ImGuiWndProc(hWnd, msg, wParam, lParam);
+
+// TODO 我们限制只能在绝对模式下操作IMGUI(而只有在相对模式才能操作玩家),所以我们应该不需要这个(大概)
+#if 0
+	const bool isImGuiUsed = m_imguiPanel->IsPanelUsedKBandMouse();
+#else
+	const bool isImGuiUsed = false;
+#endif
+
 	switch (msg)
 	{
 		// WM_ACTIVATE is sent when the window is activated or deactivated.  
@@ -338,31 +344,28 @@ LRESULT D3DApp::MsgProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LP
 	case WM_MOUSEWHEEL:
 	case WM_MOUSEHOVER:
 	case WM_MOUSEMOVE:
-		if(!g_isImGuiUsedKBandMouse)
+		if(!isImGuiUsed)
 		{
 			m_pMouse->ProcessMessage(msg, wParam, lParam);
 		}
-		g_isImGuiUsedKBandMouse = false;
 		return 0;
 
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
-		if (!g_isImGuiUsedKBandMouse)
+		if (!isImGuiUsed)
 		{
 			m_pKeyboard->ProcessMessage(msg, wParam, lParam);
 		}
-		g_isImGuiUsedKBandMouse = false;
 		return 0;
 
 	case WM_ACTIVATEAPP:
-		if (!g_isImGuiUsedKBandMouse)
+		if (!isImGuiUsed)
 		{
 			m_pMouse->ProcessMessage(msg, wParam, lParam);
 			m_pKeyboard->ProcessMessage(msg, wParam, lParam);
 		}
-		g_isImGuiUsedKBandMouse = false;
 		return 0;
 		
 	default:

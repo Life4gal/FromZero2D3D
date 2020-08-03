@@ -6,7 +6,7 @@
 #include "DXTrace.h"
 
 #include "Camera.h"
-#include "GameObject.h"
+#include "Player.h"
 
 #include "Effect.h"
 #include "Render.h"

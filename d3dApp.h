@@ -24,6 +24,9 @@
 
 class D3DApp
 {
+	// 允许IMGUI面板访问数据
+	// 主要是获取键盘鼠标状态
+	friend class ImguiPanel;
 public:
 	explicit D3DApp(HINSTANCE hInstance);              // 在构造函数的初始化列表应当设置好初始参数
 	virtual ~D3DApp();
@@ -85,7 +88,7 @@ protected:
 	ComPtr<ID3D11Texture2D> m_pDepthStencilBuffer;        // 深度模板缓冲区
 	ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;   // 渲染目标视图
 	ComPtr<ID3D11DepthStencilView> m_pDepthStencilView;   // 深度模板视图
-	D3D11_VIEWPORT m_screenViewport{};                      // 视口
+	D3D11_VIEWPORT m_screenViewport;                      // 视口
 
 	// 键鼠输入
 	std::unique_ptr<DirectX::Mouse> m_pMouse;						// 鼠标
@@ -98,7 +101,7 @@ protected:
 	int m_clientWidth;                                   // 视口宽度
 	int m_clientHeight;                                  // 视口高度
 
-	ImguiPanel m_imguiPanel;							// IMGUI面板
+	std::unique_ptr<ImguiPanel> m_imguiPanel;			// IMGUI面板
 };
 
 #endif // D3DAPP_H

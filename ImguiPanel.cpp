@@ -10,7 +10,9 @@ namespace
 	// 能不能使用鼠标,用于消息处理
 	bool g_isImGuiCanUseKBandMouse = false;
 	// 如果IMGUI使用了键鼠,其他地方则不响应键鼠操作
-	// bool g_isImGuiUsedKBandMouse = false;
+#ifdef IMGUI_USED_KB_AND_MOUSE
+	bool g_isImGuiUsedKBandMouse = false;
+#endif
 	
 	// Win32 Data
 	HWND                 g_hWnd = nullptr;
@@ -18,11 +20,11 @@ namespace
 	INT64                g_ticksPerSecond = 0;
 	ImGuiMouseCursor     g_lastMouseCursor = ImGuiMouseCursor_COUNT;
 	
-	IMGUI_IMPL_API bool     ImGui_ImplWin32_Init(HWND hWnd);
-	IMGUI_IMPL_API void     ImGui_ImplWin32_Shutdown();
-	IMGUI_IMPL_API bool		ImGui_ImplWin32_UpdateMouseCursor();
-	IMGUI_IMPL_API void		ImGui_ImplWin32_UpdateMousePos();
-	IMGUI_IMPL_API void     ImGui_ImplWin32_NewFrame();
+	bool	ImGui_ImplWin32_Init(HWND hWnd);
+	void	ImGui_ImplWin32_Shutdown();
+	bool	ImGui_ImplWin32_UpdateMouseCursor();
+	void	ImGui_ImplWin32_UpdateMousePos();
+	void	ImGui_ImplWin32_NewFrame();
 }
 
 // ReSharper disable once CppParameterMayBeConst
@@ -50,7 +52,7 @@ bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* devi
 	ImGui_ImplDX11_Init(device, deviceContext);
 
 	g_pApp = static_cast<D3DApp*>(app);
-	
+
 	return true;
 }
 
@@ -116,7 +118,9 @@ LRESULT ImguiPanel::ImGuiWndProc(HWND hWnd, const UINT msg, const WPARAM wParam,
 
 		io.MouseDown[button] = true;
 
-		//g_isImGuiUsedKBandMouse = true;
+#ifdef IMGUI_USED_KB_AND_MOUSE
+		g_isImGuiUsedKBandMouse = true;
+#endif
 
 		return 0;
 	}
@@ -134,24 +138,32 @@ LRESULT ImguiPanel::ImGuiWndProc(HWND hWnd, const UINT msg, const WPARAM wParam,
 		if (!ImGui::IsAnyMouseDown() && GetCapture() == hWnd)
 			ReleaseCapture();
 
-		//g_isImGuiUsedKBandMouse = true;
+#ifdef IMGUI_USED_KB_AND_MOUSE
+		g_isImGuiUsedKBandMouse = true;
+#endif
 
 		return 0;
 	}
 	case WM_MOUSEWHEEL:
 		io.MouseWheel += static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA);
-		//g_isImGuiUsedKBandMouse = true;
+#ifdef IMGUI_USED_KB_AND_MOUSE
+		g_isImGuiUsedKBandMouse = true;
+#endif
 		return 0;
 	case WM_MOUSEHWHEEL:
 		io.MouseWheelH += static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA);
-		//g_isImGuiUsedKBandMouse = true;
+#ifdef IMGUI_USED_KB_AND_MOUSE
+		g_isImGuiUsedKBandMouse = true;
+#endif
 		return 0;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 		if (wParam < 256)
 		{
 			io.KeysDown[wParam] = true;
-			//g_isImGuiUsedKBandMouse = true;
+#ifdef IMGUI_USED_KB_AND_MOUSE
+			g_isImGuiUsedKBandMouse = true;
+#endif
 		}
 		return 0;
 	case WM_KEYUP:
@@ -159,7 +171,9 @@ LRESULT ImguiPanel::ImGuiWndProc(HWND hWnd, const UINT msg, const WPARAM wParam,
 		if (wParam < 256)
 		{
 			io.KeysDown[wParam] = false;
-			//g_isImGuiUsedKBandMouse = true;
+#ifdef IMGUI_USED_KB_AND_MOUSE
+			g_isImGuiUsedKBandMouse = true;
+#endif
 		}
 		return 0;
 	case WM_CHAR:
@@ -180,14 +194,14 @@ void ImguiPanel::SetPanelCanUseKBandMouse(const bool canUse)
 	g_isImGuiCanUseKBandMouse = canUse;
 }
 
-/*
+#ifdef IMGUI_USED_KB_AND_MOUSE
 bool ImguiPanel::IsPanelUsedKBandMouse()
 {
 	// 如果 g_isImGuiUsedKBandMouse 为 false 则直接返回 false,如果为 true 则返回 true 并将其置为 false
 	// TODO 不确定 g_isImGuiUsedKBandMouse = false 返回的是 true 还是 false, 好像是 false 唉
 	return g_isImGuiUsedKBandMouse && ((g_isImGuiUsedKBandMouse = false));
 }
-*/
+#endif
 
 void ImguiPanel::Present()
 {

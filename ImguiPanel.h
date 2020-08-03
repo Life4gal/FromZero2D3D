@@ -20,7 +20,9 @@ public:
 	// 设置IMGUI能不能使用键鼠
 	static void SetPanelCanUseKBandMouse(bool canUse);
 	// IMGUI 是否使用过了键鼠,主要是为了让 DX 的键鼠不会在操作 IMGUI 的时候同步响应
-	//static bool IsPanelUsedKBandMouse();
+#ifdef IMGUI_USED_KB_AND_MOUSE
+	static bool IsPanelUsedKBandMouse();
+#endif
 	
 	static void Present();
 	// 关闭 IMGUI

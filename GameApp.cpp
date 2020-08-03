@@ -174,73 +174,75 @@ void GameApp::UpdateScene(const float dt)
 	const Keyboard::State keyState = m_pKeyboard->GetState();
 	m_keyboardTracker.Update(keyState);
 
-	// 调试模式开关
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::F))
-		m_enableDebug = !m_enableDebug;
-	// 灰度模式开关
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::G))
-		m_grayMode = !m_grayMode;
-	
-	// 调整光线倾斜
-	// 当我们增加光线的倾斜程度时，阴影粉刺会出现得愈发严重
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::D1))
+	// 只有处于相对模式我们才允许操作
+	if (mouseState.positionMode == Mouse::MODE_RELATIVE)
 	{
-		m_originalLightDirs[0] = XMFLOAT3(1.0f / sqrtf(2.0f), -1.0f / sqrtf(2.0f), 0.0f);
-		m_slopeIndex = 0;
-	}
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::D2))
-	{
-		m_originalLightDirs[0] = XMFLOAT3(3.0f / sqrtf(13.0f), -2.0f / sqrtf(13.0f), 0.0f);
-		m_slopeIndex = 1;
-	}
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::D3))
-	{
-		m_originalLightDirs[0] = XMFLOAT3(2.0f / sqrtf(5.0f), -1.0f / sqrtf(5.0f), 0.0f);
-		m_slopeIndex = 2;
-	}
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::D4))
-	{
-		m_originalLightDirs[0] = XMFLOAT3(3.0f / sqrtf(10.0f), -1.0f / sqrtf(10.0f), 0.0f);
-		m_slopeIndex = 3;
-	}
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::D5))
-	{
-		m_originalLightDirs[0] = XMFLOAT3(4.0f / sqrtf(17.0f), -1.0f / sqrtf(17.0f), 0.0f);
-		m_slopeIndex = 4;
-	}
-	
-	if (m_cameraMode == CameraMode::FirstPerson || (m_cameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl)))
-	{
-		if (keyState.IsKeyDown(Keyboard::W))
+		// 调试模式开关
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::F))
+			m_enableDebug = !m_enableDebug;
+		// 灰度模式开关
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::G))
+			m_grayMode = !m_grayMode;
+
+		// 调整光线倾斜
+		// 当我们增加光线的倾斜程度时，阴影粉刺会出现得愈发严重
+		/*
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::D1))
 		{
-			m_player.Walk(dt * 6.0f);
+			m_originalLightDirs[0] = XMFLOAT3(1.0f / sqrtf(2.0f), -1.0f / sqrtf(2.0f), 0.0f);
+			m_slopeIndex = 0;
 		}
-		if (keyState.IsKeyDown(Keyboard::S))
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::D2))
 		{
-			m_player.Walk(dt * -6.0f);
+			m_originalLightDirs[0] = XMFLOAT3(3.0f / sqrtf(13.0f), -2.0f / sqrtf(13.0f), 0.0f);
+			m_slopeIndex = 1;
 		}
-		if (keyState.IsKeyDown(Keyboard::A))
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::D3))
 		{
-			m_player.Strafe(dt * -6.0f);
+			m_originalLightDirs[0] = XMFLOAT3(2.0f / sqrtf(5.0f), -1.0f / sqrtf(5.0f), 0.0f);
+			m_slopeIndex = 2;
 		}
-		if (keyState.IsKeyDown(Keyboard::D))
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::D4))
 		{
-			m_player.Strafe(dt * 6.0f);
+			m_originalLightDirs[0] = XMFLOAT3(3.0f / sqrtf(10.0f), -1.0f / sqrtf(10.0f), 0.0f);
+			m_slopeIndex = 3;
 		}
-		if (keyState.IsKeyDown(Keyboard::Q))
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::D5))
 		{
-			m_player.Turn(dt * -6.0f);
+			m_originalLightDirs[0] = XMFLOAT3(4.0f / sqrtf(17.0f), -1.0f / sqrtf(17.0f), 0.0f);
+			m_slopeIndex = 4;
 		}
-		if (keyState.IsKeyDown(Keyboard::E))
+		*/
+		// 第一人称或者第三人称按住左CTRL键才能移动玩家
+		// 操作玩家需要长按操作键,所以我们使用 keyState.IsKeyDown() 而不是 m_keyboardTracker.IsKeyPressed()
+		if (m_cameraMode == CameraMode::FirstPerson || m_cameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl))
 		{
-			m_player.Turn(dt * 6.0f);
+			if (keyState.IsKeyDown(Keyboard::W))
+			{
+				m_player.Walk(dt * 6.0f);
+			}
+			if (keyState.IsKeyDown(Keyboard::S))
+			{
+				m_player.Walk(dt * -6.0f);
+			}
+			if (keyState.IsKeyDown(Keyboard::A))
+			{
+				m_player.Strafe(dt * -6.0f);
+			}
+			if (keyState.IsKeyDown(Keyboard::D))
+			{
+				m_player.Strafe(dt * 6.0f);
+			}
+			if (keyState.IsKeyDown(Keyboard::Q))
+			{
+				m_player.Turn(dt * -6.0f);
+			}
+			if (keyState.IsKeyDown(Keyboard::E))
+			{
+				m_player.Turn(dt * 6.0f);
+			}
 		}
-	}
-	else if(m_cameraMode == CameraMode::Free)
-	{
-		// 在鼠标没进入窗口前仍为ABSOLUTE模式
-		// 只允许在相对模式下移动
-		if (mouseState.positionMode == Mouse::MODE_RELATIVE)
+		else if (m_cameraMode == CameraMode::Free)
 		{
 			auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
 
@@ -260,72 +262,134 @@ void GameApp::UpdateScene(const float dt)
 			{
 				firstPersonCamera->Strafe(dt * 6.0f);
 			}
-			
+
 			firstPersonCamera->Pitch(static_cast<float>(mouseState.y) * dt * 2.5f);
 			firstPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
-		}
 
-		// 我们暂时改为只允许自由模式下操作IMGUI
-		if (keyState.IsKeyDown(Keyboard::LeftControl))
-		{
-			if(mouseState.positionMode == Mouse::MODE_ABSOLUTE)
+			// 只有在自由模式下我们允许鼠标切换为绝对模式以使用IMGUI
+			if(m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
 			{
-				m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-				g_isImGuiCanUseKBandMouse = false;
-			}
-			else
-			{
-				// 只有在绝对模式下我们才能操作IMGUI
 				m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
 				g_isImGuiCanUseKBandMouse = true;
 			}
+
+			/*
+			// 我们暂时改为只允许自由模式下操作IMGUI
+			if (keyState.IsKeyDown(Keyboard::LeftControl))
+			{
+				if (mouseState.positionMode == Mouse::MODE_ABSOLUTE)
+				{
+					m_pMouse->SetMode(Mouse::MODE_RELATIVE);
+					g_isImGuiCanUseKBandMouse = false;
+				}
+				else
+				{
+					// 只有在绝对模式下我们才能操作IMGUI
+					m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
+					g_isImGuiCanUseKBandMouse = true;
+				}
+			}
+			*/
 		}
-	}
 
-	// 调整位置
-	m_player.AdjustPosition({ { -50.0f, 0.5f, -50.0f, 0.0f } }, { { 50.0f, 0.5f , 50.0f, 0.0f } });
+		// 调整位置
+		// 只有相对模式可以移动玩家,那么我们也只在相对模式调整玩家位置
+		m_player.AdjustPosition({ { -50.0f, 0.5f, -50.0f, 0.0f } }, { { 50.0f, 0.5f , 50.0f, 0.0f } });
 
-	if (m_cameraMode == CameraMode::FirstPerson)
-	{
-		auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
-		
-		// 第一人称摄像机距物体中心偏一点
-		const XMFLOAT3 position = m_player.GetPosition();
-		firstPersonCamera->SetPosition(position.x, position.y + 1.5f, position.z + 1.5f);
-
-		// 在鼠标没进入窗口前仍为ABSOLUTE模式
-		if (mouseState.positionMode == Mouse::MODE_RELATIVE)
+		if (m_cameraMode == CameraMode::FirstPerson)
 		{
+			auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
+
+			// 第一人称摄像机距物体中心偏一点
+			const XMFLOAT3 position = m_player.GetPosition();
+			firstPersonCamera->SetPosition(position.x, position.y + 1.5f, position.z + 1.5f);
 			firstPersonCamera->Pitch(static_cast<float>(mouseState.y) * dt * 2.5f);
 			firstPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
 		}
-		
-	}
-	else if(m_cameraMode == CameraMode::ThirdPerson)
-	{
-		auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
-		
-		// 设置目标
-		thirdPersonCamera->SetTarget(m_player.GetPosition());
-		// 在鼠标没进入窗口前仍为ABSOLUTE模式
-		if (mouseState.positionMode == Mouse::MODE_RELATIVE)
+		else if (m_cameraMode == CameraMode::ThirdPerson)
 		{
+			auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
+
+			// 设置目标
+			thirdPersonCamera->SetTarget(m_player.GetPosition());
 			thirdPersonCamera->RotateX(static_cast<float>(mouseState.y) * dt * 2.5f);
 			thirdPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
+			// 与目标物体的距离
+			thirdPersonCamera->Approach(static_cast<float>(-mouseState.scrollWheelValue) / 120 * 1.0f);
 		}
-		// 与目标物体的距离
-		thirdPersonCamera->Approach(static_cast<float>(-mouseState.scrollWheelValue) / 120 * 1.0f);
-	}
-	
-	// 更新观察矩阵
-	m_pBasicEffect->SetViewMatrix(m_pCamera->GetViewMatrix());
-	m_pBasicEffect->SetEyePos(m_pCamera->GetPositionVector());
 
-	// 摄像机模式切换
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::D8))
+		// 摄像机模式切换
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::D8))
+		{
+			// 从第三人称或者从自由视角切换过来才要变
+			if (m_cameraMode == CameraMode::ThirdPerson || m_cameraMode == CameraMode::Free)
+			{
+				// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
+				const XMVECTOR look = m_pCamera->GetForwardAxisVector();
+				const XMVECTOR up = m_pCamera->GetUpAxisVector();
+				auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
+				if (!firstPersonCamera)
+				{
+					firstPersonCamera.reset(new FirstPersonCamera);
+					firstPersonCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
+					m_pCamera = firstPersonCamera;
+				}
+
+				const XMFLOAT3 position = m_player.GetPosition();
+				firstPersonCamera->LookTo(
+					XMLoadFloat3(&position),
+					look,
+					up
+				);
+			}
+
+			if (m_cameraMode == CameraMode::ThirdPerson)
+			{
+				m_cameraMode = CameraMode::FirstPerson;
+			}
+			else
+			{
+				m_cameraMode = m_cameraMode != CameraMode::FirstPerson ? CameraMode::FirstPerson : CameraMode::Free;
+			}
+		}
+		else if (m_keyboardTracker.IsKeyPressed(Keyboard::D9) && m_cameraMode != CameraMode::ThirdPerson)
+		{
+			// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
+			const XMVECTOR look = m_pCamera->GetForwardAxisVector();
+			const XMVECTOR up = m_pCamera->GetUpAxisVector();
+			auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
+			if (!thirdPersonCamera)
+			{
+				thirdPersonCamera.reset(new ThirdPersonCamera);
+				thirdPersonCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
+				m_pCamera = thirdPersonCamera;
+			}
+
+			thirdPersonCamera->SetTarget(m_player.GetPosition());
+			thirdPersonCamera->LookTo(look, up);
+			thirdPersonCamera->SetDistance(8.0f);
+			thirdPersonCamera->SetDistanceMinMax(3.0f, 20.0f);
+
+			m_cameraMode = CameraMode::ThirdPerson;
+		}
+
+		// 更新观察矩阵
+		// 只有在相对模式下我们才可能会变动摄像机,所以我们只在相对模式下更新
+		m_pBasicEffect->SetViewMatrix(m_pCamera->GetViewMatrix());
+		m_pBasicEffect->SetEyePos(m_pCamera->GetPositionVector());
+	}
+	else if(mouseState.positionMode == Mouse::MODE_ABSOLUTE)
 	{
-		// 从第三人称或者从自由视角切换过啦才要变
-		if(m_cameraMode == CameraMode::ThirdPerson || m_cameraMode == CameraMode::Free)
+		// 只有在自由视角才能切换为绝对模式
+		// 在绝对模式下按左CTRL键切换为相对模式
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
+		{
+			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
+			g_isImGuiCanUseKBandMouse = false;
+		}
+		// TODO 鼠标在窗口之外也是绝对模式,我们需要另外的判断
+		// 暂时我们只能先设置为切换为自由模式
+		if(m_cameraMode != CameraMode::Free)
 		{
 			// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
 			const XMVECTOR look = m_pCamera->GetForwardAxisVector();
@@ -345,45 +409,10 @@ void GameApp::UpdateScene(const float dt)
 				up
 			);
 
-			// TODO 我们需要一个简单可行的办法来保证切换摄像机视角时关闭对IMGUI的控制
-			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-			g_isImGuiCanUseKBandMouse = false;
-		}
-
-		if(m_cameraMode == CameraMode::ThirdPerson)
-		{
-			m_cameraMode = CameraMode::FirstPerson;
-		}
-		else
-		{
-			m_cameraMode = m_cameraMode != CameraMode::FirstPerson ? CameraMode::FirstPerson : CameraMode::Free;
+			m_cameraMode = CameraMode::Free;
 		}
 	}
-	else if (m_keyboardTracker.IsKeyPressed(Keyboard::D9) && m_cameraMode != CameraMode::ThirdPerson)
-	{
-		// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
-		const XMVECTOR look = m_pCamera->GetForwardAxisVector();
-		const XMVECTOR up = m_pCamera->GetUpAxisVector();
-		auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
-		if (!thirdPersonCamera)
-		{
-			thirdPersonCamera.reset(new ThirdPersonCamera);
-			thirdPersonCamera->SetFrustum(XM_PI / 3, AspectRatio(), 0.5f, 1000.0f);
-			m_pCamera = thirdPersonCamera;
-		}
-		
-		thirdPersonCamera->SetTarget(m_player.GetPosition());
-		thirdPersonCamera->LookTo(look, up);
-		thirdPersonCamera->SetDistance(8.0f);
-		thirdPersonCamera->SetDistanceMinMax(3.0f, 20.0f);
-
-		// TODO 我们需要一个简单可行的办法来保证切换摄像机视角时关闭对IMGUI的控制
-		m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-		g_isImGuiCanUseKBandMouse = false;
-		
-		m_cameraMode = CameraMode::ThirdPerson;
-	}
-
+	
 	// 更新光照
 	static float theta = 0;
 	theta += dt * XM_2PI / 40.0f;
@@ -416,7 +445,7 @@ void GameApp::UpdateScene(const float dt)
 	m_pMouse->ResetScrollWheelValue();
 	
 	// 退出程序，这里应向窗口发送销毁信息
-	if (keyState.IsKeyDown(Keyboard::Escape))
+	if (m_keyboardTracker.IsKeyPressed(Keyboard::Escape))
 	{
 		SendMessage(MainWnd(), WM_DESTROY, 0, 0);
 	}
@@ -698,10 +727,9 @@ bool GameApp::InitResource()
 		// 前10个离得太近了,我们跳过
 		for(int i = 0; i < 45; ++i)
 		{
-			// 我们只改变cos和sin的参数,不改变变化系数α
-			const int j = i + 5;
-			const float x = (5 + (45 - i) * 0.4f) * (2 * sinf(XM_PI * static_cast<float>(j) / 50) - sinf(XM_2PI * static_cast<float>(j) / 50));
-			const float z = 12 + 15 * (2 * cosf(XM_PI * static_cast<float>(j) / 50) - cosf(XM_2PI * static_cast<float>(j) / 50));
+			const float j = static_cast<float>(i) + 5.0f;
+			const float x = (5 + (50.f - j) * 0.4f) * (2 * sinf(XM_PI * j / 50) - sinf(XM_2PI * j / 50));
+			const float z = 12 + 15 * (2 * cosf(XM_PI * j / 50) - cosf(XM_2PI * j / 50));
 
 			m_sphereTransforms[i].SetPosition(x, 5.51f, z);
 			m_sphereTransforms[i].SetScale(0.35f, 0.35f, 0.35f);

@@ -41,7 +41,7 @@ private:
 
 	bool m_enableDebug;											// 开启调试模式
 	bool m_grayMode;											// 深度值以灰度形式显示
-	size_t m_slopeIndex;										// 斜率索引
+	int m_slopeIndex;											// 斜率索引
 	
 	Player m_player;											// 玩家
 	

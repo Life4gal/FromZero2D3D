@@ -174,42 +174,6 @@ void GameApp::UpdateScene(const float dt)
 	// 只有处于相对模式我们才允许操作
 	if (mouseState.positionMode == Mouse::MODE_RELATIVE)
 	{
-		// 调试模式开关
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::F))
-			m_enableDebug = !m_enableDebug;
-		// 灰度模式开关
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::G))
-			m_grayMode = !m_grayMode;
-
-		// 调整光线倾斜
-		// 当我们增加光线的倾斜程度时，阴影粉刺会出现得愈发严重
-		/*
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::D1))
-		{
-			m_originalLightDirs[0] = XMFLOAT3(1.0f / sqrtf(2.0f), -1.0f / sqrtf(2.0f), 0.0f);
-			m_slopeIndex = 0;
-		}
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::D2))
-		{
-			m_originalLightDirs[0] = XMFLOAT3(3.0f / sqrtf(13.0f), -2.0f / sqrtf(13.0f), 0.0f);
-			m_slopeIndex = 1;
-		}
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::D3))
-		{
-			m_originalLightDirs[0] = XMFLOAT3(2.0f / sqrtf(5.0f), -1.0f / sqrtf(5.0f), 0.0f);
-			m_slopeIndex = 2;
-		}
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::D4))
-		{
-			m_originalLightDirs[0] = XMFLOAT3(3.0f / sqrtf(10.0f), -1.0f / sqrtf(10.0f), 0.0f);
-			m_slopeIndex = 3;
-		}
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::D5))
-		{
-			m_originalLightDirs[0] = XMFLOAT3(4.0f / sqrtf(17.0f), -1.0f / sqrtf(17.0f), 0.0f);
-			m_slopeIndex = 4;
-		}
-		*/
 		// 第一人称或者第三人称按住左CTRL键才能移动玩家
 		// 操作玩家需要长按操作键,所以我们使用 keyState.IsKeyDown() 而不是 m_keyboardTracker.IsKeyPressed()
 		if (m_cameraMode == CameraMode::FirstPerson || m_cameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl))
@@ -269,24 +233,6 @@ void GameApp::UpdateScene(const float dt)
 				m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
 				ImguiPanel::SetPanelCanUseKBandMouse(true);
 			}
-
-			/*
-			// 我们暂时改为只允许自由模式下操作IMGUI
-			if (keyState.IsKeyDown(Keyboard::LeftControl))
-			{
-				if (mouseState.positionMode == Mouse::MODE_ABSOLUTE)
-				{
-					m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-					g_isImGuiCanUseKBandMouse = false;
-				}
-				else
-				{
-					// 只有在绝对模式下我们才能操作IMGUI
-					m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
-					g_isImGuiCanUseKBandMouse = true;
-				}
-			}
-			*/
 		}
 
 		// 调整位置
@@ -409,6 +355,26 @@ void GameApp::UpdateScene(const float dt)
 			m_cameraMode = CameraMode::Free;
 		}
 	}
+
+	// 调整光线倾斜
+	// 当我们增加光线的倾斜程度时，阴影粉刺会出现得愈发严重
+	switch (m_slopeIndex)
+	{
+	case 0:
+		m_originalLightDirs[0] = XMFLOAT3(1.0f / sqrtf(2.0f), -1.0f / sqrtf(2.0f), 0.0f);
+		break;
+	case 1:
+		m_originalLightDirs[0] = XMFLOAT3(3.0f / sqrtf(13.0f), -2.0f / sqrtf(13.0f), 0.0f);
+		break;
+	case 2:
+		m_originalLightDirs[0] = XMFLOAT3(2.0f / sqrtf(5.0f), -1.0f / sqrtf(5.0f), 0.0f);
+		break;
+	case 3:
+		m_originalLightDirs[0] = XMFLOAT3(3.0f / sqrtf(10.0f), -1.0f / sqrtf(10.0f), 0.0f);
+		break;
+	default:
+		m_originalLightDirs[0] = XMFLOAT3(4.0f / sqrtf(17.0f), -1.0f / sqrtf(17.0f), 0.0f);
+	}
 	
 	// 更新光照
 	static float theta = 0;
@@ -509,8 +475,6 @@ void GameApp::DrawScene()
 	//
 	if (m_pd2dRenderTarget != nullptr)
 	{
-		static const float Slopes[5] = { 1.0f, 1.5f, 2.0f, 3.0f, 4.0f };
-		
 		m_pd2dRenderTarget->BeginDraw();
 		std::wstring text =
 			L"当前摄像机模式: ";
@@ -533,10 +497,6 @@ void GameApp::DrawScene()
 			}
 		}
 		text += L"\n(主键盘8在第一人称和自由视角间切换,主键盘9切换第三人称)\n";
-		text +=	L"调试深度图: " + (m_enableDebug ? std::wstring(L"开") : std::wstring(L"关")) + L" (F切换)\n";
-		if (m_enableDebug)
-			text += L"G-灰度/单通道色显示切换\n";
-		text += L"方向光倾斜: " + std::to_wstring(Slopes[m_slopeIndex]) + L" (主键盘1-5切换)\n";
 
 		m_pd2dRenderTarget->DrawTextW(text.c_str(), static_cast<UINT32>(text.length()), m_pTextFormat.Get(),
 			D2D1_RECT_F{ 0.0f, 0.0f, 600.0f, 200.0f }, m_pColorBrush.Get());
@@ -589,6 +549,8 @@ void GameApp::DrawScene(ShadowEffect* pShadowEffect)
 
 bool GameApp::InitResource()
 {
+	ImguiPanel::LoadData(&m_slopeIndex, &m_enableDebug, &m_grayMode);
+	
 	// ******************
 	// 初始化天空盒相关
 

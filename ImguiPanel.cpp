@@ -5,6 +5,13 @@ using namespace DirectX;
 // 这几个函数只在这里使用,所以就搬过来了
 namespace 
 {
+	// 方向光斜率
+	int* g_slopeIndex = nullptr;
+	// 开启调试模式
+	bool* g_enableDebug = nullptr;
+	// 深度值以灰度形式显示
+	bool* g_grayMode = nullptr;
+	
 	// 能不能使用鼠标,用于消息处理
 	bool g_isImGuiCanUseKBandMouse = false;
 	// 如果IMGUI使用了键鼠,其他地方则不响应键鼠操作
@@ -52,6 +59,13 @@ bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* devi
 	return true;
 }
 
+void ImguiPanel::LoadData(int* slopeIndex, bool* enableDebug, bool* grayMode)
+{
+	g_slopeIndex = slopeIndex;
+	g_enableDebug = enableDebug;
+	g_grayMode = grayMode;
+}
+
 void ImguiPanel::Draw()
 {
 	//
@@ -61,21 +75,24 @@ void ImguiPanel::Draw()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	static bool showDemoWindow = false;
+	
 
 	ImGui::Begin("控制窗口");
 
+	static const char* slopeItem[] = { "1.0", "1.5", "2.0", "3.0", "4.0" };
+	ImGui::Combo("方向光斜率", g_slopeIndex, slopeItem, 5);
 
-	
+	ImGui::Checkbox("开启调试模式", g_enableDebug);
+	if(*g_enableDebug)
+	{
+		static const char* grayModeItem[] = { "灰度", "单通道" };
+		ImGui::Combo("色显示", reinterpret_cast<int*>(g_grayMode), grayModeItem, 2);
+	}
 
-	ImGui::Checkbox("显示演示窗口", &showDemoWindow);
+
+
 
 	ImGui::End();
-
-	if (showDemoWindow)
-	{
-		ImGui::ShowDemoWindow(&showDemoWindow);
-	}
 
 	//
 	// 完成剩余的3D渲染

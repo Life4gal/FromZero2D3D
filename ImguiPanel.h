@@ -10,6 +10,12 @@ class ImguiPanel
 public:
 	// 初始化 IMGUI
 	static bool Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+
+	// 获取操作的数据
+	static void LoadData(int* slopeIndex, bool* enableDebug, bool* grayMode);
+
+
+	
 	// 绘制 IMGUI 面板
 	static void Draw();
 	// 我们将WIN32处理消息的方式移动到我们自己的IMGUI面板里

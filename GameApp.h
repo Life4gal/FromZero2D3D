@@ -15,7 +15,7 @@ class GameApp final : public D3DApp
 {
 public:
 	// 摄像机模式
-	enum class CameraMode { FirstPerson, ThirdPerson, Free };
+	enum class CameraMode { FIRST_PERSON, ThirdPerson, Free };
 	
 	explicit GameApp(HINSTANCE hInstance);
 	~GameApp();
@@ -29,12 +29,12 @@ public:
 	void OnResize() override;
 	void UpdateScene(float dt) override;
 	void DrawScene() override;
+	
+private:
 	void DrawScene(BasicEffect* pBasicEffect);
 	void DrawScene(ShadowEffect* pShadowEffect);
-
-private:
 	bool InitResource();
-
+	
 	ComPtr<ID2D1SolidColorBrush> m_pColorBrush;				    // 单色笔刷
 	ComPtr<IDWriteFont> m_pFont;								// 字体
 	ComPtr<IDWriteTextFormat> m_pTextFormat;					// 文本格式
@@ -54,8 +54,8 @@ private:
 
 	GameObject m_debugQuad;										// 调试用四边形
 
-	DirectionalLight m_dirLights[3];						// 方向光
-	DirectX::XMFLOAT3 m_originalLightDirs[3];				// 初始光方向
+	DirectionalLight m_dirLights[3];							// 方向光
+	DirectX::XMFLOAT3 m_originalLightDirs[3];					// 初始光方向
 	
 	std::unique_ptr<BasicEffect> m_pBasicEffect;				// 基础特效
 	std::unique_ptr<ShadowEffect> m_pShadowEffect;				// 阴影特效

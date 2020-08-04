@@ -46,7 +46,7 @@ bool GameApp::Init()
 
 	// 初始化鼠标，键盘不需要
 	m_pMouse->SetWindow(m_hMainWnd);
-	m_pMouse->SetMode(Mouse::MODE_RELATIVE);
+	m_pMouse->SetMode(Mouse::Mode::MODE_RELATIVE);
 
 	return true;
 }
@@ -172,11 +172,11 @@ void GameApp::UpdateScene(const float dt)
 	m_keyboardTracker.Update(keyState);
 
 	// 只有处于相对模式我们才允许操作
-	if (mouseState.positionMode == Mouse::MODE_RELATIVE)
+	if (mouseState.positionMode == Mouse::Mode::MODE_RELATIVE)
 	{
 		// 第一人称或者第三人称按住左CTRL键才能移动玩家
 		// 操作玩家需要长按操作键,所以我们使用 keyState.IsKeyDown() 而不是 m_keyboardTracker.IsKeyPressed()
-		if (m_cameraMode == CameraMode::FirstPerson || m_cameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl))
+		if (m_cameraMode == CameraMode::FIRST_PERSON || m_cameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl))
 		{
 			if (keyState.IsKeyDown(Keyboard::W))
 			{
@@ -230,7 +230,7 @@ void GameApp::UpdateScene(const float dt)
 			// 只有在自由模式下我们允许鼠标切换为绝对模式以使用IMGUI
 			if(m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
 			{
-				m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
+				m_pMouse->SetMode(Mouse::Mode::MODE_ABSOLUTE);
 				ImguiPanel::SetPanelCanUseKBandMouse(true);
 			}
 		}
@@ -239,7 +239,7 @@ void GameApp::UpdateScene(const float dt)
 		// 只有相对模式可以移动玩家,那么我们也只在相对模式调整玩家位置
 		m_player.AdjustPosition({ { -50.0f, 0.5f, -50.0f, 0.0f } }, { { 50.0f, 0.5f , 50.0f, 0.0f } });
 
-		if (m_cameraMode == CameraMode::FirstPerson)
+		if (m_cameraMode == CameraMode::FIRST_PERSON)
 		{
 			auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
 
@@ -288,11 +288,11 @@ void GameApp::UpdateScene(const float dt)
 
 			if (m_cameraMode == CameraMode::ThirdPerson)
 			{
-				m_cameraMode = CameraMode::FirstPerson;
+				m_cameraMode = CameraMode::FIRST_PERSON;
 			}
 			else
 			{
-				m_cameraMode = m_cameraMode != CameraMode::FirstPerson ? CameraMode::FirstPerson : CameraMode::Free;
+				m_cameraMode = m_cameraMode != CameraMode::FIRST_PERSON ? CameraMode::FIRST_PERSON : CameraMode::Free;
 			}
 		}
 		else if (m_keyboardTracker.IsKeyPressed(Keyboard::D9) && m_cameraMode != CameraMode::ThirdPerson)
@@ -321,13 +321,13 @@ void GameApp::UpdateScene(const float dt)
 		m_pBasicEffect->SetViewMatrix(m_pCamera->GetViewMatrix());
 		m_pBasicEffect->SetEyePos(m_pCamera->GetPositionVector());
 	}
-	else if(mouseState.positionMode == Mouse::MODE_ABSOLUTE)
+	else if(mouseState.positionMode == Mouse::Mode::MODE_ABSOLUTE)
 	{
 		// 只有在自由视角才能切换为绝对模式
 		// 在绝对模式下按左CTRL键切换为相对模式
 		if (m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
 		{
-			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
+			m_pMouse->SetMode(Mouse::Mode::MODE_RELATIVE);
 			ImguiPanel::SetPanelCanUseKBandMouse(false);
 		}
 		// TODO 鼠标在窗口之外也是绝对模式,我们需要另外的判断
@@ -470,7 +470,7 @@ void GameApp::DrawScene()
 		m_pDebugEffect->SetTextureDiffuse(nullptr);
 		m_pDebugEffect->Apply(m_pd3dImmediateContext.Get());
 	}
-
+	
 	// 绘制Direct2D部分
 	//
 	if (m_pd2dRenderTarget != nullptr)
@@ -480,7 +480,7 @@ void GameApp::DrawScene()
 			L"当前摄像机模式: ";
 		switch (m_cameraMode)
 		{
-		case CameraMode::FirstPerson:
+		case CameraMode::FIRST_PERSON:
 			text += L"第一人称";
 			break;
 		case CameraMode::ThirdPerson:
@@ -489,7 +489,7 @@ void GameApp::DrawScene()
 		default:
 			{
 				text += L"自由视角\n当前控制: ";
-				if (m_pMouse->GetState().positionMode == Mouse::MODE_ABSOLUTE)
+				if (m_pMouse->GetState().positionMode == Mouse::Mode::MODE_ABSOLUTE)
 					text += L"IMGUI面板";
 				else
 					text += L"摄像机";

@@ -6,15 +6,23 @@
 //
 // http://go.microsoft.com/fwlink/?LinkId=248929
 // http://go.microsoft.com/fwlink/?LinkID=615561
+//
+// Modified By: life4gal(NiceT)(MIT License)
+// 小幅度改动
+// 
 //--------------------------------------------------------------------------------------
 
 #pragma once
 
 #include <windows.h>
 #include <memory>
+#include <cassert>
+#include <exception>
+#include <wrl/client.h>
 
 namespace DirectX
 {
+	// ReSharper disable once CppClassCanBeFinal
 	class Mouse
 	{
 	public:
@@ -27,10 +35,10 @@ namespace DirectX
 
 		virtual ~Mouse();
 
-		enum Mode
+		enum class Mode
 		{
 			MODE_ABSOLUTE = 0,
-			MODE_RELATIVE,
+			MODE_RELATIVE = 1,
 		};
 
 		struct State
@@ -49,19 +57,27 @@ namespace DirectX
 		class ButtonStateTracker
 		{
 		public:
-			enum ButtonState
+			enum class ButtonState
 			{
 				UP = 0,         // Button is up
 				HELD = 1,       // Button is held down
 				RELEASED = 2,   // Button was just released
-				PRESSED = 3,    // Buton was just pressed
+				PRESSED = 3,    // Button was just pressed
 			};
 
+#ifdef BUTTONSTATE_USEMACRO
 			ButtonState leftButton;
 			ButtonState middleButton;
 			ButtonState rightButton;
 			ButtonState xButton1;
 			ButtonState xButton2;
+#else
+			ButtonState m_leftButton;
+			ButtonState m_middleButton;
+			ButtonState m_rightButton;
+			ButtonState m_xButton1;
+			ButtonState m_xButton2;
+#endif
 
 #pragma prefast(suppress: 26495, "Reset() performs the initialization")
 			ButtonStateTracker() noexcept { Reset(); }
@@ -70,30 +86,41 @@ namespace DirectX
 
 			void __cdecl Reset() noexcept;
 
-			State __cdecl GetLastState() const { return lastState; }
+			State __cdecl GetLastState() const
+			{
+#ifdef BUTTONSTATE_USEMACRO
+				return lastState;
+#else
+				return m_lastState;
+#endif
+			}
 
 		private:
+#ifdef BUTTONSTATE_USEMACRO
 			State lastState;
+#else
+			State m_lastState;
+#endif
 		};
 
 		// Retrieve the current state of the mouse
 		State __cdecl GetState() const;
 
 		// Resets the accumulated scroll wheel value
-		void __cdecl ResetScrollWheelValue();
+		void __cdecl ResetScrollWheelValue() const;
 
 		// Sets mouse mode (defaults to absolute)
-		void __cdecl SetMode(Mode mode);
+		void __cdecl SetMode(Mode mode) const;
 
 		// Feature detection
 		bool __cdecl IsConnected() const;
 
 		// Cursor visibility
 		bool __cdecl IsVisible() const;
-		void __cdecl SetVisible(bool visible);
+		void __cdecl SetVisible(bool visible) const;
 
 #if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP) && defined(WM_USER)
-		void __cdecl SetWindow(HWND window);
+		void __cdecl SetWindow(HWND window) const;
 		static void __cdecl ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
 #endif
 		// Singleton
@@ -103,6 +130,6 @@ namespace DirectX
 		// Private implementation.
 		class Impl;
 
-		std::unique_ptr<Impl> pImpl;
+		std::unique_ptr<Impl> m_pImpl;
 	};
 }

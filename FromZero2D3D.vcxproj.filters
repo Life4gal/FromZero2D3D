@@ -83,15 +83,6 @@
     <ClInclude Include="GameApp.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="d3dUtil.h">
-      <Filter>模块文件\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="DXTrace.h">
-      <Filter>模块文件\头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="GameTimer.h">
-      <Filter>模块文件\头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Vertex.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
@@ -209,6 +200,15 @@
     <ClInclude Include="ImGui\imgui_impl_dx11.h">
       <Filter>ImGui\头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GameTimer.h">
+      <Filter>通用文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dUtil.h">
+      <Filter>通用文件\头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DXTrace.h">
+      <Filter>通用文件\头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -219,15 +219,6 @@
     </ClCompile>
     <ClCompile Include="d3dApp.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="d3dUtil.cpp">
-      <Filter>模块文件\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="DXTrace.cpp">
-      <Filter>模块文件\源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="GameTimer.cpp">
-      <Filter>模块文件\源文件</Filter>
     </ClCompile>
     <ClCompile Include="Vertex.cpp">
       <Filter>模块文件\源文件</Filter>
@@ -321,6 +312,15 @@
     </ClCompile>
     <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
       <Filter>ImGui\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GameTimer.cpp">
+      <Filter>通用文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="d3dUtil.cpp">
+      <Filter>通用文件\源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DXTrace.cpp">
+      <Filter>通用文件\源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -267,7 +267,7 @@ void GameApp::UpdateScene(const float dt)
 			if(m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
 			{
 				m_pMouse->SetMode(Mouse::MODE_ABSOLUTE);
-				m_imguiPanel->SetPanelCanUseKBandMouse(true);
+				ImguiPanel::SetPanelCanUseKBandMouse(true);
 			}
 
 			/*
@@ -382,7 +382,7 @@ void GameApp::UpdateScene(const float dt)
 		if (m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
 		{
 			m_pMouse->SetMode(Mouse::MODE_RELATIVE);
-			m_imguiPanel->SetPanelCanUseKBandMouse(false);
+			ImguiPanel::SetPanelCanUseKBandMouse(false);
 		}
 		// TODO 鼠标在窗口之外也是绝对模式,我们需要另外的判断
 		// 暂时我们只能先设置为切换为自由模式
@@ -453,7 +453,7 @@ void GameApp::DrawScene()
 	assert(m_pd3dImmediateContext);
 	assert(m_pSwapChain);
 
-	m_imguiPanel->Draw();
+	ImguiPanel::Draw();
 
 	// ******************
 	// 绘制Direct3D部分

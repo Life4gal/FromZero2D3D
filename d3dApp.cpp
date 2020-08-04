@@ -111,7 +111,6 @@ bool D3DApp::Init()
 {
 	m_pMouse = std::make_unique<DirectX::Mouse>();
 	m_pKeyboard = std::make_unique<DirectX::Keyboard>();
-	m_imguiPanel = std::make_unique<ImguiPanel>();
 	
 	if (!InitMainWindow())
 		return false;
@@ -121,8 +120,8 @@ bool D3DApp::Init()
 	
 	if (!InitDirect3D())
 		return false;
-
-	if (!m_imguiPanel->Init(MainWnd(), m_pd3dDevice.Get(), m_pd3dImmediateContext.Get(), this))
+	
+	if (!ImguiPanel::Init(MainWnd(), m_pd3dDevice.Get(), m_pd3dImmediateContext.Get()))
 		return false;
 
 	return true;
@@ -211,7 +210,7 @@ void D3DApp::OnResize()
 LRESULT D3DApp::MsgProc(HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
 	// 面板处理消息
-	m_imguiPanel->ImGuiWndProc(hWnd, msg, wParam, lParam);
+	ImguiPanel::ImGuiWndProc(hWnd, msg, wParam, lParam);
 
 // TODO 我们限制只能在绝对模式下操作IMGUI(而只有在相对模式才能操作玩家),所以我们应该不需要这个(大概)
 #if 0

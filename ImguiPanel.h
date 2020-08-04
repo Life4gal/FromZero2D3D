@@ -9,8 +9,7 @@ class ImguiPanel
 {
 public:
 	// 初始化 IMGUI
-	// TODO 因为 D3DApp 含义类成员 ImguiPanel ,所以参数类型声明为 D3DApp* 会报错,改成 void* 然后转型才可以
-	static bool Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext, void* app);
+	static bool Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	// 绘制 IMGUI 面板
 	static void Draw();
 	// 我们将WIN32处理消息的方式移动到我们自己的IMGUI面板里

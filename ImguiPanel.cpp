@@ -5,8 +5,6 @@ using namespace DirectX;
 // 这几个函数只在这里使用,所以就搬过来了
 namespace 
 {
-	// 因为 D3DApp 含义类成员 ImguiPanel ,所以我们不好把这个参数放在 ImguiPanel 中
-	D3DApp* g_pApp = nullptr;
 	// 能不能使用鼠标,用于消息处理
 	bool g_isImGuiCanUseKBandMouse = false;
 	// 如果IMGUI使用了键鼠,其他地方则不响应键鼠操作
@@ -28,7 +26,7 @@ namespace
 }
 
 // ReSharper disable once CppParameterMayBeConst
-bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext, void* app)
+bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	// 设置Dear ImGui上下文
 	IMGUI_CHECKVERSION();
@@ -50,8 +48,6 @@ bool ImguiPanel::Init(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* devi
 	// 设置平台/渲染器的绑定
 	ImGui_ImplWin32_Init(hWnd);
 	ImGui_ImplDX11_Init(device, deviceContext);
-
-	g_pApp = static_cast<D3DApp*>(app);
 
 	return true;
 }
@@ -199,7 +195,7 @@ bool ImguiPanel::IsPanelUsedKBandMouse()
 {
 	// 如果 g_isImGuiUsedKBandMouse 为 false 则直接返回 false,如果为 true 则返回 true 并将其置为 false
 	// TODO 不确定 g_isImGuiUsedKBandMouse = false 返回的是 true 还是 false, 好像是 false 唉
-	return g_isImGuiUsedKBandMouse && ((g_isImGuiUsedKBandMouse = false));
+	return g_isImGuiUsedKBandMouse && (!(g_isImGuiUsedKBandMouse = false));
 }
 #endif
 

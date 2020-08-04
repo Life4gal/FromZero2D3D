@@ -18,7 +18,7 @@
 class TextureRender
 {
 public:
-	template<class T>
+	template<typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 	TextureRender() = default;

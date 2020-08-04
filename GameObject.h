@@ -19,7 +19,6 @@
 class GameObject
 {
 public:
-	// 使用模板别名(C++11)简化类型名
 	template <typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
@@ -80,7 +79,7 @@ private:
 		DirectX::XMMATRIX world;
 		DirectX::XMMATRIX worldInvTranspose;
 	};
-
+	
 	// 子对象
 	std::set<GameObject*> m_children;
 	

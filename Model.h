@@ -19,8 +19,7 @@
 
 struct ModelPart
 {
-	// 使用模板别名(C++11)简化类型名
-	template <class T>
+	template <typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 	ModelPart() : material(), vertexCount(), indexCount(), indexFormat() {}
@@ -37,17 +36,16 @@ struct ModelPart
 
 struct Model
 {
-	// 使用模板别名(C++11)简化类型名
-	template <class T>
+	template <typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 	
 	Model();
 	Model(ID3D11Device* device, const ObjReader& model);
 	// 设置缓冲区
-	template<class VertexType, class IndexType>
+	template<typename VertexType, typename IndexType>
 	Model(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData);
 
-	template<class VertexType, class IndexType>
+	template<typename VertexType, typename IndexType>
 	Model(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices);
 
 	Model(ID3D11Device* device, const void* vertices, UINT vertexSize, UINT vertexCount,
@@ -61,10 +59,10 @@ struct Model
 	//
 	// 设置网格
 	//
-	template<class VertexType, class IndexType>
+	template<typename VertexType, typename IndexType>
 	void SetMesh(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData);
 
-	template<class VertexType, class IndexType>
+	template<typename VertexType, typename IndexType>
 	void SetMesh(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices);
 
 	void SetMesh(ID3D11Device* device, const void* vertices, UINT vertexSize, UINT vertexCount,
@@ -83,27 +81,27 @@ struct Model
 	UINT vertexStride;
 };
 
-template<class VertexType, class IndexType>
+template<typename VertexType, typename IndexType>
 Model::Model(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData)
 	: vertexStride()
 {
 	SetMesh(device, meshData);
 }
 
-template<class VertexType, class IndexType>
+template<typename VertexType, typename IndexType>
 Model::Model(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices)
 	: vertexStride()
 {
 	SetMesh(device, vertices, indices);
 }
 
-template<class VertexType, class IndexType>
+template<typename VertexType, typename IndexType>
 void Model::SetMesh(ID3D11Device* device, const Geometry::MeshData<VertexType, IndexType>& meshData)
 {
 	SetMesh(device, meshData.vertexVec, meshData.indexVec);
 }
 
-template<class VertexType, class IndexType>
+template<typename VertexType, typename IndexType>
 void Model::SetMesh(ID3D11Device* device, const std::vector<VertexType>& vertices, const std::vector<IndexType>& indices)
 {
 	static_assert(sizeof(IndexType) == 2 || sizeof(IndexType) == 4, "The size of IndexType must be 2 bytes or 4 bytes!");

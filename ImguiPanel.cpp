@@ -63,12 +63,12 @@ void ImguiPanel::Draw()
 
 	static bool showDemoWindow = false;
 
-	ImGui::Begin(u8"控制窗口");
+	ImGui::Begin("控制窗口");
 
 
 	
 
-	ImGui::Checkbox(u8"显示演示窗口", &showDemoWindow);
+	ImGui::Checkbox("显示演示窗口", &showDemoWindow);
 
 	ImGui::End();
 
@@ -327,7 +327,7 @@ namespace
 
 		// Setup display size (every frame to accommodate for window resizing)
 		RECT rect;
-		::GetClientRect(g_hWnd, &rect);
+		GetClientRect(g_hWnd, &rect);
 		io.DisplaySize = ImVec2(static_cast<float>(rect.right - rect.left), static_cast<float>(rect.bottom - rect.top));
 
 		// Setup time step

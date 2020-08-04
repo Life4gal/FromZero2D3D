@@ -67,7 +67,6 @@ protected:
 
 	GameTimer m_gameTimer;           // 计时器
 
-	// 使用模板别名(C++11)简化类型名
 	template <typename T>
 	using ComPtr = Microsoft::WRL::ComPtr<T>;
 	

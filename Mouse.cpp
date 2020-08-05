@@ -12,19 +12,17 @@
 //--------------------------------------------------------------------------------------
 
 #include "Mouse.h"
-#include <functional>
-
 
 using namespace DirectX;
-using Microsoft::WRL::ComPtr;
 
-struct HandleCloser { void operator()(const HANDLE h) const { if (h) CloseHandle(h); } };
+// ReSharper disable once CppParameterMayBeConst
+struct HandleCloser { void operator()(HANDLE h) const { if (h) CloseHandle(h); } };
 
 typedef std::unique_ptr<void, HandleCloser> ScopedHandle;
 
 #if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)
 
-class Mouse::Impl
+class Mouse::Impl  // NOLINT(cppcoreguidelines-special-member-functions, hicpp-special-member-functions)
 {
 public:
 	explicit Impl(Mouse* owner)
@@ -127,7 +125,7 @@ public:
 		return GetSystemMetrics(SM_MOUSEPRESENT) != 0;
 	}
 
-	bool IsVisible() const
+	[[nodiscard]] bool IsVisible() const
 	{
 		if (m_mode == Mode::MODE_RELATIVE)
 			return false;
@@ -158,7 +156,8 @@ public:
 		}
 	}
 
-	void SetWindow(const HWND window)
+	// ReSharper disable once CppParameterMayBeConst
+	void SetWindow(HWND window)
 	{
 		if (m_window == window)
 			return;
@@ -350,8 +349,8 @@ void Mouse::ProcessMessage(const UINT message, const WPARAM wParam, const LPARAM
 				else if (raw.data.mouse.usFlags & MOUSE_VIRTUAL_DESKTOP)
 				{
 					// This is used to make Remote Desktop session work
-					const int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-					const int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+					const auto width = static_cast<float>(GetSystemMetrics(SM_CXVIRTUALSCREEN));
+					const auto height = static_cast<float>(GetSystemMetrics(SM_CYVIRTUALSCREEN));
 
 					const int x = static_cast<int>(float(raw.data.mouse.lLastX) / 65535.0f * width);
 					const int y = static_cast<int>(float(raw.data.mouse.lLastY) / 65535.0f * height);
@@ -479,14 +478,9 @@ Mouse& Mouse::operator= (Mouse&& moveFrom) noexcept
 	return *this;
 }
 
-// Public destructor.
-Mouse::~Mouse()
-{
-}
-
 Mouse::State Mouse::GetState() const
 {
-	State state;
+	State state{};
 	m_pImpl->GetState(state);
 	return state;
 }
@@ -530,6 +524,9 @@ Mouse& Mouse::Get()
 
 namespace 
 {
+// TODO warning C4805: “^”: 在操作中将类型“const bool”与类型“int”混合不安全,我宣布这一轮macro取得胜利
+#define BUTTONSTATE_USEMACRO
+	
 #ifdef BUTTONSTATE_USEMACRO
 	// 我很讨厌胶水宏,但是看上去我们好像没有什么好的办法将它消灭
 	#define UPDATE_BUTTON_STATE(field) field = static_cast<ButtonState>( ( !!state.field ) | ( ( !!state.field ^ !!lastState.field ) << 1 ) );
@@ -593,6 +590,9 @@ void Mouse::ButtonStateTracker::Update(const State& state)
 	m_lastState = state;
 #endif
 }
+
+// 其他地方不需要这个坏东西了
+#undef BUTTONSTATE_USEMACRO
 
 void Mouse::ButtonStateTracker::Reset() noexcept
 {

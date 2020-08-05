@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <memory>
 #include <cassert>
+// ReSharper disable once CppUnusedIncludeDirective
 #include <exception>
 #include <wrl/client.h>
 
@@ -33,7 +34,7 @@ namespace DirectX
 		Mouse(Mouse const&) = delete;
 		Mouse& operator=(Mouse const&) = delete;
 
-		virtual ~Mouse();
+		virtual ~Mouse() = default;
 
 		enum class Mode
 		{
@@ -64,12 +65,20 @@ namespace DirectX
 				RELEASED = 2,   // Button was just released
 				PRESSED = 3,    // Button was just pressed
 			};
-
+			
+// TODO warning C4805: “^”: 在操作中将类型“const bool”与类型“int”混合不安全,我宣布这一轮macro取得胜利
+#define BUTTONSTATE_USEMACRO
+			
 #ifdef BUTTONSTATE_USEMACRO
+			// ReSharper disable once CppInconsistentNaming
 			ButtonState leftButton;
+			// ReSharper disable once CppInconsistentNaming
 			ButtonState middleButton;
+			// ReSharper disable once CppInconsistentNaming
 			ButtonState rightButton;
+			// ReSharper disable once CppInconsistentNaming
 			ButtonState xButton1;
+			// ReSharper disable once CppInconsistentNaming
 			ButtonState xButton2;
 #else
 			ButtonState m_leftButton;
@@ -80,13 +89,13 @@ namespace DirectX
 #endif
 
 #pragma prefast(suppress: 26495, "Reset() performs the initialization")
-			ButtonStateTracker() noexcept { Reset(); }
+			ButtonStateTracker() noexcept { Reset(); }  // NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
 
 			void __cdecl Update(const State& state);
 
 			void __cdecl Reset() noexcept;
 
-			State __cdecl GetLastState() const
+			[[nodiscard]] State __cdecl GetLastState() const
 			{
 #ifdef BUTTONSTATE_USEMACRO
 				return lastState;
@@ -97,14 +106,18 @@ namespace DirectX
 
 		private:
 #ifdef BUTTONSTATE_USEMACRO
+			// ReSharper disable once CppInconsistentNaming
 			State lastState;
 #else
 			State m_lastState;
 #endif
+
+// 其他地方不需要这个坏东西了
+#undef BUTTONSTATE_USEMACRO
 		};
 
 		// Retrieve the current state of the mouse
-		State __cdecl GetState() const;
+		[[nodiscard]] State __cdecl GetState() const;
 
 		// Resets the accumulated scroll wheel value
 		void __cdecl ResetScrollWheelValue() const;
@@ -113,10 +126,10 @@ namespace DirectX
 		void __cdecl SetMode(Mode mode) const;
 
 		// Feature detection
-		bool __cdecl IsConnected() const;
+		[[nodiscard]] bool __cdecl IsConnected() const;
 
 		// Cursor visibility
-		bool __cdecl IsVisible() const;
+		[[nodiscard]] bool __cdecl IsVisible() const;
 		void __cdecl SetVisible(bool visible) const;
 
 #if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP) && defined(WM_USER)

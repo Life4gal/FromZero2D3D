@@ -383,6 +383,5 @@
     <None Include="HLSL\DebugTexture.hlsli">
       <Filter>着色器</Filter>
     </None>
-    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

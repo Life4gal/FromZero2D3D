@@ -6,16 +6,25 @@
 //
 // http://go.microsoft.com/fwlink/?LinkId=248929
 // http://go.microsoft.com/fwlink/?LinkID=615561
+// 
+// Modified By: life4gal(NiceT)(MIT License)
+// 小幅度改动
+// 
 //--------------------------------------------------------------------------------------
 
 #pragma once
 
 #include <windows.h>
 #include <memory>
-#include <stdint.h>
+#include <cstdint>
+#include <cassert>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <exception>
+#include <wrl/client.h>
 
 namespace DirectX
 {
+	// ReSharper disable once CppClassCanBeFinal
 	class Keyboard
 	{
 	public:
@@ -26,43 +35,50 @@ namespace DirectX
 		Keyboard(Keyboard const&) = delete;
 		Keyboard& operator=(Keyboard const&) = delete;
 
-		virtual ~Keyboard();
+		virtual ~Keyboard() = default;
 
-		enum Keys
+		enum class Keys
 		{
-			None = 0,
+			NONE = 0,
 
-			Back = 0x8,
-			Tab = 0x9,
+			BACK = 0x8,
+			TAB = 0x9,
 
-			Enter = 0xd,
+			ENTER = 0xd,
 
-			Pause = 0x13,
-			CapsLock = 0x14,
-			Kana = 0x15,
+			PAUSE = 0x13,
+			CAPS_LOCK = 0x14,
+			KANA = 0x15,
 
-			Kanji = 0x19,
+			KANJI = 0x19,
 
-			Escape = 0x1b,
-			ImeConvert = 0x1c,
-			ImeNoConvert = 0x1d,
+			ESCAPE = 0x1b,
+			IME_CONVERT = 0x1c,
+			IME_NO_CONVERT = 0x1d,
 
-			Space = 0x20,
-			PageUp = 0x21,
-			PageDown = 0x22,
-			End = 0x23,
-			Home = 0x24,
-			Left = 0x25,
-			Up = 0x26,
-			Right = 0x27,
-			Down = 0x28,
-			Select = 0x29,
-			Print = 0x2a,
-			Execute = 0x2b,
-			PrintScreen = 0x2c,
-			Insert = 0x2d,
-			Delete = 0x2e,
-			Help = 0x2f,
+			SPACE = 0x20,
+			PAGE_UP = 0x21,
+			PAGE_DOWN = 0x22,
+			END = 0x23,
+			HOME = 0x24,
+			LEFT = 0x25,
+			UP = 0x26,
+			RIGHT = 0x27,
+			DOWN = 0x28,
+			SELECT = 0x29,
+			PRINT = 0x2a,
+			EXECUTE = 0x2b,
+			PRINT_SCREEN = 0x2c,
+			INSERT = 0x2d,
+#ifdef DELETE
+#define TMP_DELETE = DELETE;  // NOLINT(cppcoreguidelines-macro-usage)
+#undef DELETE
+			DELETE = 0x2e,
+// TODO 我们这里好像和 winnt.h 里面的DELETE名字上冲突了
+#define DELETE TMP_DELETE  // NOLINT(cppcoreguidelines-macro-usage)
+#undef TMP_DELETE
+#endif
+			HELP = 0x2f,
 			D0 = 0x30,
 			D1 = 0x31,
 			D2 = 0x32,
@@ -100,28 +116,28 @@ namespace DirectX
 			X = 0x58,
 			Y = 0x59,
 			Z = 0x5a,
-			LeftWindows = 0x5b,
-			RightWindows = 0x5c,
-			Apps = 0x5d,
+			LEFT_WINDOWS = 0x5b,
+			RIGHT_WINDOWS = 0x5c,
+			APPS = 0x5d,
 
-			Sleep = 0x5f,
-			NumPad0 = 0x60,
-			NumPad1 = 0x61,
-			NumPad2 = 0x62,
-			NumPad3 = 0x63,
-			NumPad4 = 0x64,
-			NumPad5 = 0x65,
-			NumPad6 = 0x66,
-			NumPad7 = 0x67,
-			NumPad8 = 0x68,
-			NumPad9 = 0x69,
-			Multiply = 0x6a,
-			Add = 0x6b,
-			Separator = 0x6c,
-			Subtract = 0x6d,
+			SLEEP = 0x5f,
+			NUM_PAD0 = 0x60,
+			NUM_PAD1 = 0x61,
+			NUM_PAD2 = 0x62,
+			NUM_PAD3 = 0x63,
+			NUM_PAD4 = 0x64,
+			NUM_PAD5 = 0x65,
+			NUM_PAD6 = 0x66,
+			NUM_PAD7 = 0x67,
+			NUM_PAD8 = 0x68,
+			NUM_PAD9 = 0x69,
+			MULTIPLY = 0x6a,
+			ADD = 0x6b,
+			SEPARATOR = 0x6c,
+			SUBTRACT = 0x6d,
 
-			Decimal = 0x6e,
-			Divide = 0x6f,
+			DECIMAL = 0x6e,
+			DIVIDE = 0x6f,
 			F1 = 0x70,
 			F2 = 0x71,
 			F3 = 0x72,
@@ -147,272 +163,311 @@ namespace DirectX
 			F23 = 0x86,
 			F24 = 0x87,
 
-			NumLock = 0x90,
-			Scroll = 0x91,
+			NUM_LOCK = 0x90,
+			SCROLL = 0x91,
 
-			LeftShift = 0xa0,
-			RightShift = 0xa1,
-			LeftControl = 0xa2,
-			RightControl = 0xa3,
-			LeftAlt = 0xa4,
-			RightAlt = 0xa5,
-			BrowserBack = 0xa6,
-			BrowserForward = 0xa7,
-			BrowserRefresh = 0xa8,
-			BrowserStop = 0xa9,
-			BrowserSearch = 0xaa,
-			BrowserFavorites = 0xab,
-			BrowserHome = 0xac,
-			VolumeMute = 0xad,
-			VolumeDown = 0xae,
-			VolumeUp = 0xaf,
-			MediaNextTrack = 0xb0,
-			MediaPreviousTrack = 0xb1,
-			MediaStop = 0xb2,
-			MediaPlayPause = 0xb3,
-			LaunchMail = 0xb4,
-			SelectMedia = 0xb5,
-			LaunchApplication1 = 0xb6,
-			LaunchApplication2 = 0xb7,
+			LEFT_SHIFT = 0xa0,
+			RIGHT_SHIFT = 0xa1,
+			LEFT_CONTROL = 0xa2,
+			RIGHT_CONTROL = 0xa3,
+			LEFT_ALT = 0xa4,
+			RIGHT_ALT = 0xa5,
+			BROWSER_BACK = 0xa6,
+			BROWSER_FORWARD = 0xa7,
+			BROWSER_REFRESH = 0xa8,
+			BROWSER_STOP = 0xa9,
+			BROWSER_SEARCH = 0xaa,
+			BROWSER_FAVORITES = 0xab,
+			BROWSER_HOME = 0xac,
+			VOLUME_MUTE = 0xad,
+			VOLUME_DOWN = 0xae,
+			VOLUME_UP = 0xaf,
+			MEDIA_NEXT_TRACK = 0xb0,
+			MEDIA_PREVIOUS_TRACK = 0xb1,
+			MEDIA_STOP = 0xb2,
+			MEDIA_PLAY_PAUSE = 0xb3,
+			LAUNCH_MAIL = 0xb4,
+			SELECT_MEDIA = 0xb5,
+			LAUNCH_APPLICATION1 = 0xb6,
+			LAUNCH_APPLICATION2 = 0xb7,
 
-			OemSemicolon = 0xba,
-			OemPlus = 0xbb,
-			OemComma = 0xbc,
-			OemMinus = 0xbd,
-			OemPeriod = 0xbe,
-			OemQuestion = 0xbf,
-			OemTilde = 0xc0,
+			OEM_SEMICOLON = 0xba,
+			OEM_PLUS = 0xbb,
+			OEM_COMMA = 0xbc,
+			OEM_MINUS = 0xbd,
+			OEM_PERIOD = 0xbe,
+			OEM_QUESTION = 0xbf,
+			OEM_TILDE = 0xc0,
 
-			OemOpenBrackets = 0xdb,
-			OemPipe = 0xdc,
-			OemCloseBrackets = 0xdd,
-			OemQuotes = 0xde,
-			Oem8 = 0xdf,
+			OEM_OPEN_BRACKETS = 0xdb,
+			OEM_PIPE = 0xdc,
+			OEM_CLOSE_BRACKETS = 0xdd,
+			OEM_QUOTES = 0xde,
+			OEM8 = 0xdf,
 
-			OemBackslash = 0xe2,
+			OEM_BACKSLASH = 0xe2,
 
-			ProcessKey = 0xe5,
+			PROCESS_KEY = 0xe5,
 
-			OemCopy = 0xf2,
-			OemAuto = 0xf3,
-			OemEnlW = 0xf4,
+			OEM_COPY = 0xf2,
+			OEM_AUTO = 0xf3,
+			OEM_ENL_W = 0xf4,
 
-			Attn = 0xf6,
-			Crsel = 0xf7,
-			Exsel = 0xf8,
-			EraseEof = 0xf9,
-			Play = 0xfa,
-			Zoom = 0xfb,
+			ATTN = 0xf6,
+			CRSEL = 0xf7,
+			EXSEL = 0xf8,
+			ERASE_EOF = 0xf9,
+			PLAY = 0xfa,
+			ZOOM = 0xfb,
 
-			Pa1 = 0xfd,
-			OemClear = 0xfe,
+			PA1 = 0xfd,
+			OEM_CLEAR = 0xfe,
 		};
 
 		struct State
 		{
-			bool Reserved0 : 8;
-			bool Back : 1;              // VK_BACK, 0x8
-			bool Tab : 1;               // VK_TAB, 0x9
-			bool Reserved1 : 3;
-			bool Enter : 1;             // VK_RETURN, 0xD
-			bool Reserved2 : 2;
-			bool Reserved3 : 3;
-			bool Pause : 1;             // VK_PAUSE, 0x13
-			bool CapsLock : 1;          // VK_CAPITAL, 0x14
-			bool Kana : 1;              // VK_KANA, 0x15
-			bool Reserved4 : 2;
-			bool Reserved5 : 1;
-			bool Kanji : 1;             // VK_KANJI, 0x19
-			bool Reserved6 : 1;
-			bool Escape : 1;            // VK_ESCAPE, 0x1B
-			bool ImeConvert : 1;        // VK_CONVERT, 0x1C
-			bool ImeNoConvert : 1;      // VK_NONCONVERT, 0x1D
-			bool Reserved7 : 2;
-			bool Space : 1;             // VK_SPACE, 0x20
-			bool PageUp : 1;            // VK_PRIOR, 0x21
-			bool PageDown : 1;          // VK_NEXT, 0x22
-			bool End : 1;               // VK_END, 0x23
-			bool Home : 1;              // VK_HOME, 0x24
-			bool Left : 1;              // VK_LEFT, 0x25
-			bool Up : 1;                // VK_UP, 0x26
-			bool Right : 1;             // VK_RIGHT, 0x27
-			bool Down : 1;              // VK_DOWN, 0x28
-			bool Select : 1;            // VK_SELECT, 0x29
-			bool Print : 1;             // VK_PRINT, 0x2A
-			bool Execute : 1;           // VK_EXECUTE, 0x2B
-			bool PrintScreen : 1;       // VK_SNAPSHOT, 0x2C
-			bool Insert : 1;            // VK_INSERT, 0x2D
+			bool reserved0 : 8;
+			
+			bool back : 1;              // VK_BACK, 0x8
+			bool tab : 1;               // VK_TAB, 0x9
+			
+			bool reserved1 : 3;
+			
+			bool enter : 1;             // VK_RETURN, 0xD
+			
+			bool reserved2 : 2;
+			bool reserved3 : 3;
+			
+			bool pause : 1;             // VK_PAUSE, 0x13
+			bool capsLock : 1;          // VK_CAPITAL, 0x14
+			bool kana : 1;              // VK_KANA, 0x15
+			
+			bool reserved4 : 2;
+			bool reserved5 : 1;
+			
+			bool kanji : 1;             // VK_KANJI, 0x19
+			
+			bool reserved6 : 1;
+			
+			bool escape : 1;            // VK_ESCAPE, 0x1B
+			bool imeConvert : 1;        // VK_CONVERT, 0x1C
+			bool imeNoConvert : 1;      // VK_NONCONVERT, 0x1D
+			
+			bool reserved7 : 2;
+			
+			bool space : 1;             // VK_SPACE, 0x20
+			bool pageUp : 1;            // VK_PRIOR, 0x21
+			bool pageDown : 1;          // VK_NEXT, 0x22
+			bool end : 1;               // VK_END, 0x23
+			bool home : 1;              // VK_HOME, 0x24
+			bool left : 1;              // VK_LEFT, 0x25
+			bool up : 1;                // VK_UP, 0x26
+			bool right : 1;             // VK_RIGHT, 0x27
+			bool down : 1;              // VK_DOWN, 0x28
+			bool select : 1;            // VK_SELECT, 0x29
+			bool print : 1;             // VK_PRINT, 0x2A
+			bool execute : 1;           // VK_EXECUTE, 0x2B
+			bool printScreen : 1;       // VK_SNAPSHOT, 0x2C
+			bool insert : 1;            // VK_INSERT, 0x2D
+			// TODO oh~ no! 这个符合我命名习惯的 delete 居然是保留字,太糟糕了,实在是太糟糕了!
 			bool Delete : 1;            // VK_DELETE, 0x2E
-			bool Help : 1;              // VK_HELP, 0x2F
-			bool D0 : 1;                // 0x30
-			bool D1 : 1;                // 0x31
-			bool D2 : 1;                // 0x32
-			bool D3 : 1;                // 0x33
-			bool D4 : 1;                // 0x34
-			bool D5 : 1;                // 0x35
-			bool D6 : 1;                // 0x36
-			bool D7 : 1;                // 0x37
-			bool D8 : 1;                // 0x38
-			bool D9 : 1;                // 0x39
-			bool Reserved8 : 6;
-			bool Reserved9 : 1;
-			bool A : 1;                 // 0x41
-			bool B : 1;                 // 0x42
-			bool C : 1;                 // 0x43
-			bool D : 1;                 // 0x44
-			bool E : 1;                 // 0x45
-			bool F : 1;                 // 0x46
-			bool G : 1;                 // 0x47
-			bool H : 1;                 // 0x48
-			bool I : 1;                 // 0x49
-			bool J : 1;                 // 0x4A
-			bool K : 1;                 // 0x4B
-			bool L : 1;                 // 0x4C
-			bool M : 1;                 // 0x4D
-			bool N : 1;                 // 0x4E
-			bool O : 1;                 // 0x4F
-			bool P : 1;                 // 0x50
-			bool Q : 1;                 // 0x51
-			bool R : 1;                 // 0x52
-			bool S : 1;                 // 0x53
-			bool T : 1;                 // 0x54
-			bool U : 1;                 // 0x55
-			bool V : 1;                 // 0x56
-			bool W : 1;                 // 0x57
-			bool X : 1;                 // 0x58
-			bool Y : 1;                 // 0x59
-			bool Z : 1;                 // 0x5A
-			bool LeftWindows : 1;       // VK_LWIN, 0x5B
-			bool RightWindows : 1;      // VK_RWIN, 0x5C
-			bool Apps : 1;              // VK_APPS, 0x5D
-			bool Reserved10 : 1;
-			bool Sleep : 1;             // VK_SLEEP, 0x5F
-			bool NumPad0 : 1;           // VK_NUMPAD0, 0x60
-			bool NumPad1 : 1;           // VK_NUMPAD1, 0x61
-			bool NumPad2 : 1;           // VK_NUMPAD2, 0x62
-			bool NumPad3 : 1;           // VK_NUMPAD3, 0x63
-			bool NumPad4 : 1;           // VK_NUMPAD4, 0x64
-			bool NumPad5 : 1;           // VK_NUMPAD5, 0x65
-			bool NumPad6 : 1;           // VK_NUMPAD6, 0x66
-			bool NumPad7 : 1;           // VK_NUMPAD7, 0x67
-			bool NumPad8 : 1;           // VK_NUMPAD8, 0x68
-			bool NumPad9 : 1;           // VK_NUMPAD9, 0x69
-			bool Multiply : 1;          // VK_MULTIPLY, 0x6A
-			bool Add : 1;               // VK_ADD, 0x6B
-			bool Separator : 1;         // VK_SEPARATOR, 0x6C
-			bool Subtract : 1;          // VK_SUBTRACT, 0x6D
-			bool Decimal : 1;           // VK_DECIMANL, 0x6E
-			bool Divide : 1;            // VK_DIVIDE, 0x6F
-			bool F1 : 1;                // VK_F1, 0x70
-			bool F2 : 1;                // VK_F2, 0x71
-			bool F3 : 1;                // VK_F3, 0x72
-			bool F4 : 1;                // VK_F4, 0x73
-			bool F5 : 1;                // VK_F5, 0x74
-			bool F6 : 1;                // VK_F6, 0x75
-			bool F7 : 1;                // VK_F7, 0x76
-			bool F8 : 1;                // VK_F8, 0x77
-			bool F9 : 1;                // VK_F9, 0x78
-			bool F10 : 1;               // VK_F10, 0x79
-			bool F11 : 1;               // VK_F11, 0x7A
-			bool F12 : 1;               // VK_F12, 0x7B
-			bool F13 : 1;               // VK_F13, 0x7C
-			bool F14 : 1;               // VK_F14, 0x7D
-			bool F15 : 1;               // VK_F15, 0x7E
-			bool F16 : 1;               // VK_F16, 0x7F
-			bool F17 : 1;               // VK_F17, 0x80
-			bool F18 : 1;               // VK_F18, 0x81
-			bool F19 : 1;               // VK_F19, 0x82
-			bool F20 : 1;               // VK_F20, 0x83
-			bool F21 : 1;               // VK_F21, 0x84
-			bool F22 : 1;               // VK_F22, 0x85
-			bool F23 : 1;               // VK_F23, 0x86
-			bool F24 : 1;               // VK_F24, 0x87
-			bool Reserved11 : 8;
-			bool NumLock : 1;           // VK_NUMLOCK, 0x90
-			bool Scroll : 1;            // VK_SCROLL, 0x91
-			bool Reserved12 : 6;
-			bool Reserved13 : 8;
-			bool LeftShift : 1;         // VK_LSHIFT, 0xA0
-			bool RightShift : 1;        // VK_RSHIFT, 0xA1
-			bool LeftControl : 1;       // VK_LCONTROL, 0xA2
-			bool RightControl : 1;      // VK_RCONTROL, 0xA3
-			bool LeftAlt : 1;           // VK_LMENU, 0xA4
-			bool RightAlt : 1;          // VK_RMENU, 0xA5
-			bool BrowserBack : 1;       // VK_BROWSER_BACK, 0xA6
-			bool BrowserForward : 1;    // VK_BROWSER_FORWARD, 0xA7
-			bool BrowserRefresh : 1;    // VK_BROWSER_REFRESH, 0xA8
-			bool BrowserStop : 1;       // VK_BROWSER_STOP, 0xA9
-			bool BrowserSearch : 1;     // VK_BROWSER_SEARCH, 0xAA
-			bool BrowserFavorites : 1;  // VK_BROWSER_FAVORITES, 0xAB
-			bool BrowserHome : 1;       // VK_BROWSER_HOME, 0xAC
-			bool VolumeMute : 1;        // VK_VOLUME_MUTE, 0xAD
-			bool VolumeDown : 1;        // VK_VOLUME_DOWN, 0xAE
-			bool VolumeUp : 1;          // VK_VOLUME_UP, 0xAF
-			bool MediaNextTrack : 1;    // VK_MEDIA_NEXT_TRACK, 0xB0
-			bool MediaPreviousTrack : 1;// VK_MEDIA_PREV_TRACK, 0xB1
-			bool MediaStop : 1;         // VK_MEDIA_STOP, 0xB2
-			bool MediaPlayPause : 1;    // VK_MEDIA_PLAY_PAUSE, 0xB3
-			bool LaunchMail : 1;        // VK_LAUNCH_MAIL, 0xB4
-			bool SelectMedia : 1;       // VK_LAUNCH_MEDIA_SELECT, 0xB5
-			bool LaunchApplication1 : 1;// VK_LAUNCH_APP1, 0xB6
-			bool LaunchApplication2 : 1;// VK_LAUNCH_APP2, 0xB7
-			bool Reserved14 : 2;
-			bool OemSemicolon : 1;      // VK_OEM_1, 0xBA
-			bool OemPlus : 1;           // VK_OEM_PLUS, 0xBB
-			bool OemComma : 1;          // VK_OEM_COMMA, 0xBC
-			bool OemMinus : 1;          // VK_OEM_MINUS, 0xBD
-			bool OemPeriod : 1;         // VK_OEM_PERIOD, 0xBE
-			bool OemQuestion : 1;       // VK_OEM_2, 0xBF
-			bool OemTilde : 1;          // VK_OEM_3, 0xC0
-			bool Reserved15 : 7;
-			bool Reserved16 : 8;
-			bool Reserved17 : 8;
-			bool Reserved18 : 3;
-			bool OemOpenBrackets : 1;   // VK_OEM_4, 0xDB
-			bool OemPipe : 1;           // VK_OEM_5, 0xDC
-			bool OemCloseBrackets : 1;  // VK_OEM_6, 0xDD
-			bool OemQuotes : 1;         // VK_OEM_7, 0xDE
-			bool Oem8 : 1;              // VK_OEM_8, 0xDF
-			bool Reserved19 : 2;
-			bool OemBackslash : 1;      // VK_OEM_102, 0xE2
-			bool Reserved20 : 2;
-			bool ProcessKey : 1;        // VK_PROCESSKEY, 0xE5
-			bool Reserved21 : 2;
-			bool Reserved22 : 8;
-			bool Reserved23 : 2;
-			bool OemCopy : 1;           // 0XF2
-			bool OemAuto : 1;           // 0xF3
-			bool OemEnlW : 1;           // 0xF4
-			bool Reserved24 : 1;
-			bool Attn : 1;              // VK_ATTN, 0xF6
-			bool Crsel : 1;             // VK_CRSEL, 0xF7
-			bool Exsel : 1;             // VK_EXSEL, 0xF8
-			bool EraseEof : 1;          // VK_EREOF, 0xF9
-			bool Play : 1;              // VK_PLAY, 0xFA
-			bool Zoom : 1;              // VK_ZOOM, 0xFB
-			bool Reserved25 : 1;
-			bool Pa1 : 1;               // VK_PA1, 0xFD
-			bool OemClear : 1;          // VK_OEM_CLEAR, 0xFE
-			bool Reserved26 : 1;
+			bool help : 1;              // VK_HELP, 0x2F
+			bool d0 : 1;                // 0x30
+			bool d1 : 1;                // 0x31
+			bool d2 : 1;                // 0x32
+			bool d3 : 1;                // 0x33
+			bool d4 : 1;                // 0x34
+			bool d5 : 1;                // 0x35
+			bool d6 : 1;                // 0x36
+			bool d7 : 1;                // 0x37
+			bool d8 : 1;                // 0x38
+			bool d9 : 1;                // 0x39
+			
+			bool reserved8 : 6;
+			bool reserved9 : 1;
+			
+			bool a : 1;                 // 0x41
+			bool b : 1;                 // 0x42
+			bool c : 1;                 // 0x43
+			bool d : 1;                 // 0x44
+			bool e : 1;                 // 0x45
+			bool f : 1;                 // 0x46
+			bool g : 1;                 // 0x47
+			bool h : 1;                 // 0x48
+			bool i : 1;                 // 0x49
+			bool j : 1;                 // 0x4A
+			bool k : 1;                 // 0x4B
+			bool l : 1;                 // 0x4C
+			bool m : 1;                 // 0x4D
+			bool n : 1;                 // 0x4E
+			bool o : 1;                 // 0x4F
+			bool p : 1;                 // 0x50
+			bool q : 1;                 // 0x51
+			bool r : 1;                 // 0x52
+			bool s : 1;                 // 0x53
+			bool t : 1;                 // 0x54
+			bool u : 1;                 // 0x55
+			bool v : 1;                 // 0x56
+			bool w : 1;                 // 0x57
+			bool x : 1;                 // 0x58
+			bool y : 1;                 // 0x59
+			bool z : 1;                 // 0x5A
+			bool leftWindows : 1;       // VK_LWIN, 0x5B
+			bool rightWindows : 1;      // VK_RWIN, 0x5C
+			bool apps : 1;              // VK_APPS, 0x5D
+			
+			bool reserved10 : 1;
+			
+			bool sleep : 1;             // VK_SLEEP, 0x5F
+			bool numPad0 : 1;           // VK_NUMPAD0, 0x60
+			bool numPad1 : 1;           // VK_NUMPAD1, 0x61
+			bool numPad2 : 1;           // VK_NUMPAD2, 0x62
+			bool numPad3 : 1;           // VK_NUMPAD3, 0x63
+			bool numPad4 : 1;           // VK_NUMPAD4, 0x64
+			bool numPad5 : 1;           // VK_NUMPAD5, 0x65
+			bool numPad6 : 1;           // VK_NUMPAD6, 0x66
+			bool numPad7 : 1;           // VK_NUMPAD7, 0x67
+			bool numPad8 : 1;           // VK_NUMPAD8, 0x68
+			bool numPad9 : 1;           // VK_NUMPAD9, 0x69
+			bool multiply : 1;          // VK_MULTIPLY, 0x6A
+			bool add : 1;               // VK_ADD, 0x6B
+			bool separator : 1;         // VK_SEPARATOR, 0x6C
+			bool subtract : 1;          // VK_SUBTRACT, 0x6D
+			bool decimal : 1;           // VK_DECIMAL, 0x6E
+			bool divide : 1;            // VK_DIVIDE, 0x6F
+			bool f1 : 1;                // VK_F1, 0x70
+			bool f2 : 1;                // VK_F2, 0x71
+			bool f3 : 1;                // VK_F3, 0x72
+			bool f4 : 1;                // VK_F4, 0x73
+			bool f5 : 1;                // VK_F5, 0x74
+			bool f6 : 1;                // VK_F6, 0x75
+			bool f7 : 1;                // VK_F7, 0x76
+			bool f8 : 1;                // VK_F8, 0x77
+			bool f9 : 1;                // VK_F9, 0x78
+			bool f10 : 1;               // VK_F10, 0x79
+			bool f11 : 1;               // VK_F11, 0x7A
+			bool f12 : 1;               // VK_F12, 0x7B
+			bool f13 : 1;               // VK_F13, 0x7C
+			bool f14 : 1;               // VK_F14, 0x7D
+			bool f15 : 1;               // VK_F15, 0x7E
+			bool f16 : 1;               // VK_F16, 0x7F
+			bool f17 : 1;               // VK_F17, 0x80
+			bool f18 : 1;               // VK_F18, 0x81
+			bool f19 : 1;               // VK_F19, 0x82
+			bool f20 : 1;               // VK_F20, 0x83
+			bool f21 : 1;               // VK_F21, 0x84
+			bool f22 : 1;               // VK_F22, 0x85
+			bool f23 : 1;               // VK_F23, 0x86
+			bool f24 : 1;               // VK_F24, 0x87
+			
+			bool reserved11 : 8;
+			
+			bool numLock : 1;           // VK_NUMLOCK, 0x90
+			bool scroll : 1;            // VK_SCROLL, 0x91
+			
+			bool reserved12 : 6;
+			bool reserved13 : 8;
+			
+			bool leftShift : 1;         // VK_LSHIFT, 0xA0
+			bool rightShift : 1;        // VK_RSHIFT, 0xA1
+			bool leftControl : 1;       // VK_LCONTROL, 0xA2
+			bool rightControl : 1;      // VK_RCONTROL, 0xA3
+			bool leftAlt : 1;           // VK_LMENU, 0xA4
+			bool rightAlt : 1;          // VK_RMENU, 0xA5
+			bool browserBack : 1;       // VK_BROWSER_BACK, 0xA6
+			bool browserForward : 1;    // VK_BROWSER_FORWARD, 0xA7
+			bool browserRefresh : 1;    // VK_BROWSER_REFRESH, 0xA8
+			bool browserStop : 1;       // VK_BROWSER_STOP, 0xA9
+			bool browserSearch : 1;     // VK_BROWSER_SEARCH, 0xAA
+			bool browserFavorites : 1;  // VK_BROWSER_FAVORITES, 0xAB
+			bool browserHome : 1;       // VK_BROWSER_HOME, 0xAC
+			bool volumeMute : 1;        // VK_VOLUME_MUTE, 0xAD
+			bool volumeDown : 1;        // VK_VOLUME_DOWN, 0xAE
+			bool volumeUp : 1;          // VK_VOLUME_UP, 0xAF
+			bool mediaNextTrack : 1;    // VK_MEDIA_NEXT_TRACK, 0xB0
+			bool mediaPreviousTrack : 1;// VK_MEDIA_PREV_TRACK, 0xB1
+			bool mediaStop : 1;         // VK_MEDIA_STOP, 0xB2
+			bool mediaPlayPause : 1;    // VK_MEDIA_PLAY_PAUSE, 0xB3
+			bool launchMail : 1;        // VK_LAUNCH_MAIL, 0xB4
+			bool selectMedia : 1;       // VK_LAUNCH_MEDIA_SELECT, 0xB5
+			bool launchApplication1 : 1;// VK_LAUNCH_APP1, 0xB6
+			bool launchApplication2 : 1;// VK_LAUNCH_APP2, 0xB7
+			
+			bool reserved14 : 2;
+			
+			bool oemSemicolon : 1;      // VK_OEM_1, 0xBA
+			bool oemPlus : 1;           // VK_OEM_PLUS, 0xBB
+			bool oemComma : 1;          // VK_OEM_COMMA, 0xBC
+			bool oemMinus : 1;          // VK_OEM_MINUS, 0xBD
+			bool oemPeriod : 1;         // VK_OEM_PERIOD, 0xBE
+			bool oemQuestion : 1;       // VK_OEM_2, 0xBF
+			bool oemTilde : 1;          // VK_OEM_3, 0xC0
+			
+			bool reserved15 : 7;
+			bool reserved16 : 8;
+			bool reserved17 : 8;
+			bool reserved18 : 3;
+			
+			bool oemOpenBrackets : 1;   // VK_OEM_4, 0xDB
+			bool oemPipe : 1;           // VK_OEM_5, 0xDC
+			bool oemCloseBrackets : 1;  // VK_OEM_6, 0xDD
+			bool oemQuotes : 1;         // VK_OEM_7, 0xDE
+			bool oem8 : 1;              // VK_OEM_8, 0xDF
+			
+			bool reserved19 : 2;
+			
+			bool oemBackslash : 1;      // VK_OEM_102, 0xE2
+			
+			bool reserved20 : 2;
+			
+			bool processKey : 1;        // VK_PROCESSKEY, 0xE5
+			
+			bool reserved21 : 2;
+			bool reserved22 : 8;
+			bool reserved23 : 2;
+			
+			bool oemCopy : 1;           // 0XF2
+			bool oemAuto : 1;           // 0xF3
+			bool oemEnlW : 1;           // 0xF4
+			
+			bool reserved24 : 1;
+			
+			bool attn : 1;              // VK_ATTN, 0xF6
+			bool crsel : 1;             // VK_CRSEL, 0xF7
+			bool exsel : 1;             // VK_EXSEL, 0xF8
+			bool eraseEof : 1;          // VK_EREOF, 0xF9
+			bool play : 1;              // VK_PLAY, 0xFA
+			bool zoom : 1;              // VK_ZOOM, 0xFB
+			
+			bool reserved25 : 1;
+			
+			bool pa1 : 1;               // VK_PA1, 0xFD
+			bool oemClear : 1;          // VK_OEM_CLEAR, 0xFE
+			
+			bool reserved26 : 1;
 
-			bool __cdecl IsKeyDown(Keys key) const
+			[[nodiscard]] bool __cdecl IsKeyDown(Keys key) const
 			{
-				if (key >= 0 && key <= 0xfe)
+				const auto localKey = static_cast<unsigned>(key);
+				if (localKey >= 0 && localKey <= 0xfe)
 				{
-					auto ptr = reinterpret_cast<const uint32_t*>(this);
-					unsigned int bf = 1u << (key & 0x1f);
-					return (ptr[(key >> 5)] & bf) != 0;
+					const unsigned int bf = 1u << (localKey & 0x1f);
+					const auto ptr = reinterpret_cast<const uint32_t*>(this);
+					
+					return (ptr[(localKey >> 5)] & bf) != 0;
 				}
 				return false;
 			}
 
-			bool __cdecl IsKeyUp(Keys key) const
+			[[nodiscard]] bool __cdecl IsKeyUp(Keys key) const
 			{
-				if (key >= 0 && key <= 0xfe)
+				const auto localKey = static_cast<unsigned>(key);
+				if (localKey >= 0 && localKey <= 0xfe)
 				{
-					auto ptr = reinterpret_cast<const uint32_t*>(this);
-					unsigned int bf = 1u << (key & 0x1f);
-					return (ptr[(key >> 5)] & bf) == 0;
+					const unsigned int bf = 1u << (localKey & 0x1f);
+					const auto ptr = reinterpret_cast<const uint32_t*>(this);
+					
+					return (ptr[(localKey >> 5)] & bf) == 0;
 				}
 				return false;
 			}
@@ -421,33 +476,33 @@ namespace DirectX
 		class KeyboardStateTracker
 		{
 		public:
-			State released;
-			State pressed;
+			State m_released;
+			State m_pressed;
 
 #pragma prefast(suppress: 26495, "Reset() performs the initialization")
-			KeyboardStateTracker() noexcept { Reset(); }
+			KeyboardStateTracker() noexcept { Reset(); }  // NOLINT(cppcoreguidelines-pro-type-member-init, hicpp-member-init)
 
 			void __cdecl Update(const State& state);
 
 			void __cdecl Reset() noexcept;
 
-			bool __cdecl IsKeyPressed(Keys key) const { return pressed.IsKeyDown(key); }
-			bool __cdecl IsKeyReleased(Keys key) const { return released.IsKeyDown(key); }
+			[[nodiscard]] bool __cdecl IsKeyPressed(const Keys key) const { return m_pressed.IsKeyDown(key); }
+			[[nodiscard]] bool __cdecl IsKeyReleased(const Keys key) const { return m_released.IsKeyDown(key); }
 
-			State __cdecl GetLastState() const { return lastState; }
+			[[nodiscard]] State __cdecl GetLastState() const { return m_lastState; }
 
-		public:
-			State lastState;
+		private:
+			State m_lastState;
 		};
 
 		// Retrieve the current state of the keyboard
-		State __cdecl GetState() const;
+		[[nodiscard]] State __cdecl GetState() const;
 
 		// Reset the keyboard state
-		void __cdecl Reset();
+		void __cdecl Reset() const;
 
 		// Feature detection
-		bool __cdecl IsConnected() const;
+		[[nodiscard]] bool __cdecl IsConnected() const;
 
 #if !defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP) && defined(WM_USER)
 		static void __cdecl ProcessMessage(UINT message, WPARAM wParam, LPARAM lParam);
@@ -460,6 +515,6 @@ namespace DirectX
 		// Private implementation.
 		class Impl;
 
-		std::unique_ptr<Impl> pImpl;
+		std::unique_ptr<Impl> m_pImpl;
 	};
 }

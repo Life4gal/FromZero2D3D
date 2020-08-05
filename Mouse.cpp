@@ -529,7 +529,7 @@ namespace
 	
 #ifdef BUTTONSTATE_USEMACRO
 	// 我很讨厌胶水宏,但是看上去我们好像没有什么好的办法将它消灭
-	#define UPDATE_BUTTON_STATE(field) field = static_cast<ButtonState>( ( !!state.field ) | ( ( !!state.field ^ !!lastState.field ) << 1 ) );
+	#define UPDATE_BUTTON_STATE(field) field = static_cast<ButtonState>( ( !!state.field ) | ( ( !!state.field ^ !!lastState.field ) << 1 ) ); //NOLINT(cppcoreguidelines-macro-usage)
 #endif
 	
 	/*

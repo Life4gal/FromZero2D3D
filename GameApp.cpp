@@ -15,7 +15,7 @@ GameApp::GameApp(HINSTANCE hInstance)
 	m_pShadowEffect(std::make_unique<ShadowEffect>()),
 	m_pSkyEffect(std::make_unique<SkyEffect>()),
 	m_pDebugEffect(std::make_unique<DebugEffect>()),
-	m_cameraMode(CameraMode::ThirdPerson)
+	m_cameraMode(CameraMode::THIRD_PERSON)
 {
 }
 
@@ -64,36 +64,12 @@ void GameApp::OnResize()
 	// 为D2D创建DXGI表面渲染目标
 	ComPtr<IDXGISurface> surface;
 	HR(m_pSwapChain->GetBuffer(0, __uuidof(IDXGISurface), reinterpret_cast<void**>(surface.GetAddressOf())));
-	/*
-		typedef struct D2D1_RENDER_TARGET_PROPERTIES
-		{
-		    D2D1_RENDER_TARGET_TYPE type;   // 渲染目标类型枚举值
-		    D2D1_PIXEL_FORMAT pixelFormat;  
-		    FLOAT dpiX;                     // X方向每英寸像素点数，设为0.0f使用默认DPI
-		    FLOAT dpiY;                     // Y方向每英寸像素点数，设为0.0f使用默认DPI
-		    D2D1_RENDER_TARGET_USAGE usage; // 渲染目标用途枚举值
-		    D2D1_FEATURE_LEVEL minLevel;    // D2D最小特性等级
 
-		} D2D1_RENDER_TARGET_PROPERTIES;
-
-		typedef struct D2D1_PIXEL_FORMAT
-		{
-		    DXGI_FORMAT format;             // DXGI格式
-		    D2D1_ALPHA_MODE alphaMode;      // 混合模式
-
-		} D2D1_PIXEL_FORMAT;
-	 */
 	D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
 		D2D1_RENDER_TARGET_TYPE_DEFAULT,
 		D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
 	);
-	/*
-		HRESULT ID2D1Factory::CreateDxgiSurfaceRenderTarget(
-		    IDXGISurface *dxgiSurface,          // [In]DXGI表面
-		    const D2D1_RENDER_TARGET_PROPERTIES *renderTargetProperties,    // [In]D2D渲染目标属性
-		    ID2D1RenderTarget **renderTarget    // [Out]得到的D2D渲染目标
-		);
-	 */
+
 	const HRESULT hr = m_pd2dFactory->CreateDxgiSurfaceRenderTarget(surface.Get(), &props, m_pd2dRenderTarget.GetAddressOf());
 	surface.Reset();
 
@@ -109,40 +85,11 @@ void GameApp::OnResize()
 	}
 	else if (hr == S_OK)
 	{
-		// 创建固定颜色刷和文本格式
-		/*
-			HRESULT ID2D1RenderTarget::CreateSolidColorBrush(
-			    const D2D1_COLOR_F &color,  // [In]颜色
-			    ID2D1SolidColorBrush **solidColorBrush // [Out]输出的颜色刷
-			);
-
-			这里会默认指定Alpha值为1.0
-			D2D1_COLOR_F是一个包含r,g,b,a浮点数的结构体，
-			但其实还有一种办法可以指定颜色，
-			就是利用它的继承类D2D1::ColorF中的构造函数，
-			以及D2D1::ColorF::Enum枚举类型来指定要使用的颜色
-		 */
 		HR(m_pd2dRenderTarget->CreateSolidColorBrush(
 			D2D1::ColorF(D2D1::ColorF::White),
 			m_pColorBrush.GetAddressOf())
 		);
-		/*
-			HRESULT IDWriteFactory::CreateTextFormat(
-			    const WCHAR * fontFamilyName,           // [In]字体系列名称
-			    IDWriteFontCollection * fontCollection, // [In]通常用nullptr来表示使用系统字体集合 
-			    DWRITE_FONT_WEIGHT  fontWeight,         // [In]字体粗细程度枚举值
-			    DWRITE_FONT_STYLE  fontStyle,           // [In]字体样式枚举值
-			    DWRITE_FONT_STRETCH  fontStretch,       // [In]字体拉伸程度枚举值
-			    FLOAT  fontSize,                        // [In]字体大小
-			    const WCHAR * localeName,               // [In]区域名称
-			    IDWriteTextFormat ** textFormat);       // [Out]创建的文本格式
-
-			字体样式如下：
-				枚举值						样式
-				DWRITE_FONT_STYLE_NORMAL	默认
-				DWRITE_FONT_STYLE_OBLIQUE	斜体
-				DWRITE_FONT_STYLE_ITALIC	意大利体
-		*/
+		
 		HR(m_pdwriteFactory->CreateTextFormat(L"微软雅黑", nullptr, DWRITE_FONT_WEIGHT_NORMAL,
 			DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 20, L"zh-cn",
 			m_pTextFormat.GetAddressOf())
@@ -176,50 +123,50 @@ void GameApp::UpdateScene(const float dt)
 	{
 		// 第一人称或者第三人称按住左CTRL键才能移动玩家
 		// 操作玩家需要长按操作键,所以我们使用 keyState.IsKeyDown() 而不是 m_keyboardTracker.IsKeyPressed()
-		if (m_cameraMode == CameraMode::FIRST_PERSON || m_cameraMode == CameraMode::ThirdPerson && keyState.IsKeyDown(Keyboard::LeftControl))
+		if (m_cameraMode == CameraMode::FIRST_PERSON || m_cameraMode == CameraMode::THIRD_PERSON && keyState.IsKeyDown(Keyboard::Keys::LEFT_CONTROL))
 		{
-			if (keyState.IsKeyDown(Keyboard::W))
+			if (keyState.IsKeyDown(Keyboard::Keys::W))
 			{
 				m_player.Walk(dt * 6.0f);
 			}
-			if (keyState.IsKeyDown(Keyboard::S))
+			if (keyState.IsKeyDown(Keyboard::Keys::S))
 			{
 				m_player.Walk(dt * -6.0f);
 			}
-			if (keyState.IsKeyDown(Keyboard::A))
+			if (keyState.IsKeyDown(Keyboard::Keys::A))
 			{
 				m_player.Strafe(dt * -6.0f);
 			}
-			if (keyState.IsKeyDown(Keyboard::D))
+			if (keyState.IsKeyDown(Keyboard::Keys::D))
 			{
 				m_player.Strafe(dt * 6.0f);
 			}
-			if (keyState.IsKeyDown(Keyboard::Q))
+			if (keyState.IsKeyDown(Keyboard::Keys::Q))
 			{
 				m_player.Turn(dt * -6.0f);
 			}
-			if (keyState.IsKeyDown(Keyboard::E))
+			if (keyState.IsKeyDown(Keyboard::Keys::E))
 			{
 				m_player.Turn(dt * 6.0f);
 			}
 		}
-		else if (m_cameraMode == CameraMode::Free)
+		else if (m_cameraMode == CameraMode::FREE)
 		{
 			auto firstPersonCamera = std::dynamic_pointer_cast<FirstPersonCamera>(m_pCamera);
 
-			if (keyState.IsKeyDown(Keyboard::W))
+			if (keyState.IsKeyDown(Keyboard::Keys::W))
 			{
 				firstPersonCamera->MoveForward(dt * 6.0f);
 			}
-			if (keyState.IsKeyDown(Keyboard::S))
+			if (keyState.IsKeyDown(Keyboard::Keys::S))
 			{
 				firstPersonCamera->MoveForward(dt * -6.0f);
 			}
-			if (keyState.IsKeyDown(Keyboard::A))
+			if (keyState.IsKeyDown(Keyboard::Keys::A))
 			{
 				firstPersonCamera->Strafe(dt * -6.0f);
 			}
-			if (keyState.IsKeyDown(Keyboard::D))
+			if (keyState.IsKeyDown(Keyboard::Keys::D))
 			{
 				firstPersonCamera->Strafe(dt * 6.0f);
 			}
@@ -228,7 +175,7 @@ void GameApp::UpdateScene(const float dt)
 			firstPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
 
 			// 只有在自由模式下我们允许鼠标切换为绝对模式以使用IMGUI
-			if(m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
+			if(m_keyboardTracker.IsKeyPressed(Keyboard::Keys::LEFT_CONTROL))
 			{
 				m_pMouse->SetMode(Mouse::Mode::MODE_ABSOLUTE);
 				ImguiPanel::SetPanelCanUseKBandMouse(true);
@@ -245,11 +192,11 @@ void GameApp::UpdateScene(const float dt)
 
 			// 第一人称摄像机距物体中心偏一点
 			const XMFLOAT3 position = m_player.GetPosition();
-			firstPersonCamera->SetPosition(position.x, position.y + 2.5f, position.z + 1.5f);
+			firstPersonCamera->SetPosition(position.x, position.y + 3.5f, position.z);
 			firstPersonCamera->Pitch(static_cast<float>(mouseState.y) * dt * 2.5f);
 			firstPersonCamera->RotateY(static_cast<float>(mouseState.x) * dt * 2.5f);
 		}
-		else if (m_cameraMode == CameraMode::ThirdPerson)
+		else if (m_cameraMode == CameraMode::THIRD_PERSON)
 		{
 			auto thirdPersonCamera = std::dynamic_pointer_cast<ThirdPersonCamera>(m_pCamera);
 
@@ -262,10 +209,10 @@ void GameApp::UpdateScene(const float dt)
 		}
 
 		// 摄像机模式切换
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::D8))
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::Keys::D8))
 		{
 			// 从第三人称或者从自由视角切换过来才要变
-			if (m_cameraMode == CameraMode::ThirdPerson || m_cameraMode == CameraMode::Free)
+			if (m_cameraMode == CameraMode::THIRD_PERSON || m_cameraMode == CameraMode::FREE)
 			{
 				// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
 				const XMVECTOR look = m_pCamera->GetForwardAxisVector();
@@ -286,16 +233,16 @@ void GameApp::UpdateScene(const float dt)
 				);
 			}
 
-			if (m_cameraMode == CameraMode::ThirdPerson)
+			if (m_cameraMode == CameraMode::THIRD_PERSON)
 			{
 				m_cameraMode = CameraMode::FIRST_PERSON;
 			}
 			else
 			{
-				m_cameraMode = m_cameraMode != CameraMode::FIRST_PERSON ? CameraMode::FIRST_PERSON : CameraMode::Free;
+				m_cameraMode = m_cameraMode != CameraMode::FIRST_PERSON ? CameraMode::FIRST_PERSON : CameraMode::FREE;
 			}
 		}
-		else if (m_keyboardTracker.IsKeyPressed(Keyboard::D9) && m_cameraMode != CameraMode::ThirdPerson)
+		else if (m_keyboardTracker.IsKeyPressed(Keyboard::Keys::D9) && m_cameraMode != CameraMode::THIRD_PERSON)
 		{
 			// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
 			const XMVECTOR look = m_pCamera->GetForwardAxisVector();
@@ -313,7 +260,7 @@ void GameApp::UpdateScene(const float dt)
 			thirdPersonCamera->SetDistance(8.0f);
 			thirdPersonCamera->SetDistanceMinMax(3.0f, 20.0f);
 
-			m_cameraMode = CameraMode::ThirdPerson;
+			m_cameraMode = CameraMode::THIRD_PERSON;
 		}
 
 		// 更新观察矩阵
@@ -325,14 +272,14 @@ void GameApp::UpdateScene(const float dt)
 	{
 		// 只有在自由视角才能切换为绝对模式
 		// 在绝对模式下按左CTRL键切换为相对模式
-		if (m_keyboardTracker.IsKeyPressed(Keyboard::LeftControl))
+		if (m_keyboardTracker.IsKeyPressed(Keyboard::Keys::LEFT_CONTROL))
 		{
 			m_pMouse->SetMode(Mouse::Mode::MODE_RELATIVE);
 			ImguiPanel::SetPanelCanUseKBandMouse(false);
 		}
 		// TODO 鼠标在窗口之外也是绝对模式,我们需要另外的判断
 		// 暂时我们只能先设置为切换为自由模式
-		if(m_cameraMode != CameraMode::Free)
+		if(m_cameraMode != CameraMode::FREE)
 		{
 			// 先保存摄像机之前的方向,这样子切换视角不会导致摄像机方向变化
 			const XMVECTOR look = m_pCamera->GetForwardAxisVector();
@@ -352,7 +299,7 @@ void GameApp::UpdateScene(const float dt)
 				up
 			);
 
-			m_cameraMode = CameraMode::Free;
+			m_cameraMode = CameraMode::FREE;
 		}
 	}
 
@@ -382,13 +329,11 @@ void GameApp::UpdateScene(const float dt)
 
 	for (int i = 0; i < 3; ++i)
 	{
-		XMVECTOR dirVec = XMLoadFloat3(&m_originalLightDirs[i]);
-		dirVec = XMVector3Transform(dirVec, XMMatrixRotationY(theta));
-		XMStoreFloat3(&m_dirLights[i].direction, dirVec);
+		XMStoreFloat3(&m_dirLights[i].direction, XMVector3Transform(XMLoadFloat3(&m_originalLightDirs[i]), XMMatrixRotationY(theta)));
+		
 		m_pBasicEffect->SetDirLight(i, m_dirLights[i]);
 	}
 
-	//
 	// 投影区域为正方体，以原点为中心，以方向光为+Z朝向
 	const XMMATRIX lightView = XMMatrixLookAtLH(XMLoadFloat3(&m_dirLights[0].direction) * 20.0f * -2.0f, g_XMZero, g_XMIdentityR1);
 	m_pShadowEffect->SetViewMatrix(lightView);
@@ -408,7 +353,7 @@ void GameApp::UpdateScene(const float dt)
 	m_pMouse->ResetScrollWheelValue();
 	
 	// 退出程序，这里应向窗口发送销毁信息
-	if (m_keyboardTracker.IsKeyPressed(Keyboard::Escape))
+	if (m_keyboardTracker.IsKeyPressed(Keyboard::Keys::ESCAPE))
 	{
 		SendMessage(MainWnd(), WM_DESTROY, 0, 0);
 	}
@@ -483,7 +428,7 @@ void GameApp::DrawScene()
 		case CameraMode::FIRST_PERSON:
 			text += L"第一人称";
 			break;
-		case CameraMode::ThirdPerson:
+		case CameraMode::THIRD_PERSON:
 			text += L"第三人称";
 			break;
 		default:

@@ -86,7 +86,11 @@ void ImguiPanel::Draw()
 	if(*g_enableDebug)
 	{
 		static const char* grayModeItem[] = { "灰度", "单通道" };
-		ImGui::Combo("色显示", reinterpret_cast<int*>(g_grayMode), grayModeItem, 2);
+		// true -> 1 , false -> 0
+		static int grayMode = *g_grayMode;
+		// TODO 之前直接使用 reinterpret_cast<int*>(g_grayMode) 造成越界修改到了 g_slopeIndex 的值(将 g_grayMode 置为0(false)时会将 g_slopeIndex 也修改为0(方向光斜率变为1.0))
+		ImGui::Combo("色显示", &grayMode, grayModeItem, 2);
+		*g_grayMode = grayMode;
 	}
 
 

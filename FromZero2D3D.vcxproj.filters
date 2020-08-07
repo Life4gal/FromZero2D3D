@@ -77,249 +77,249 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="d3dApp.h">
+    <ClInclude Include="Src\d3dApp.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GameApp.h">
+    <ClInclude Include="Src\GameApp.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h">
+    <ClInclude Include="Src\Vertex.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DDSTextureLoader.h">
+    <ClInclude Include="Src\DDSTextureLoader.h">
       <Filter>通用文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Mouse.h">
+    <ClInclude Include="Src\Mouse.h">
       <Filter>通用文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Keyboard.h">
+    <ClInclude Include="Src\Keyboard.h">
       <Filter>通用文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="WICTextureLoader.h">
+    <ClInclude Include="Src\WICTextureLoader.h">
       <Filter>通用文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imgui.h">
+    <ClInclude Include="Src\ImGui\imgui.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imconfig.h">
+    <ClInclude Include="Src\ImGui\imconfig.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imstb_textedit.h">
+    <ClInclude Include="Src\ImGui\imstb_textedit.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imgui_internal.h">
+    <ClInclude Include="Src\ImGui\imgui_internal.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imstb_rectpack.h">
+    <ClInclude Include="Src\ImGui\imstb_rectpack.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imstb_truetype.h">
+    <ClInclude Include="Src\ImGui\imstb_truetype.h">
       <Filter>ImGui\ImGuiInternal\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Geometry.h">
+    <ClInclude Include="Src\Geometry.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="LightHelper.h">
+    <ClInclude Include="Src\LightHelper.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="Src\Camera.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ImguiPanel.h">
+    <ClInclude Include="Src\ImguiPanel.h">
       <Filter>ImGui\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
+    <ClInclude Include="Src\Model.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ObjReader.h">
+    <ClInclude Include="Src\ObjReader.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
+    <ClInclude Include="Src\GameObject.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="BasicTransform.h">
+    <ClInclude Include="Src\BasicTransform.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Collision.h">
+    <ClInclude Include="Src\Collision.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="RelatedTransform.h">
+    <ClInclude Include="Src\RelatedTransform.h">
       <Filter>废弃的</Filter>
     </ClInclude>
-    <ClInclude Include="ScreenFadeEffect.h">
+    <ClInclude Include="Src\ScreenFadeEffect.h">
       <Filter>废弃的</Filter>
     </ClInclude>
-    <ClInclude Include="MinimapEffect.h">
+    <ClInclude Include="Src\MinimapEffect.h">
       <Filter>废弃的</Filter>
     </ClInclude>
-    <ClInclude Include="ScreenGrab.h">
+    <ClInclude Include="Src\ScreenGrab.h">
       <Filter>模块文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Tank.h">
+    <ClInclude Include="Src\Tank.h">
       <Filter>废弃的</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
+    <ClInclude Include="Src\Player.h">
       <Filter>玩家</Filter>
     </ClInclude>
-    <ClInclude Include="TankStructureHelper.h">
+    <ClInclude Include="Src\TankStructureHelper.h">
       <Filter>玩家</Filter>
     </ClInclude>
-    <ClInclude Include="NormalTank.h">
+    <ClInclude Include="Src\NormalTank.h">
       <Filter>玩家</Filter>
     </ClInclude>
-    <ClInclude Include="BasicEffect.h">
+    <ClInclude Include="Src\BasicEffect.h">
       <Filter>特效文件\Effect\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DebugEffect.h">
+    <ClInclude Include="Src\DebugEffect.h">
       <Filter>特效文件\Effect\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Effect.h">
+    <ClInclude Include="Src\Effect.h">
       <Filter>特效文件\Effect\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="EffectHelper.h">
+    <ClInclude Include="Src\EffectHelper.h">
       <Filter>特效文件\Effect\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowEffect.h">
+    <ClInclude Include="Src\ShadowEffect.h">
       <Filter>特效文件\Effect\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Render.h">
+    <ClInclude Include="Src\Render.h">
       <Filter>特效文件\Render\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="RenderStates.h">
+    <ClInclude Include="Src\RenderStates.h">
       <Filter>特效文件\Render\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SkyRender.h">
+    <ClInclude Include="Src\SkyRender.h">
       <Filter>特效文件\Render\源文件</Filter>
     </ClInclude>
-    <ClInclude Include="SkyEffect.h">
+    <ClInclude Include="Src\SkyEffect.h">
       <Filter>特效文件\Effect\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="TextureRender.h">
+    <ClInclude Include="Src\TextureRender.h">
       <Filter>特效文件\Render\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ImGui\imgui_impl_dx11.h">
+    <ClInclude Include="Src\ImGui\imgui_impl_dx11.h">
       <Filter>ImGui\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GameTimer.h">
+    <ClInclude Include="Src\GameTimer.h">
       <Filter>通用文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="d3dUtil.h">
+    <ClInclude Include="Src\d3dUtil.h">
       <Filter>通用文件\头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DXTrace.h">
+    <ClInclude Include="Src\DXTrace.h">
       <Filter>通用文件\头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
+    <ClCompile Include="Src\Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GameApp.cpp">
+    <ClCompile Include="Src\GameApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="d3dApp.cpp">
+    <ClCompile Include="Src\d3dApp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Vertex.cpp">
+    <ClCompile Include="Src\Vertex.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DDSTextureLoader.cpp">
+    <ClCompile Include="Src\DDSTextureLoader.cpp">
       <Filter>通用文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Keyboard.cpp">
+    <ClCompile Include="Src\Keyboard.cpp">
       <Filter>通用文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Mouse.cpp">
+    <ClCompile Include="Src\Mouse.cpp">
       <Filter>通用文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="WICTextureLoader.cpp">
+    <ClCompile Include="Src\WICTextureLoader.cpp">
       <Filter>通用文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui.cpp">
+    <ClCompile Include="Src\ImGui\imgui.cpp">
       <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui_draw.cpp">
+    <ClCompile Include="Src\ImGui\imgui_draw.cpp">
       <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui_widgets.cpp">
+    <ClCompile Include="Src\ImGui\imgui_widgets.cpp">
       <Filter>ImGui\ImGuiInternal\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="Src\Camera.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ImguiPanel.cpp">
+    <ClCompile Include="Src\ImguiPanel.cpp">
       <Filter>ImGui\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ObjReader.cpp">
+    <ClCompile Include="Src\ObjReader.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
+    <ClCompile Include="Src\Model.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
+    <ClCompile Include="Src\GameObject.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="BasicTransform.cpp">
+    <ClCompile Include="Src\BasicTransform.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Collision.cpp">
+    <ClCompile Include="Src\Collision.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="RelatedTransform.cpp">
+    <ClCompile Include="Src\RelatedTransform.cpp">
       <Filter>废弃的</Filter>
     </ClCompile>
-    <ClCompile Include="ScreenFadeEffect.cpp">
+    <ClCompile Include="Src\ScreenFadeEffect.cpp">
       <Filter>废弃的</Filter>
     </ClCompile>
-    <ClCompile Include="MinimapEffect.cpp">
+    <ClCompile Include="Src\MinimapEffect.cpp">
       <Filter>废弃的</Filter>
     </ClCompile>
-    <ClCompile Include="ScreenGrab.cpp">
+    <ClCompile Include="Src\ScreenGrab.cpp">
       <Filter>模块文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Tank.cpp">
+    <ClCompile Include="Src\Tank.cpp">
       <Filter>废弃的</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
+    <ClCompile Include="Src\Player.cpp">
       <Filter>玩家</Filter>
     </ClCompile>
-    <ClCompile Include="NormalTank.cpp">
+    <ClCompile Include="Src\NormalTank.cpp">
       <Filter>玩家</Filter>
     </ClCompile>
-    <ClCompile Include="BasicEffect.cpp">
+    <ClCompile Include="Src\BasicEffect.cpp">
       <Filter>特效文件\Effect\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DebugEffect.cpp">
+    <ClCompile Include="Src\DebugEffect.cpp">
       <Filter>特效文件\Effect\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="EffectHelper.cpp">
+    <ClCompile Include="Src\EffectHelper.cpp">
       <Filter>特效文件\Effect\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ShadowEffect.cpp">
+    <ClCompile Include="Src\ShadowEffect.cpp">
       <Filter>特效文件\Effect\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SkyEffect.cpp">
+    <ClCompile Include="Src\SkyEffect.cpp">
       <Filter>特效文件\Effect\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="RenderStates.cpp">
+    <ClCompile Include="Src\RenderStates.cpp">
       <Filter>特效文件\Render\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SkyRender.cpp">
+    <ClCompile Include="Src\SkyRender.cpp">
       <Filter>特效文件\Render\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="TextureRender.cpp">
+    <ClCompile Include="Src\TextureRender.cpp">
       <Filter>特效文件\Render\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
+    <ClCompile Include="Src\ImGui\imgui_impl_dx11.cpp">
       <Filter>ImGui\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GameTimer.cpp">
+    <ClCompile Include="Src\GameTimer.cpp">
       <Filter>通用文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="d3dUtil.cpp">
+    <ClCompile Include="Src\d3dUtil.cpp">
       <Filter>通用文件\源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DXTrace.cpp">
+    <ClCompile Include="Src\DXTrace.cpp">
       <Filter>通用文件\源文件</Filter>
     </ClCompile>
   </ItemGroup>

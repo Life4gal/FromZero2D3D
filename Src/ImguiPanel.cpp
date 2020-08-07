@@ -110,7 +110,7 @@ LRESULT ImguiPanel::ImGuiWndProc(HWND hWnd, const UINT msg, const WPARAM wParam,
 	if (ImGui::GetCurrentContext() == nullptr)
 		return 0;
 
-	// g_isImGuiCanUseKBandMouse是false的,而可以改变他的地方必定是在 ImGui::NewFrame() 之后,
+	// g_isImGuiCanUseKBandMouse默认是false的,而可以改变他的地方必定是在 ImGui::NewFrame() 之后,
 	// 此时调用 ImGui::IsAnyWindowHovered() 或 ImGui::IsAnyItemHovered() 是安全的
 	// TODO 不论是单独的 !ImGui::IsAnyWindowHovered() 还是 !ImGui::IsAnyItemHovered() 都有问题
 	// 前者不能响应点击物件,后者不能响应拖动窗体,一起用才行
